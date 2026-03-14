@@ -1,13 +1,34 @@
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { GenerationMode } from "./ConfigSidebar";
 
 interface Props {
   script: string;
   isGenerating: boolean;
+  mode: GenerationMode;
+  className?: string;
 }
 
-export default function ScriptOutput({ script, isGenerating }: Props) {
-  // Highlight [Variable] patterns
+const MODE_EMPTY: Record<GenerationMode, { title: string; subtitle: string }> = {
+  script: {
+    title: "Stop pitching. Start closing.",
+    subtitle: "Настрой параметры, выбери ситуацию и нажми «Сгенерировать скрипт».",
+  },
+  "service-info": {
+    title: "Знай свой продукт.",
+    subtitle: "Выбери услугу и получи полный разбор: что входит, какой результат, какие сроки.",
+  },
+  arguments: {
+    title: "Факты побеждают.",
+    subtitle: "Получи готовые аргументы, факты и выгоды для убеждения клиента.",
+  },
+  "buffer-questions": {
+    title: "Правильный вопрос — половина продажи.",
+    subtitle: "Получи вопросы для выявления потребностей, болей и готовности клиента.",
+  },
+};
+
+export default function ScriptOutput({ script, isGenerating, mode, className }: Props) {
   const rendered = useMemo(() => {
     if (!script) return null;
     const parts = script.split(/(\[[^\]]+\])/g);
@@ -20,10 +41,12 @@ export default function ScriptOutput({ script, isGenerating }: Props) {
     );
   }, [script]);
 
+  const empty = MODE_EMPTY[mode];
+
   return (
-    <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <main className={`flex-1 flex flex-col min-w-0 overflow-hidden ${className || ""}`}>
       {/* Header */}
-      <div className="border-b border-border px-8 py-4 flex items-center justify-between shrink-0">
+      <div className="border-b border-border px-6 md:px-8 py-4 flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">ScriptEngine</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Stop pitching. Start closing.</p>
@@ -46,7 +69,7 @@ export default function ScriptOutput({ script, isGenerating }: Props) {
       )}
 
       {/* Script Area */}
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-6 md:p-8">
         <AnimatePresence mode="wait">
           {script ? (
             <motion.div
@@ -69,17 +92,20 @@ export default function ScriptOutput({ script, isGenerating }: Props) {
               animate={{ opacity: 1 }}
               className="h-full flex items-center justify-center"
             >
-              <div className="text-center max-w-md">
-                <div className="text-4xl font-semibold tracking-tight mb-3 text-foreground">
-                  Stop pitching.
-                  <br />
-                  <span className="text-primary">Start closing.</span>
+              <div className="text-center max-w-md px-4">
+                <div className="text-3xl md:text-4xl font-semibold tracking-tight mb-3 text-foreground">
+                  {empty.title.includes("closing") ? (
+                    <>
+                      Stop pitching.
+                      <br />
+                      <span className="text-primary">Start closing.</span>
+                    </>
+                  ) : (
+                    <span className="text-primary">{empty.title}</span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Настрой параметры слева, выбери ситуацию и нажми
-                  «Сгенерировать скрипт». Переменные{" "}
-                  <span className="variable-tag">[Имя клиента]</span> останутся
-                  в тексте для быстрой персонализации.
+                  {empty.subtitle}
                 </p>
               </div>
             </motion.div>
