@@ -86,6 +86,6 @@ export default function ScriptOutput({ script, isGenerating }: Props) {
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </main>
   );
 }
