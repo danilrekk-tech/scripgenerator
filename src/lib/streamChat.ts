@@ -69,7 +69,6 @@ export async function streamScript({
     }
   }
 
-  // Final flush
   if (buffer.trim()) {
     for (let raw of buffer.split("\n")) {
       if (!raw) continue;

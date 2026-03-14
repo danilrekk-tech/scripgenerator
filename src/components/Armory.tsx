@@ -38,11 +38,12 @@ const OBJECTIONS = [
 interface Props {
   onSelect: (prompt: string) => void;
   isGenerating: boolean;
+  className?: string;
 }
 
-export default function Armory({ onSelect, isGenerating }: Props) {
+export default function Armory({ onSelect, isGenerating, className }: Props) {
   return (
-    <aside className="w-72 shrink-0 border-l border-border bg-card p-5 flex flex-col gap-4 overflow-y-auto">
+    <aside className={`w-72 shrink-0 border-l border-border bg-card p-5 flex flex-col gap-4 overflow-y-auto ${className || ""}`}>
       <div>
         <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
           Арсенал
