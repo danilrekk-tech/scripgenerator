@@ -1,11 +1,16 @@
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GenerationMode } from "./ConfigSidebar";
+import type { DisplaySettings } from "@/hooks/useDisplaySettings";
+import { FONT_FAMILIES } from "@/hooks/useDisplaySettings";
+import { parseStages, exportToHtml } from "@/lib/exportHtml";
+import { Download, Copy, ChevronRight } from "lucide-react";
 
 interface Props {
   script: string;
   isGenerating: boolean;
   mode: GenerationMode;
+  displaySettings: DisplaySettings;
   className?: string;
 }
 
@@ -32,10 +37,17 @@ const MODE_EMPTY: Record<GenerationMode, { title: string; subtitle: string }> = 
   },
 };
 
-export default function ScriptOutput({ script, isGenerating, mode, className }: Props) {
-  const rendered = useMemo(() => {
-    if (!script) return null;
-    const parts = script.split(/(\[[^\]]+\])/g);
+export default function ScriptOutput({ script, isGenerating, mode, displaySettings, className }: Props) {
+  const stages = useMemo(() => {
+    if (!script) return [];
+    return parseStages(script);
+  }, [script]);
+
+  const renderText = (text: string) => {
+    if (!displaySettings.highlightVariables) {
+      return <span>{text}</span>;
+    }
+    const parts = text.split(/(\[[^\]]+\])/g);
     return parts.map((part, i) =>
       part.startsWith("[") && part.endsWith("]") ? (
         <span key={i} className="variable-tag">{part}</span>
@@ -43,9 +55,16 @@ export default function ScriptOutput({ script, isGenerating, mode, className }: 
         <span key={i}>{part}</span>
       )
     );
-  }, [script]);
+  };
 
   const empty = MODE_EMPTY[mode];
+
+  const textStyle: React.CSSProperties = {
+    fontFamily: FONT_FAMILIES[displaySettings.fontFamily],
+    fontSize: `${displaySettings.fontSize}px`,
+    lineHeight: displaySettings.lineHeight,
+    letterSpacing: `${displaySettings.letterSpacing}em`,
+  };
 
   return (
     <main className={`flex-1 flex flex-col min-w-0 overflow-hidden ${className || ""}`}>
@@ -56,12 +75,22 @@ export default function ScriptOutput({ script, isGenerating, mode, className }: 
           <p className="text-xs text-muted-foreground mt-0.5">Stop pitching. Start closing.</p>
         </div>
         {script && (
-          <button
-            onClick={() => navigator.clipboard.writeText(script)}
-            className="text-xs px-3 py-1.5 rounded-sm border border-border bg-secondary text-secondary-foreground hover:border-primary/20 transition-all duration-200 btn-tactile"
-          >
-            Копировать
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigator.clipboard.writeText(script)}
+              className="text-xs px-3 py-1.5 rounded-sm border border-border bg-secondary text-secondary-foreground hover:border-primary/20 transition-all duration-200 btn-tactile flex items-center gap-1.5"
+            >
+              <Copy className="w-3 h-3" />
+              Копировать
+            </button>
+            <button
+              onClick={() => exportToHtml(script, displaySettings)}
+              className="text-xs px-3 py-1.5 rounded-sm border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 btn-tactile flex items-center gap-1.5"
+            >
+              <Download className="w-3 h-3" />
+              HTML
+            </button>
+          </div>
         )}
       </div>
 
@@ -82,12 +111,60 @@ export default function ScriptOutput({ script, isGenerating, mode, className }: 
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
-              className="max-w-[65ch] mx-auto"
+              style={{ maxWidth: `${displaySettings.maxWidth}ch` }}
+              className="mx-auto"
             >
-              <div className="script-mono text-sm leading-7 text-foreground whitespace-pre-wrap">
-                {rendered}
-                {isGenerating && <span className="cursor-blink" />}
-              </div>
+              {/* Mini stage nav */}
+              {displaySettings.showStageHeaders && stages.length > 1 && (
+                <div className="mb-6 pb-4 border-b border-border">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Этапы</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {stages.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          document.getElementById(`stage-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        className="text-[11px] px-2 py-1 rounded-sm border border-border bg-secondary text-secondary-foreground hover:border-primary/30 hover:text-primary transition-all btn-tactile flex items-center gap-1"
+                      >
+                        <ChevronRight className="w-3 h-3" />
+                        {s.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Stages */}
+              {stages.map((stage, i) => (
+                <div
+                  key={i}
+                  id={`stage-${i}`}
+                  className="mb-2"
+                  style={{ marginBottom: `${displaySettings.paragraphSpacing}px` }}
+                >
+                  {displaySettings.showStageHeaders && stages.length > 1 && (
+                    <h2
+                      className="font-semibold text-primary mb-3 pb-2 border-b border-primary/10"
+                      style={{ fontSize: `${displaySettings.stageHeaderSize}px` }}
+                    >
+                      {stage.title}
+                    </h2>
+                  )}
+                  <div
+                    className={`text-foreground whitespace-pre-wrap ${
+                      displaySettings.scriptBgEnabled
+                        ? "bg-secondary/50 border border-border rounded-md p-4"
+                        : ""
+                    }`}
+                    style={textStyle}
+                  >
+                    {renderText(stage.content)}
+                  </div>
+                </div>
+              ))}
+
+              {isGenerating && <span className="cursor-blink" />}
             </motion.div>
           ) : (
             <motion.div
