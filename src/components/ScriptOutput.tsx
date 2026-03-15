@@ -26,6 +26,10 @@ const MODE_EMPTY: Record<GenerationMode, { title: string; subtitle: string }> = 
     title: "Правильный вопрос — половина продажи.",
     subtitle: "Получи вопросы для выявления потребностей, болей и готовности клиента.",
   },
+  "transcript-analysis": {
+    title: "Учись на реальных диалогах.",
+    subtitle: "Вставь транскрибацию разговора — получи анализ ошибок и идеальный скрипт.",
+  },
 };
 
 export default function ScriptOutput({ script, isGenerating, mode, className }: Props) {

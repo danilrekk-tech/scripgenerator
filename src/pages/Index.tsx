@@ -6,7 +6,7 @@ import Armory from "@/components/Armory";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Settings, Sun, Moon, Menu, FileText, Shield, MessageCircleQuestion } from "lucide-react";
+import { Settings, Sun, Moon, FileText, Shield } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
   managerName: "",
@@ -16,6 +16,9 @@ const defaultConfig: ScriptConfig = {
   tone: "Уверенный эксперт",
   context: "",
   mode: "script",
+  transcript: "",
+  priceRub: "",
+  currency: "RUB",
 };
 
 type MobileTab = "config" | "output" | "armory";
@@ -93,7 +96,6 @@ export default function Index() {
   // Mobile layout
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Mobile header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
         <h1 className="text-base font-semibold tracking-tight">ScriptEngine</h1>
         <button
@@ -104,7 +106,6 @@ export default function Index() {
         </button>
       </header>
 
-      {/* Mobile content */}
       <div className="flex-1 overflow-hidden">
         {mobileTab === "config" && (
           <ConfigSidebar
@@ -123,7 +124,6 @@ export default function Index() {
         )}
       </div>
 
-      {/* Mobile bottom nav */}
       <nav className="flex items-center justify-around border-t border-border bg-card py-2 shrink-0">
         <MobileNavBtn
           active={mobileTab === "config"}

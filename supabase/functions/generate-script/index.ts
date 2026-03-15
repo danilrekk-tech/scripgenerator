@@ -6,10 +6,62 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function getSystemPrompt(mode: string, managerVar: string, clientVar: string) {
-  const base = `Ты — опытный эксперт по продажам digital-услуг (SEO, AI-оптимизация, голосовой поиск, наполнение контентом, техническая оптимизация сайтов). Пиши на русском языке. Не используй эмодзи. Пиши профессионально.`;
+function getToneDescription(tone: string): string {
+  if (tone === "Не продающий") {
+    return `Тон: мягкий, ненавязчивый. Ты НЕ продаёшь — ты показываешь клиенту что ему это объективно необходимо, и вы кстати можете с этим помочь по выгодной цене. Никакого давления, никаких прямых призывов купить. Подача: экспертная рекомендация, а не продажа.`;
+  }
+  return `Тон: ${tone || "Уверенный эксперт"}`;
+}
+
+function getPriceInstruction(priceRub: string, currency: string): string {
+  if (!priceRub || Number(priceRub) <= 0) return "";
+  
+  const rates: Record<string, number> = { RUB: 1, UZS: 143.5, BYN: 0.0355, KZT: 5.35 };
+  const symbols: Record<string, string> = { RUB: "₽", UZS: "сўм", BYN: "Br", KZT: "₸" };
+  
+  const rubAmount = Number(priceRub);
+  let priceStr = `${rubAmount.toLocaleString("ru-RU")} ₽`;
+  
+  if (currency && currency !== "RUB" && rates[currency]) {
+    const converted = Math.round(rubAmount * rates[currency]);
+    priceStr = `${converted.toLocaleString("ru-RU")} ${symbols[currency]} (≈ ${priceStr})`;
+  }
+  
+  return `\nВАЖНО: Цена комплекса услуг — ${priceStr}. Используй эту цену в скрипте где уместно. Подавай цену как выгодное предложение.`;
+}
+
+function getSystemPrompt(mode: string, managerVar: string, clientVar: string, tone: string, priceRub: string, currency: string) {
+  const base = `Ты — опытный эксперт по продажам digital-услуг (SEO, AI-оптимизация, голосовой поиск, наполнение контентом, техническая оптимизация сайтов, оптимизация под нейропоиск, юридические правки ФЗ-152/ФЗ-168). Пиши на русском языке. Не используй эмодзи. Пиши профессионально.`;
+
+  const priceInstr = getPriceInstruction(priceRub, currency);
 
   switch (mode) {
+    case "transcript-analysis":
+      return `${base}
+
+Тебе будет предоставлена транскрибация реального диалога между менеджером и клиентом (2 спикера). 
+Твоя задача:
+1. Проанализировать диалог: выявить ошибки менеджера, упущенные возможности, слабые места.
+2. Определить потребности и боли клиента из диалога.
+3. Сгенерировать ИДЕАЛЬНЫЙ скрипт для этой же ситуации — как НУЖНО было вести диалог.
+4. Скрипт должен учитывать все детали из транскрибации.
+
+${getToneDescription(tone)}
+${priceInstr}
+
+СТРУКТУРА ОТВЕТА:
+## АНАЛИЗ ДИАЛОГА
+- Что было хорошо
+- Ошибки и упущенные возможности
+- Выявленные потребности клиента
+
+## ИДЕАЛЬНЫЙ СКРИПТ
+Полный скрипт от начала до конца, учитывающий контекст из диалога.
+
+Используй переменную [Имя менеджера] в тексте где менеджер представляется. Если указано — подставь "${managerVar}".
+Используй переменную [Имя клиента] где обращаешься к клиенту. Если указано — подставь "${clientVar}".
+Если имена НЕ указаны — оставь переменные в квадратных скобках.`;
+
     case "service-info":
       return `${base}
 
@@ -19,6 +71,7 @@ function getSystemPrompt(mode: string, managerVar: string, clientVar: string) {
 3. Сроки и процесс работы.
 4. Конкурентные преимущества данной услуги.
 5. Типичные результаты (цифры, кейсы).
+${priceInstr}
 
 Структурируй ответ с заголовками. Будь конкретен, давай цифры и факты.`;
 
@@ -29,6 +82,7 @@ function getSystemPrompt(mode: string, managerVar: string, clientVar: string) {
 1. АРГУМЕНТЫ — логические доводы почему клиенту нужна эта услуга (минимум 5).
 2. ФАКТЫ — статистика, исследования, данные рынка (минимум 5).
 3. ВЫГОДЫ — конкретные бизнес-выгоды для клиента (минимум 5).
+${priceInstr}
 
 Каждый пункт должен быть конкретным, с цифрами где возможно. Формулируй так, чтобы менеджер мог использовать прямо в разговоре.`;
 
@@ -62,14 +116,26 @@ function getSystemPrompt(mode: string, managerVar: string, clientVar: string) {
 3. Используй переменную [Имя клиента] где обращаешься к клиенту. Если указано — подставь "${clientVar}".
 4. Если имена НЕ указаны — оставь переменные в квадратных скобках.
 5. Структурируй: приветствие, основная часть, работа с возражениями (если применимо), закрытие.
-6. Тон должен соответствовать выбранному стилю.
+6. ${getToneDescription(tone)}
 7. Включай конкретные цифры, факты и выгоды.
-8. Скрипт должен быть развёрнутым и детальным.`;
+8. Скрипт должен быть развёрнутым и детальным.
+${priceInstr}`;
   }
 }
 
-function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string) {
+function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string) {
   switch (mode) {
+    case "transcript-analysis":
+      return `Проанализируй следующую транскрибацию диалога и сгенерируй идеальный скрипт.
+
+Услуга: ${service}
+${context ? `Дополнительный контекст: ${context}` : ""}
+
+ТРАНСКРИБАЦИЯ ДИАЛОГА:
+${transcript}
+
+Дай детальный анализ и полный идеальный скрипт.`;
+
     case "service-info":
       return `Сгенерируй подробное описание услуги для менеджера по продажам.
 
@@ -100,7 +166,7 @@ ${context ? `Дополнительный контекст: ${context}` : ""}
 
 Услуга: ${service || "SEO-продвижение"}
 Ситуация: ${situation || "Холодный звонок"}
-Тон: ${tone || "Уверенный эксперт"}
+${tone ? `Тон: ${tone}` : ""}
 ${context ? `Дополнительный контекст: ${context}` : ""}
 
 Сгенерируй полный, развёрнутый скрипт.`;
@@ -111,15 +177,15 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { managerName, clientName, service, situation, tone, context, mode } = await req.json();
+    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const managerVar = managerName?.trim() || "[Имя менеджера]";
     const clientVar = clientName?.trim() || "[Имя клиента]";
 
-    const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar);
-    const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context);
+    const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar, tone, priceRub, currency);
+    const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context, transcript);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
