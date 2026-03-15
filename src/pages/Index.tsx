@@ -3,10 +3,12 @@ import { toast } from "sonner";
 import ConfigSidebar, { type ScriptConfig, type GenerationMode } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
 import Armory from "@/components/Armory";
+import DisplaySettingsPanel from "@/components/DisplaySettingsPanel";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
+import { useDisplaySettings } from "@/hooks/useDisplaySettings";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Settings, Sun, Moon, FileText, Shield } from "lucide-react";
+import { Settings, Sun, Moon, FileText, Shield, SlidersHorizontal, Home } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
   managerName: "",
@@ -21,15 +23,17 @@ const defaultConfig: ScriptConfig = {
   currency: "RUB",
 };
 
-type MobileTab = "config" | "output" | "armory";
+type MobileTab = "config" | "output" | "armory" | "display-settings";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
   const [script, setScript] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const { theme, toggle } = useTheme();
+  const { settings: displaySettings, update: updateDisplay, reset: resetDisplay } = useDisplaySettings();
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<MobileTab>("config");
+  const [showDesktopSettings, setShowDesktopSettings] = useState(false);
 
   const generate = useCallback(
     (overrideContext?: string) => {
@@ -77,6 +81,15 @@ export default function Index() {
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex items-center justify-end gap-2 px-4 py-2 border-b border-border">
             <button
+              onClick={() => setShowDesktopSettings(!showDesktopSettings)}
+              className={`p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors ${
+                showDesktopSettings ? "bg-secondary text-primary" : ""
+              }`}
+              title="Настройки отображения"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
+            <button
               onClick={toggle}
               className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
               title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
@@ -85,8 +98,24 @@ export default function Index() {
             </button>
           </div>
           <div className="flex flex-1 min-h-0">
-            <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} />
-            <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} />
+            {showDesktopSettings ? (
+              <div className="w-80 shrink-0 border-r border-border bg-card p-6 overflow-y-auto">
+                <DisplaySettingsPanel
+                  settings={displaySettings}
+                  onUpdate={updateDisplay}
+                  onReset={resetDisplay}
+                />
+              </div>
+            ) : null}
+            <ScriptOutput
+              script={script}
+              isGenerating={isGenerating}
+              mode={config.mode}
+              displaySettings={displaySettings}
+            />
+            {!showDesktopSettings && (
+              <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} />
+            )}
           </div>
         </div>
       </div>
@@ -97,7 +126,13 @@ export default function Index() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
-        <h1 className="text-base font-semibold tracking-tight">ScriptEngine</h1>
+        <button
+          onClick={() => setMobileTab("config")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Home className="w-4 h-4" />
+          <h1 className="text-base font-semibold tracking-tight text-foreground">ScriptEngine</h1>
+        </button>
         <button
           onClick={toggle}
           className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
@@ -117,10 +152,25 @@ export default function Index() {
           />
         )}
         {mobileTab === "output" && (
-          <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} className="h-full" />
+          <ScriptOutput
+            script={script}
+            isGenerating={isGenerating}
+            mode={config.mode}
+            displaySettings={displaySettings}
+            className="h-full"
+          />
         )}
         {mobileTab === "armory" && (
           <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />
+        )}
+        {mobileTab === "display-settings" && (
+          <div className="h-full overflow-y-auto p-6">
+            <DisplaySettingsPanel
+              settings={displaySettings}
+              onUpdate={updateDisplay}
+              onReset={resetDisplay}
+            />
+          </div>
         )}
       </div>
 
@@ -143,6 +193,12 @@ export default function Index() {
           icon={<Shield className="w-5 h-5" />}
           label="Арсенал"
         />
+        <MobileNavBtn
+          active={mobileTab === "display-settings"}
+          onClick={() => setMobileTab("display-settings")}
+          icon={<SlidersHorizontal className="w-5 h-5" />}
+          label="Вид"
+        />
       </nav>
     </div>
   );
@@ -162,7 +218,7 @@ function MobileNavBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-md transition-colors ${
+      className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-md transition-colors ${
         active
           ? "text-primary"
           : "text-muted-foreground hover:text-foreground"
