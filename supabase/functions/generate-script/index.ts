@@ -55,6 +55,25 @@ function getSystemPrompt(mode: string, managerVar: string, clientVar: string, to
   const priceInstr = getPriceInstruction(priceRub, currency);
 
   switch (mode) {
+    case "objection-training":
+      return `${base}
+
+Ты генерируешь реалистичные возражения клиентов для тренировки менеджеров по продажам.
+
+ФОРМАТ: Для каждого возражения дай:
+1. Само возражение (как именно это скажет клиент, в разговорном стиле)
+2. Скрытый мотив (почему клиент так говорит на самом деле)
+3. Рекомендуемый ответ (краткий, 2-3 предложения)
+
+Нумеруй возражения. Делай их реалистичными и разнообразными.`;
+
+    case "client-simulation":
+      return `Ты играешь роль клиента в телефонном разговоре с менеджером по продажам digital-услуг. Ты НЕ ИИ — ты реальный клиент.
+
+ВАЖНО: Отвечай ТОЛЬКО как клиент. Без пояснений, без метакомментариев. Только реплики клиента.
+
+Твои ответы должны быть короткими (1-3 предложения), как в реальном разговоре.`;
+
     case "email":
       return `${base}
 
@@ -185,8 +204,33 @@ ${priceInstr}`;
   }
 }
 
-function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string, emailSubtype: string, emailObjection: string) {
+function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string, emailSubtype: string, emailObjection: string, extraParams?: Record<string, string>) {
   switch (mode) {
+    case "objection-training": {
+      const difficulty = extraParams?.difficulty || "medium";
+      const count = extraParams?.count || "5";
+      const diffLabel = difficulty === "easy" ? "простые, базовые" : difficulty === "hard" ? "сложные, нестандартные, каверзные" : "средней сложности, типичные";
+      return `Сгенерируй ${count} реалистичных возражений клиента при продаже услуги "${service}".
+
+Сложность: ${diffLabel}.
+${context ? `Дополнительный контекст: ${context}` : ""}
+
+Для каждого возражения дай: само возражение, скрытый мотив и рекомендуемый ответ.`;
+    }
+
+    case "client-simulation": {
+      let simContext: any = {};
+      try { simContext = JSON.parse(context || "{}"); } catch {}
+      return `Ты — ${simContext.clientType || "клиент"}. Настроение: ${simContext.mood || "нейтральное"}. Бюджет: ${simContext.budget || "неизвестен"}. Уровень возражений: ${simContext.objectionLevel || "средний"}.
+
+Менеджер продаёт услугу: ${service}.
+
+История диалога:
+${simContext.history || "Диалог только начался."}
+
+Ответь как клиент. Коротко, 1-3 предложения. Веди себя естественно.`;
+    }
+
     case "email":
       return `Сгенерируй деловое письмо клиенту.
 
@@ -257,7 +301,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency, emailSubtype, emailObjection } = await req.json();
+    const body = await req.json();
+    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency, emailSubtype, emailObjection, difficulty, count } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -265,7 +310,7 @@ serve(async (req) => {
     const clientVar = clientName?.trim() || "[Имя клиента]";
 
     const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar, tone, priceRub, currency, emailSubtype || "follow-up", emailObjection || "");
-    const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context, transcript, emailSubtype || "follow-up", emailObjection || "");
+    const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context, transcript, emailSubtype || "follow-up", emailObjection || "", { difficulty, count });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
