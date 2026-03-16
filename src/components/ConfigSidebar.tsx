@@ -1,6 +1,8 @@
 import { useState } from "react";
 
-export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis";
+export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base";
+
+export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
 
 export type ScriptConfig = {
   managerName: string;
@@ -13,6 +15,8 @@ export type ScriptConfig = {
   transcript: string;
   priceRub: string;
   currency: Currency;
+  emailSubtype: EmailSubtype;
+  emailObjection: string;
 };
 
 export type Currency = "RUB" | "UZS" | "BYN" | "KZT";
@@ -76,6 +80,17 @@ const MODES: { value: GenerationMode; label: string; icon: string }[] = [
   { value: "arguments", label: "Аргументы и выгоды", icon: "💡" },
   { value: "buffer-questions", label: "Буферные вопросы", icon: "❓" },
   { value: "transcript-analysis", label: "Анализ диалога", icon: "🎙️" },
+  { value: "email", label: "Письма клиенту", icon: "✉️" },
+  { value: "knowledge-base", label: "База знаний", icon: "📚" },
+];
+
+const EMAIL_SUBTYPES: { value: EmailSubtype; label: string }[] = [
+  { value: "follow-up", label: "Не ответил на КП" },
+  { value: "kp-with-price", label: "КП с ценой" },
+  { value: "kp-no-price", label: "КП без цены" },
+  { value: "objection", label: "Обработка возражения" },
+  { value: "not-relevant", label: "Не актуально, но нужно…" },
+  { value: "custom", label: "Свой вариант" },
 ];
 
 const MODE_LABELS: Record<GenerationMode, string> = {
@@ -84,6 +99,8 @@ const MODE_LABELS: Record<GenerationMode, string> = {
   arguments: "Сгенерировать аргументы",
   "buffer-questions": "Сгенерировать вопросы",
   "transcript-analysis": "Проанализировать и сгенерировать",
+  email: "Сгенерировать письмо",
+  "knowledge-base": "Сгенерировать для базы знаний",
 };
 
 interface Props {
@@ -99,12 +116,17 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
     onChange({ ...config, [key]: value });
 
   const showSituation = config.mode === "script" || config.mode === "buffer-questions";
-  const showTone = config.mode === "script" || config.mode === "transcript-analysis";
-  const showNames = config.mode === "script" || config.mode === "transcript-analysis";
+  const showTone = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
+  const showNames = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
   const showTranscript = config.mode === "transcript-analysis";
-  const showPrice = config.mode === "script" || config.mode === "transcript-analysis";
+  const showPrice = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
+  const showEmail = config.mode === "email";
 
-  const canGenerate = config.mode !== "transcript-analysis" || config.transcript.trim().length > 20;
+  const canGenerate = (() => {
+    if (config.mode === "transcript-analysis") return config.transcript.trim().length > 20;
+    if (config.mode === "email" && config.emailSubtype === "objection") return config.emailObjection.trim().length > 3;
+    return true;
+  })();
 
   return (
     <aside className={`w-80 shrink-0 border-r border-border bg-card p-6 flex flex-col gap-5 overflow-y-auto ${className || ""}`}>
@@ -135,6 +157,50 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </div>
       </Field>
 
+      {/* Email subtype */}
+      {showEmail && (
+        <Field label="Тип письма">
+          <div className="flex flex-col gap-1.5">
+            {EMAIL_SUBTYPES.map((es) => (
+              <button
+                key={es.value}
+                onClick={() => update("emailSubtype", es.value)}
+                className={`text-left text-xs px-3 py-2 rounded-md border transition-all duration-200 btn-tactile ${
+                  config.emailSubtype === es.value
+                    ? "bg-primary/15 text-primary border-primary/30"
+                    : "bg-secondary border-border text-secondary-foreground hover:border-primary/20"
+                }`}
+              >
+                {es.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
+      {/* Email objection input */}
+      {showEmail && config.emailSubtype === "objection" && (
+        <Field label="Возражение клиента">
+          <textarea
+            className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20 text-xs"
+            placeholder="Опишите возражение клиента, которое нужно обработать в письме..."
+            value={config.emailObjection}
+            onChange={(e) => update("emailObjection", e.target.value)}
+          />
+        </Field>
+      )}
+
+      {/* Email "not relevant" context */}
+      {showEmail && config.emailSubtype === "not-relevant" && (
+        <Field label="Что нужно клиенту?">
+          <textarea
+            className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20 text-xs"
+            placeholder="Например: клиенту не нужно SEO, но нужны юридические правки на сайте..."
+            value={config.emailObjection}
+            onChange={(e) => update("emailObjection", e.target.value)}
+          />
+        </Field>
+      )}
       {/* Transcript input */}
       {showTranscript && (
         <Field label="Транскрибация диалога">

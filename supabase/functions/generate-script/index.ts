@@ -27,15 +27,77 @@ function getPriceInstruction(priceRub: string, currency: string): string {
     priceStr = `${converted.toLocaleString("ru-RU")} ${symbols[currency]} (≈ ${priceStr})`;
   }
   
-  return `\nВАЖНО: Цена комплекса услуг — ${priceStr}. Используй эту цену в скрипте где уместно. Подавай цену как выгодное предложение.`;
+  return `\nВАЖНО: Цена комплекса услуг — ${priceStr}. Используй эту цену где уместно. Подавай цену как выгодное предложение.`;
 }
 
-function getSystemPrompt(mode: string, managerVar: string, clientVar: string, tone: string, priceRub: string, currency: string) {
+function getEmailSubtypeInstruction(subtype: string, objection: string): string {
+  switch (subtype) {
+    case "follow-up":
+      return `Тип письма: Повторное касание — клиент не ответил на коммерческое предложение. Нужно мягко напомнить, добавить ценность и создать повод для ответа.`;
+    case "kp-with-price":
+      return `Тип письма: Коммерческое предложение С указанием цены. Структурированное КП с описанием услуг, состава работ, сроков и стоимости.`;
+    case "kp-no-price":
+      return `Тип письма: Коммерческое предложение БЕЗ цены. Акцент на ценности, результатах и выгодах. Цена обсуждается на встрече/звонке.`;
+    case "objection":
+      return `Тип письма: Обработка возражения клиента в письме. Возражение клиента: "${objection}". Нужно мягко и аргументированно обработать это возражение.`;
+    case "not-relevant":
+      return `Тип письма: Клиент написал что услуга не актуальна, НО ему нужно что-то другое (полностью или частично). Контекст: "${objection}". Нужно зацепиться за реальную потребность и предложить альтернативное решение.`;
+    case "custom":
+      return `Тип письма: Свободная форма. Пиши письмо по контексту, указанному пользователем.`;
+    default:
+      return "";
+  }
+}
+
+function getSystemPrompt(mode: string, managerVar: string, clientVar: string, tone: string, priceRub: string, currency: string, emailSubtype: string, emailObjection: string) {
   const base = `Ты — опытный эксперт по продажам digital-услуг (SEO, AI-оптимизация, голосовой поиск, наполнение контентом, техническая оптимизация сайтов, оптимизация под нейропоиск, юридические правки ФЗ-152/ФЗ-168). Пиши на русском языке. Не используй эмодзи. Пиши профессионально.`;
 
   const priceInstr = getPriceInstruction(priceRub, currency);
 
   switch (mode) {
+    case "email":
+      return `${base}
+
+Ты генерируешь профессиональные деловые письма для менеджера по продажам digital-услуг.
+
+${getEmailSubtypeInstruction(emailSubtype, emailObjection)}
+${getToneDescription(tone)}
+${priceInstr}
+
+ПРАВИЛА:
+1. Письмо должно быть готово к отправке — тема, приветствие, основная часть, призыв к действию, подпись.
+2. Используй [Имя менеджера] для подписи. Если указано — подставь "${managerVar}".
+3. Используй [Имя клиента] для обращения. Если указано — подставь "${clientVar}".
+4. Если имена НЕ указаны — оставь переменные в квадратных скобках.
+5. Письмо должно быть убедительным, но не навязчивым.
+6. Структура: Тема письма → Приветствие → Основная часть → Призыв к действию → Подпись.`;
+
+    case "knowledge-base":
+      return `${base}
+
+Ты генерируешь контент для внутренней базы знаний отдела продаж. Контент должен помочь менеджерам:
+1. Глубоко понимать услуги и терминологию digital-маркетинга.
+2. Отвечать на технические вопросы клиентов.
+3. Понимать как работы выполняются на практике.
+
+ФОРМАТ ОТВЕТА:
+## ОПИСАНИЕ УСЛУГИ
+Подробное описание: что это, зачем нужно, кому подходит.
+
+## КЛЮЧЕВЫЕ ТЕРМИНЫ
+Глоссарий терминов с простыми объяснениями (минимум 8-10 терминов).
+
+## КАК ЭТО РАБОТАЕТ
+Пошаговое описание процесса работ.
+
+## DIY-ИНСТРУКЦИЯ
+Краткая инструкция как клиент может самостоятельно выполнить базовые работы по этой услуге (5-10 шагов). Укажи что профессиональное выполнение даёт лучший результат.
+
+## ЧАСТЫЕ ВОПРОСЫ КЛИЕНТОВ
+5-8 вопросов с готовыми ответами для менеджера.
+
+Будь конкретен, давай цифры и примеры.`;
+
     case "transcript-analysis":
       return `${base}
 
@@ -123,8 +185,26 @@ ${priceInstr}`;
   }
 }
 
-function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string) {
+function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string, emailSubtype: string, emailObjection: string) {
   switch (mode) {
+    case "email":
+      return `Сгенерируй деловое письмо клиенту.
+
+Услуга: ${service}
+${context ? `Дополнительный контекст: ${context}` : ""}
+${emailSubtype === "objection" ? `Возражение: ${emailObjection}` : ""}
+${emailSubtype === "not-relevant" ? `Что нужно клиенту: ${emailObjection}` : ""}
+
+Сгенерируй готовое к отправке письмо.`;
+
+    case "knowledge-base":
+      return `Сгенерируй контент для базы знаний.
+
+Услуга: ${service}
+${context ? `Дополнительный контекст: ${context}` : ""}
+
+Дай максимально полное описание с терминами, процессом работ, DIY-инструкцией и FAQ.`;
+
     case "transcript-analysis":
       return `Проанализируй следующую транскрибацию диалога и сгенерируй идеальный скрипт.
 
@@ -177,15 +257,15 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency } = await req.json();
+    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency, emailSubtype, emailObjection } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const managerVar = managerName?.trim() || "[Имя менеджера]";
     const clientVar = clientName?.trim() || "[Имя клиента]";
 
-    const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar, tone, priceRub, currency);
-    const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context, transcript);
+    const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar, tone, priceRub, currency, emailSubtype || "follow-up", emailObjection || "");
+    const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context, transcript, emailSubtype || "follow-up", emailObjection || "");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
