@@ -147,7 +147,7 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
             >
               {/* Score */}
               <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg border border-border">
-                <div className={`text-3xl font-bold ${result.score >= 70 ? "text-green-500" : result.score >= 40 ? "text-yellow-500" : "text-red-500"}`}>
+                <div className={`text-3xl font-bold ${scoreColor}`}>
                   {result.score}
                 </div>
                 <div>
