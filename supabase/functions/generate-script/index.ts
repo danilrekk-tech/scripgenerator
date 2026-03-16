@@ -204,8 +204,33 @@ ${priceInstr}`;
   }
 }
 
-function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string, emailSubtype: string, emailObjection: string) {
+function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string, emailSubtype: string, emailObjection: string, extraParams?: Record<string, string>) {
   switch (mode) {
+    case "objection-training": {
+      const difficulty = extraParams?.difficulty || "medium";
+      const count = extraParams?.count || "5";
+      const diffLabel = difficulty === "easy" ? "простые, базовые" : difficulty === "hard" ? "сложные, нестандартные, каверзные" : "средней сложности, типичные";
+      return `Сгенерируй ${count} реалистичных возражений клиента при продаже услуги "${service}".
+
+Сложность: ${diffLabel}.
+${context ? `Дополнительный контекст: ${context}` : ""}
+
+Для каждого возражения дай: само возражение, скрытый мотив и рекомендуемый ответ.`;
+    }
+
+    case "client-simulation": {
+      let simContext: any = {};
+      try { simContext = JSON.parse(context || "{}"); } catch {}
+      return `Ты — ${simContext.clientType || "клиент"}. Настроение: ${simContext.mood || "нейтральное"}. Бюджет: ${simContext.budget || "неизвестен"}. Уровень возражений: ${simContext.objectionLevel || "средний"}.
+
+Менеджер продаёт услугу: ${service}.
+
+История диалога:
+${simContext.history || "Диалог только начался."}
+
+Ответь как клиент. Коротко, 1-3 предложения. Веди себя естественно.`;
+    }
+
     case "email":
       return `Сгенерируй деловое письмо клиенту.
 
