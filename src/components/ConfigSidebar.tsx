@@ -1,6 +1,8 @@
 import { useState } from "react";
 
-export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis";
+export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base";
+
+export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
 
 export type ScriptConfig = {
   managerName: string;
