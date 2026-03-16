@@ -99,6 +99,8 @@ const MODE_LABELS: Record<GenerationMode, string> = {
   arguments: "Сгенерировать аргументы",
   "buffer-questions": "Сгенерировать вопросы",
   "transcript-analysis": "Проанализировать и сгенерировать",
+  email: "Сгенерировать письмо",
+  "knowledge-base": "Сгенерировать для базы знаний",
 };
 
 interface Props {
