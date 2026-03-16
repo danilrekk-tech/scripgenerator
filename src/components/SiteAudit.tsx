@@ -92,10 +92,12 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
     onGenerateScript(context);
   };
 
+  const scoreColor = result.score >= 70 ? "text-green-600 dark:text-green-400" : result.score >= 40 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400";
+
   const statusIcon = (status: string) => {
-    if (status === "pass") return <CheckCircle className="w-4 h-4 text-green-500" />;
-    if (status === "warn") return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-    return <XCircle className="w-4 h-4 text-red-500" />;
+    if (status === "pass") return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />;
+    if (status === "warn") return <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />;
+    return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />;
   };
 
   return (
