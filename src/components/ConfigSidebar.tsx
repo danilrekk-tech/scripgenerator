@@ -15,6 +15,8 @@ export type ScriptConfig = {
   transcript: string;
   priceRub: string;
   currency: Currency;
+  emailSubtype: EmailSubtype;
+  emailObjection: string;
 };
 
 export type Currency = "RUB" | "UZS" | "BYN" | "KZT";
