@@ -80,6 +80,17 @@ const MODES: { value: GenerationMode; label: string; icon: string }[] = [
   { value: "arguments", label: "Аргументы и выгоды", icon: "💡" },
   { value: "buffer-questions", label: "Буферные вопросы", icon: "❓" },
   { value: "transcript-analysis", label: "Анализ диалога", icon: "🎙️" },
+  { value: "email", label: "Письма клиенту", icon: "✉️" },
+  { value: "knowledge-base", label: "База знаний", icon: "📚" },
+];
+
+const EMAIL_SUBTYPES: { value: EmailSubtype; label: string }[] = [
+  { value: "follow-up", label: "Не ответил на КП" },
+  { value: "kp-with-price", label: "КП с ценой" },
+  { value: "kp-no-price", label: "КП без цены" },
+  { value: "objection", label: "Обработка возражения" },
+  { value: "not-relevant", label: "Не актуально, но нужно…" },
+  { value: "custom", label: "Свой вариант" },
 ];
 
 const MODE_LABELS: Record<GenerationMode, string> = {
