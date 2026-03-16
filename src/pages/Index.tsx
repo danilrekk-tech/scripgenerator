@@ -21,6 +21,8 @@ const defaultConfig: ScriptConfig = {
   transcript: "",
   priceRub: "",
   currency: "RUB",
+  emailSubtype: "follow-up",
+  emailObjection: "",
 };
 
 type MobileTab = "config" | "output" | "armory" | "display-settings";

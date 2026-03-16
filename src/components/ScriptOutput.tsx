@@ -35,6 +35,14 @@ const MODE_EMPTY: Record<GenerationMode, { title: string; subtitle: string }> = 
     title: "Учись на реальных диалогах.",
     subtitle: "Вставь транскрибацию разговора — получи анализ ошибок и идеальный скрипт.",
   },
+  email: {
+    title: "Каждое письмо — шаг к сделке.",
+    subtitle: "Выбери тип письма, укажи услугу и получи готовый текст для отправки клиенту.",
+  },
+  "knowledge-base": {
+    title: "Знания — сила продаж.",
+    subtitle: "Сгенерируй описание услуг, терминов и DIY-инструкций для базы знаний.",
+  },
 };
 
 export default function ScriptOutput({ script, isGenerating, mode, displaySettings, className }: Props) {

@@ -157,6 +157,50 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </div>
       </Field>
 
+      {/* Email subtype */}
+      {showEmail && (
+        <Field label="Тип письма">
+          <div className="flex flex-col gap-1.5">
+            {EMAIL_SUBTYPES.map((es) => (
+              <button
+                key={es.value}
+                onClick={() => update("emailSubtype", es.value)}
+                className={`text-left text-xs px-3 py-2 rounded-md border transition-all duration-200 btn-tactile ${
+                  config.emailSubtype === es.value
+                    ? "bg-primary/15 text-primary border-primary/30"
+                    : "bg-secondary border-border text-secondary-foreground hover:border-primary/20"
+                }`}
+              >
+                {es.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
+      {/* Email objection input */}
+      {showEmail && config.emailSubtype === "objection" && (
+        <Field label="Возражение клиента">
+          <textarea
+            className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20 text-xs"
+            placeholder="Опишите возражение клиента, которое нужно обработать в письме..."
+            value={config.emailObjection}
+            onChange={(e) => update("emailObjection", e.target.value)}
+          />
+        </Field>
+      )}
+
+      {/* Email "not relevant" context */}
+      {showEmail && config.emailSubtype === "not-relevant" && (
+        <Field label="Что нужно клиенту?">
+          <textarea
+            className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20 text-xs"
+            placeholder="Например: клиенту не нужно SEO, но нужны юридические правки на сайте..."
+            value={config.emailObjection}
+            onChange={(e) => update("emailObjection", e.target.value)}
+          />
+        </Field>
+      )}
       {/* Transcript input */}
       {showTranscript && (
         <Field label="Транскрибация диалога">
