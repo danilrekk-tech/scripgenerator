@@ -116,12 +116,17 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
     onChange({ ...config, [key]: value });
 
   const showSituation = config.mode === "script" || config.mode === "buffer-questions";
-  const showTone = config.mode === "script" || config.mode === "transcript-analysis";
-  const showNames = config.mode === "script" || config.mode === "transcript-analysis";
+  const showTone = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
+  const showNames = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
   const showTranscript = config.mode === "transcript-analysis";
-  const showPrice = config.mode === "script" || config.mode === "transcript-analysis";
+  const showPrice = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
+  const showEmail = config.mode === "email";
 
-  const canGenerate = config.mode !== "transcript-analysis" || config.transcript.trim().length > 20;
+  const canGenerate = (() => {
+    if (config.mode === "transcript-analysis") return config.transcript.trim().length > 20;
+    if (config.mode === "email" && config.emailSubtype === "objection") return config.emailObjection.trim().length > 3;
+    return true;
+  })();
 
   return (
     <aside className={`w-80 shrink-0 border-r border-border bg-card p-6 flex flex-col gap-5 overflow-y-auto ${className || ""}`}>
