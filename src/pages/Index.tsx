@@ -7,11 +7,13 @@ import DisplaySettingsPanel from "@/components/DisplaySettingsPanel";
 import SiteAudit from "@/components/SiteAudit";
 import ObjectionTrainer from "@/components/ObjectionTrainer";
 import ClientSimulator from "@/components/ClientSimulator";
+import ServicesManager from "@/components/ServicesManager";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useDisplaySettings } from "@/hooks/useDisplaySettings";
+import { useServices } from "@/hooks/useServices";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Settings, Sun, Moon, FileText, Shield, SlidersHorizontal, Home, Globe, Zap, MessageCircle } from "lucide-react";
+import { Settings, Sun, Moon, FileText, SlidersHorizontal, Home, Globe, Zap, MessageCircle, Package } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
   managerName: "",
@@ -28,8 +30,8 @@ const defaultConfig: ScriptConfig = {
   emailObjection: "",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator";
-type DesktopPanel = "main" | "audit" | "objections" | "simulator";
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services";
+type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -37,6 +39,7 @@ export default function Index() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { theme, toggle } = useTheme();
   const { settings: displaySettings, update: updateDisplay, reset: resetDisplay } = useDisplaySettings();
+  const { services, serviceNames, addService, updateService, deleteService, resetToDefaults, getServiceContext } = useServices();
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<MobileTab>("config");
   const [showDesktopSettings, setShowDesktopSettings] = useState(false);
@@ -51,9 +54,14 @@ export default function Index() {
       if (isMobile) setMobileTab("output");
       if (desktopPanel !== "main") setDesktopPanel("main");
 
+      // Enrich context with service details
+      const svcContext = getServiceContext(config.service);
+      const baseContext = overrideContext || config.context;
+      const enrichedContext = svcContext ? `${svcContext}\n\n${baseContext}` : baseContext;
+
       const payload = {
         ...config,
-        context: overrideContext || config.context,
+        context: enrichedContext,
       };
 
       streamScript({
@@ -66,7 +74,7 @@ export default function Index() {
         },
       });
     },
-    [config, isGenerating, isMobile, desktopPanel]
+    [config, isGenerating, isMobile, desktopPanel, getServiceContext]
   );
 
   const handleArmorySelect = useCallback(
@@ -84,11 +92,12 @@ export default function Index() {
     [generate]
   );
 
-  const betaTabs: { value: DesktopPanel; label: string; icon: React.ReactNode }[] = [
+  const betaTabs: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] = [
     { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
-    { value: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" /> },
-    { value: "objections", label: "Возражения", icon: <Zap className="w-4 h-4" /> },
-    { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" /> },
+    { value: "audit", label: "Аудит", icon: <Globe className="w-4 h-4" />, beta: true },
+    { value: "objections", label: "Возражения", icon: <Zap className="w-4 h-4" />, beta: true },
+    { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" />, beta: true },
+    { value: "services", label: "Услуги", icon: <Package className="w-4 h-4" /> },
   ];
 
   // Desktop layout
@@ -101,11 +110,12 @@ export default function Index() {
             onChange={setConfig}
             onGenerate={() => generate()}
             isGenerating={isGenerating}
+            serviceNames={serviceNames}
           />
         )}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top bar */}
-          <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border">
+          <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border bg-card">
             <div className="flex items-center gap-1">
               {betaTabs.map((tab) => (
                 <button
@@ -119,7 +129,7 @@ export default function Index() {
                 >
                   {tab.icon}
                   {tab.label}
-                  {tab.value !== "main" && (
+                  {tab.beta && (
                     <span className="text-[9px] uppercase tracking-wider bg-primary/10 text-primary px-1 py-0.5 rounded font-medium">β</span>
                   )}
                 </button>
@@ -172,13 +182,23 @@ export default function Index() {
               </>
             )}
             {desktopPanel === "audit" && (
-              <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} className="flex-1" />
+              <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="flex-1" />
             )}
             {desktopPanel === "objections" && (
-              <ObjectionTrainer className="flex-1" />
+              <ObjectionTrainer serviceNames={serviceNames} className="flex-1" />
             )}
             {desktopPanel === "simulator" && (
-              <ClientSimulator className="flex-1" />
+              <ClientSimulator serviceNames={serviceNames} className="flex-1" />
+            )}
+            {desktopPanel === "services" && (
+              <ServicesManager
+                services={services}
+                onAdd={addService}
+                onUpdate={updateService}
+                onDelete={deleteService}
+                onReset={resetToDefaults}
+                className="flex-1"
+              />
             )}
           </div>
         </div>
@@ -212,38 +232,32 @@ export default function Index() {
             onChange={setConfig}
             onGenerate={() => generate()}
             isGenerating={isGenerating}
+            serviceNames={serviceNames}
             className="!w-full !border-r-0 h-full"
           />
         )}
         {mobileTab === "output" && (
-          <ScriptOutput
-            script={script}
-            isGenerating={isGenerating}
-            mode={config.mode}
-            displaySettings={displaySettings}
-            className="h-full"
-          />
+          <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" />
         )}
         {mobileTab === "armory" && (
           <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />
         )}
         {mobileTab === "display-settings" && (
           <div className="h-full overflow-y-auto p-6">
-            <DisplaySettingsPanel
-              settings={displaySettings}
-              onUpdate={updateDisplay}
-              onReset={resetDisplay}
-            />
+            <DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} />
           </div>
         )}
         {mobileTab === "audit" && (
-          <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} className="h-full" />
+          <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" />
         )}
         {mobileTab === "objections" && (
-          <ObjectionTrainer className="h-full" />
+          <ObjectionTrainer serviceNames={serviceNames} className="h-full" />
         )}
         {mobileTab === "simulator" && (
-          <ClientSimulator className="h-full" />
+          <ClientSimulator serviceNames={serviceNames} className="h-full" />
+        )}
+        {mobileTab === "services" && (
+          <ServicesManager services={services} onAdd={addService} onUpdate={updateService} onDelete={deleteService} onReset={resetToDefaults} className="h-full" />
         )}
       </div>
 
@@ -253,30 +267,19 @@ export default function Index() {
         <MobileNavBtn active={mobileTab === "audit"} onClick={() => setMobileTab("audit")} icon={<Globe className="w-5 h-5" />} label="Аудит" />
         <MobileNavBtn active={mobileTab === "objections"} onClick={() => setMobileTab("objections")} icon={<Zap className="w-5 h-5" />} label="Возражения" />
         <MobileNavBtn active={mobileTab === "simulator"} onClick={() => setMobileTab("simulator")} icon={<MessageCircle className="w-5 h-5" />} label="Симулятор" />
+        <MobileNavBtn active={mobileTab === "services"} onClick={() => setMobileTab("services")} icon={<Package className="w-5 h-5" />} label="Услуги" />
         <MobileNavBtn active={mobileTab === "display-settings"} onClick={() => setMobileTab("display-settings")} icon={<SlidersHorizontal className="w-5 h-5" />} label="Вид" />
       </nav>
     </div>
   );
 }
 
-function MobileNavBtn({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
+function MobileNavBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
     <button
       onClick={onClick}
       className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-md transition-colors ${
-        active
-          ? "text-primary"
-          : "text-muted-foreground hover:text-foreground"
+        active ? "text-primary" : "text-muted-foreground hover:text-foreground"
       }`}
     >
       {icon}

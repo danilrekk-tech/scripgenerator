@@ -15,26 +15,19 @@ interface SimConfig {
   objectionLevel: string;
 }
 
-const SERVICES = [
-  "SEO-продвижение",
-  "AI-оптимизация",
-  "Оптимизация под Нейропоиск",
-  "Техническая оптимизация",
-  "Комплексное продвижение",
-];
-
 const CLIENT_TYPES = ["Директор малого бизнеса", "Маркетолог", "IT-директор", "Владелец e-commerce", "Стартапер"];
 const MOODS = ["Заинтересованный", "Скептичный", "Раздражённый", "Торопится", "Вежливый но холодный"];
 const BUDGETS = ["Нет бюджета", "Ограниченный", "Средний", "Готов платить"];
 const OBJECTION_LEVELS = ["Низкий", "Средний", "Высокий", "Максимальный"];
 
 interface Props {
+  serviceNames: string[];
   className?: string;
 }
 
-export default function ClientSimulator({ className }: Props) {
+export default function ClientSimulator({ serviceNames, className }: Props) {
   const [config, setConfig] = useState<SimConfig>({
-    service: "SEO-продвижение",
+    service: serviceNames[0] || "SEO-продвижение",
     clientType: "Директор малого бизнеса",
     mood: "Скептичный",
     budget: "Ограниченный",
@@ -70,8 +63,7 @@ export default function ClientSimulator({ className }: Props) {
         body: JSON.stringify({
           mode: "client-simulation",
           service: config.service,
-          situation: "",
-          tone: "",
+          situation: "", tone: "",
           context: JSON.stringify({
             clientType: config.clientType,
             mood: config.mood,
@@ -79,13 +71,8 @@ export default function ClientSimulator({ className }: Props) {
             objectionLevel: config.objectionLevel,
             history: newMessages.map((m) => `${m.role === "user" ? "Менеджер" : "Клиент"}: ${m.content}`).join("\n"),
           }),
-          transcript: "",
-          priceRub: "",
-          currency: "RUB",
-          emailSubtype: "",
-          emailObjection: "",
-          managerName: "",
-          clientName: "",
+          transcript: "", priceRub: "", currency: "RUB",
+          emailSubtype: "", emailObjection: "", managerName: "", clientName: "",
         }),
       });
 
@@ -148,7 +135,6 @@ export default function ClientSimulator({ className }: Props) {
 
   return (
     <div className={`flex flex-col h-full ${className || ""}`}>
-      {/* Header */}
       <div className="p-6 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
           <div>
@@ -161,16 +147,10 @@ export default function ClientSimulator({ className }: Props) {
           </div>
           {started && (
             <div className="flex gap-2">
-              <button
-                onClick={() => setShowConfig(!showConfig)}
-                className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button onClick={() => setShowConfig(!showConfig)} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
                 <Settings2 className="w-4 h-4" />
               </button>
-              <button
-                onClick={resetSimulation}
-                className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button onClick={resetSimulation} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
                 <RotateCcw className="w-4 h-4" />
               </button>
             </div>
@@ -178,19 +158,13 @@ export default function ClientSimulator({ className }: Props) {
         </div>
       </div>
 
-      {/* Config panel */}
       <AnimatePresence>
         {showConfig && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-b border-border"
-          >
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border">
             <div className="p-6 space-y-3">
               <Field label="Услуга">
                 <div className="flex flex-wrap gap-1.5">
-                  {SERVICES.map((s) => (
+                  {serviceNames.map((s) => (
                     <Chip key={s} active={config.service === s} onClick={() => setConfig({ ...config, service: s })}>{s}</Chip>
                   ))}
                 </div>
@@ -223,12 +197,8 @@ export default function ClientSimulator({ className }: Props) {
                   ))}
                 </div>
               </Field>
-
               {!started && (
-                <button
-                  onClick={startSimulation}
-                  className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-md transition-all duration-200 btn-tactile shadow-glow hover:opacity-90 text-sm tracking-wide"
-                >
+                <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-md transition-all duration-200 btn-tactile shadow-glow hover:opacity-90 text-sm tracking-wide">
                   🎭 Начать симуляцию
                 </button>
               )}
@@ -237,37 +207,26 @@ export default function ClientSimulator({ className }: Props) {
         )}
       </AnimatePresence>
 
-      {/* Chat */}
       {started && (
         <>
           <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((msg, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[80%] px-4 py-2.5 rounded-lg text-sm ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-none"
-                      : "bg-secondary text-secondary-foreground border border-border rounded-bl-none"
-                  }`}
-                >
+              <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-4 py-2.5 rounded-lg text-sm ${
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-secondary text-secondary-foreground border border-border rounded-bl-none"
+                }`}>
                   <p className="text-[10px] font-medium mb-1 opacity-60">
                     {msg.role === "user" ? "Вы (менеджер)" : `Клиент (${config.clientType})`}
                   </p>
                   <p className="whitespace-pre-wrap">{msg.content}</p>
-                  {msg.role === "client" && isLoading && i === messages.length - 1 && (
-                    <span className="cursor-blink" />
-                  )}
+                  {msg.role === "client" && isLoading && i === messages.length - 1 && <span className="cursor-blink" />}
                 </div>
               </motion.div>
             ))}
           </div>
 
-          {/* Input */}
           <div className="p-4 border-t border-border shrink-0">
             <div className="flex gap-2">
               <input
@@ -278,11 +237,7 @@ export default function ClientSimulator({ className }: Props) {
                 disabled={isLoading}
                 className="flex-1 bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200"
               />
-              <button
-                onClick={() => sendMessage(input)}
-                disabled={isLoading || !input.trim()}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 disabled:opacity-50 transition-all btn-tactile"
-              >
+              <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 disabled:opacity-50 transition-all btn-tactile">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
@@ -295,16 +250,9 @@ export default function ClientSimulator({ className }: Props) {
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      onClick={onClick}
-      className={`text-xs px-2.5 py-1.5 rounded-sm border transition-all duration-200 btn-tactile ${
-        active
-          ? "bg-primary/15 text-primary border-primary/30"
-          : "bg-secondary border-border text-secondary-foreground hover:border-primary/20"
-      }`}
-    >
-      {children}
-    </button>
+    <button onClick={onClick} className={`text-xs px-2.5 py-1.5 rounded-sm border transition-all duration-200 btn-tactile ${
+      active ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary border-border text-secondary-foreground hover:border-primary/20"
+    }`}>{children}</button>
   );
 }
 
