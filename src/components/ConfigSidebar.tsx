@@ -28,7 +28,6 @@ const CURRENCY_LABELS: Record<Currency, string> = {
   KZT: "₸ Тенге",
 };
 
-// Approximate rates to RUB (1 RUB = X units)
 const RATES_FROM_RUB: Record<Currency, number> = {
   RUB: 1,
   UZS: 143.5,
@@ -44,18 +43,6 @@ export function convertToRub(amount: number, currency: Currency): number {
   if (currency === "RUB") return amount;
   return Math.round(amount / RATES_FROM_RUB[currency]);
 }
-
-const SERVICES = [
-  "SEO-продвижение",
-  "AI-оптимизация (LLM/Answer Engines)",
-  "Голосовой поиск",
-  "Наполнение контентом",
-  "Техническая оптимизация",
-  "Комплексное продвижение",
-  "SEO-оптимизация (разовая)",
-  "Оптимизация под Нейропоиск",
-  "Юридические правки (ФЗ-152/ФЗ-168)",
-];
 
 const SITUATIONS = [
   "Холодный звонок",
@@ -108,10 +95,11 @@ interface Props {
   onChange: (config: ScriptConfig) => void;
   onGenerate: () => void;
   isGenerating: boolean;
+  serviceNames: string[];
   className?: string;
 }
 
-export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, className }: Props) {
+export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className }: Props) {
   const update = (key: keyof ScriptConfig, value: string) =>
     onChange({ ...config, [key]: value });
 
@@ -178,45 +166,40 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </Field>
       )}
 
-      {/* Email objection input */}
       {showEmail && config.emailSubtype === "objection" && (
         <Field label="Возражение клиента">
           <textarea
             className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20 text-xs"
-            placeholder="Опишите возражение клиента, которое нужно обработать в письме..."
+            placeholder="Опишите возражение клиента..."
             value={config.emailObjection}
             onChange={(e) => update("emailObjection", e.target.value)}
           />
         </Field>
       )}
 
-      {/* Email "not relevant" context */}
       {showEmail && config.emailSubtype === "not-relevant" && (
         <Field label="Что нужно клиенту?">
           <textarea
             className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20 text-xs"
-            placeholder="Например: клиенту не нужно SEO, но нужны юридические правки на сайте..."
+            placeholder="Например: клиенту не нужно SEO, но нужны юридические правки..."
             value={config.emailObjection}
             onChange={(e) => update("emailObjection", e.target.value)}
           />
         </Field>
       )}
-      {/* Transcript input */}
+
       {showTranscript && (
         <Field label="Транскрибация диалога">
           <textarea
             className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-40 font-mono text-xs"
-            placeholder={"Спикер 1: Добрый день, меня зовут Алексей...\nСпикер 2: Здравствуйте, слушаю вас...\nСпикер 1: Я звоню по поводу..."}
+            placeholder={"Спикер 1: Добрый день...\nСпикер 2: Здравствуйте..."}
             value={config.transcript}
             onChange={(e) => update("transcript", e.target.value)}
           />
-          <p className="text-[10px] text-muted-foreground">
-            Вставьте текст диалога с 2 спикерами. Минимум 20 символов.
-          </p>
+          <p className="text-[10px] text-muted-foreground">Минимум 20 символов.</p>
         </Field>
       )}
 
-      {/* Names */}
       {showNames && (
         <>
           <Field label="Имя менеджера">
@@ -241,7 +224,7 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
       {/* Service */}
       <Field label="Услуга">
         <div className="flex flex-wrap gap-1.5">
-          {SERVICES.map((s) => (
+          {serviceNames.map((s) => (
             <button
               key={s}
               onClick={() => update("service", s)}
@@ -257,7 +240,6 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </div>
       </Field>
 
-      {/* Situation */}
       {showSituation && (
         <Field label="Ситуация">
           <div className="flex flex-wrap gap-1.5">
@@ -278,7 +260,6 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </Field>
       )}
 
-      {/* Tone */}
       {showTone && (
         <Field label="Тон">
           <div className="flex flex-wrap gap-1.5">
@@ -299,7 +280,6 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </Field>
       )}
 
-      {/* Price */}
       {showPrice && (
         <Field label="Цена комплекса услуг">
           <div className="flex gap-2">
@@ -322,26 +302,21 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
           </div>
           {config.currency !== "RUB" && config.priceRub && (
             <p className="text-[10px] text-muted-foreground mt-1">
-              ≈ {convertFromRub(Number(config.priceRub), config.currency).toLocaleString("ru-RU")} {config.currency} (конвертация приблизительная)
+              ≈ {convertFromRub(Number(config.priceRub), config.currency).toLocaleString("ru-RU")} {config.currency}
             </p>
           )}
-          <p className="text-[10px] text-muted-foreground">
-            Указывается в рублях РФ. При другой валюте — автоконвертация.
-          </p>
         </Field>
       )}
 
-      {/* Context */}
       <Field label="Дополнительный контекст">
         <textarea
           className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-20"
-          placeholder="Возражение клиента, детали бизнеса, особенности..."
+          placeholder="Возражение клиента, детали бизнеса..."
           value={config.context}
           onChange={(e) => update("context", e.target.value)}
         />
       </Field>
 
-      {/* Generate Button */}
       <button
         onClick={onGenerate}
         disabled={isGenerating || !canGenerate}

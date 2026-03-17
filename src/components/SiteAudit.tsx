@@ -19,29 +19,21 @@ interface AuditCheck {
 interface Props {
   onGenerateScript: (auditContext: string) => void;
   isGenerating: boolean;
+  serviceNames: string[];
   className?: string;
 }
 
-export default function SiteAudit({ onGenerateScript, isGenerating, className }: Props) {
+export default function SiteAudit({ onGenerateScript, isGenerating, serviceNames, className }: Props) {
   const [url, setUrl] = useState("");
   const [isAuditing, setIsAuditing] = useState(false);
   const [result, setResult] = useState<AuditResult | null>(null);
   const [error, setError] = useState("");
   const [tone, setTone] = useState("Уверенный эксперт");
   const [clientType, setClientType] = useState("Малый бизнес");
-  const [service, setService] = useState("SEO-продвижение");
+  const [service, setService] = useState(serviceNames[0] || "SEO-продвижение");
 
   const TONES = ["Уверенный эксперт", "Мягкий консультант", "Не продающий", "Дружеский партнёр"];
   const CLIENT_TYPES = ["Малый бизнес", "Средний бизнес", "Крупный бизнес", "Стартап", "E-commerce", "Услуги/Сервисы"];
-  const SERVICES = [
-    "SEO-продвижение",
-    "AI-оптимизация (LLM/Answer Engines)",
-    "Оптимизация под Нейропоиск",
-    "Наполнение контентом",
-    "Техническая оптимизация",
-    "Комплексное продвижение",
-    "Юридические правки (ФЗ-152/ФЗ-168)",
-  ];
 
   const runAudit = async () => {
     if (!url.trim()) return;
@@ -92,17 +84,31 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
     onGenerateScript(context);
   };
 
-  const scoreColor = result.score >= 70 ? "text-green-600 dark:text-green-400" : result.score >= 40 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400";
+  const scoreColor = result
+    ? result.score >= 70
+      ? "text-green-600 dark:text-green-400"
+      : result.score >= 40
+      ? "text-yellow-600 dark:text-yellow-400"
+      : "text-red-600 dark:text-red-400"
+    : "";
+
+  const scoreRingColor = result
+    ? result.score >= 70
+      ? "border-green-500/30"
+      : result.score >= 40
+      ? "border-yellow-500/30"
+      : "border-red-500/30"
+    : "border-border";
 
   const statusIcon = (status: string) => {
-    if (status === "pass") return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />;
-    if (status === "warn") return <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />;
-    return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />;
+    if (status === "pass") return <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />;
+    if (status === "warn") return <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 shrink-0" />;
+    return <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />;
   };
 
   return (
     <div className={`flex flex-col h-full overflow-y-auto ${className || ""}`}>
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border shrink-0">
         <div className="flex items-center gap-2 mb-1">
           <Globe className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold">Аудит сайта</h2>
@@ -146,7 +152,7 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
               className="space-y-5"
             >
               {/* Score */}
-              <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg border border-border">
+              <div className={`flex items-center gap-4 p-4 bg-secondary/50 rounded-lg border ${scoreRingColor}`}>
                 <div className={`text-3xl font-bold ${scoreColor}`}>
                   {result.score}
                 </div>
@@ -185,7 +191,7 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
 
                 <Field label="Услуга для продажи">
                   <div className="flex flex-wrap gap-1.5">
-                    {SERVICES.map((s) => (
+                    {serviceNames.map((s) => (
                       <button
                         key={s}
                         onClick={() => setService(s)}

@@ -1,20 +1,11 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, RefreshCw, Loader2, Copy, ChevronDown } from "lucide-react";
+import { Zap, RefreshCw, Loader2, Copy } from "lucide-react";
 
 interface Props {
+  serviceNames: string[];
   className?: string;
 }
-
-const SERVICES = [
-  "SEO-продвижение",
-  "AI-оптимизация (LLM/Answer Engines)",
-  "Оптимизация под Нейропоиск",
-  "Наполнение контентом",
-  "Техническая оптимизация",
-  "Комплексное продвижение",
-  "Юридические правки (ФЗ-152/ФЗ-168)",
-];
 
 const DIFFICULTY = [
   { value: "easy", label: "Лёгкие", desc: "Базовые возражения" },
@@ -24,18 +15,16 @@ const DIFFICULTY = [
 
 const OBJECTION_COUNT = [3, 5, 8, 10];
 
-export default function ObjectionTrainer({ className }: Props) {
-  const [service, setService] = useState("SEO-продвижение");
+export default function ObjectionTrainer({ serviceNames, className }: Props) {
+  const [service, setService] = useState(serviceNames[0] || "SEO-продвижение");
   const [difficulty, setDifficulty] = useState("medium");
   const [count, setCount] = useState(5);
   const [isGenerating, setIsGenerating] = useState(false);
   const [objections, setObjections] = useState("");
-  const [showAnswer, setShowAnswer] = useState<Record<number, boolean>>({});
 
   const generate = useCallback(async () => {
     setIsGenerating(true);
     setObjections("");
-    setShowAnswer({});
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
@@ -50,16 +39,9 @@ export default function ObjectionTrainer({ className }: Props) {
           service,
           difficulty,
           count: count.toString(),
-          situation: "",
-          tone: "",
-          context: "",
-          transcript: "",
-          priceRub: "",
-          currency: "RUB",
-          emailSubtype: "",
-          emailObjection: "",
-          managerName: "",
-          clientName: "",
+          situation: "", tone: "", context: "", transcript: "",
+          priceRub: "", currency: "RUB", emailSubtype: "", emailObjection: "",
+          managerName: "", clientName: "",
         }),
       });
 
@@ -74,10 +56,10 @@ export default function ObjectionTrainer({ className }: Props) {
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
 
-        let newlineIndex: number;
-        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
+        let idx: number;
+        while ((idx = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (!line.startsWith("data: ")) continue;
           const jsonStr = line.slice(6).trim();
@@ -98,7 +80,7 @@ export default function ObjectionTrainer({ className }: Props) {
 
   return (
     <div className={`flex flex-col h-full overflow-y-auto ${className || ""}`}>
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border shrink-0">
         <div className="flex items-center gap-2 mb-1">
           <Zap className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold">Генератор возражений</h2>
@@ -110,7 +92,7 @@ export default function ObjectionTrainer({ className }: Props) {
       <div className="p-6 space-y-4">
         <Field label="Услуга">
           <div className="flex flex-wrap gap-1.5">
-            {SERVICES.map((s) => (
+            {serviceNames.map((s) => (
               <button
                 key={s}
                 onClick={() => setService(s)}
@@ -174,19 +156,14 @@ export default function ObjectionTrainer({ className }: Props) {
 
         <AnimatePresence>
           {objections && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 space-y-2"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Результат</h3>
                 <button
                   onClick={() => navigator.clipboard.writeText(objections)}
                   className="text-xs px-2 py-1 rounded-sm border border-border bg-secondary text-secondary-foreground hover:border-primary/20 btn-tactile flex items-center gap-1"
                 >
-                  <Copy className="w-3 h-3" />
-                  Копировать
+                  <Copy className="w-3 h-3" /> Копировать
                 </button>
               </div>
               <div className="bg-secondary/50 border border-border rounded-md p-4 text-sm text-foreground whitespace-pre-wrap">
