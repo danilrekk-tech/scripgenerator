@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Send, Loader2, RotateCcw, Settings2 } from "lucide-react";
+import { MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen, Trash2, Clock } from "lucide-react";
+import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 
 interface Message {
   role: "user" | "client";
@@ -38,7 +39,9 @@ export default function ClientSimulator({ serviceNames, className }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showConfig, setShowConfig] = useState(true);
   const [started, setStarted] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const { dialogs, saveDialog, deleteDialog } = useSavedDialogs();
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
@@ -122,6 +125,7 @@ export default function ClientSimulator({ serviceNames, className }: Props) {
   const startSimulation = () => {
     setStarted(true);
     setShowConfig(false);
+    setShowSaved(false);
     setMessages([]);
     sendMessage("Добрый день!");
   };
@@ -129,8 +133,27 @@ export default function ClientSimulator({ serviceNames, className }: Props) {
   const resetSimulation = () => {
     setStarted(false);
     setShowConfig(true);
+    setShowSaved(false);
     setMessages([]);
     setInput("");
+  };
+
+  const handleSaveDialog = () => {
+    if (messages.length < 2) return;
+    saveDialog({
+      service: config.service,
+      clientType: config.clientType,
+      mood: config.mood,
+      messages,
+    });
+  };
+
+  const handleLoadDialog = (dialog: SavedDialog) => {
+    setConfig((prev) => ({ ...prev, service: dialog.service, clientType: dialog.clientType, mood: dialog.mood }));
+    setMessages(dialog.messages);
+    setStarted(true);
+    setShowConfig(false);
+    setShowSaved(false);
   };
 
   return (
@@ -145,21 +168,59 @@ export default function ClientSimulator({ serviceNames, className }: Props) {
             </div>
             <p className="text-xs text-muted-foreground">Тренируйте навыки продаж в диалоге с AI-клиентом</p>
           </div>
-          {started && (
-            <div className="flex gap-2">
-              <button onClick={() => setShowConfig(!showConfig)} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                <Settings2 className="w-4 h-4" />
+          <div className="flex gap-1">
+            {started && messages.length >= 2 && (
+              <button onClick={handleSaveDialog} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Сохранить диалог">
+                <Save className="w-4 h-4" />
               </button>
-              <button onClick={resetSimulation} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+            )}
+            <button onClick={() => setShowSaved(!showSaved)} className={`p-2 rounded-md hover:bg-secondary transition-colors ${showSaved ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`} title="Сохранённые диалоги">
+              <FolderOpen className="w-4 h-4" />
+            </button>
+            {started && (
+              <>
+                <button onClick={() => setShowConfig(!showConfig)} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+                  <Settings2 className="w-4 h-4" />
+                </button>
+                <button onClick={resetSimulation} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Saved dialogs panel */}
       <AnimatePresence>
-        {showConfig && (
+        {showSaved && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border">
+            <div className="p-4 max-h-60 overflow-y-auto space-y-2">
+              {dialogs.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">Нет сохранённых диалогов</p>
+              ) : (
+                dialogs.map((d) => (
+                  <div key={d.id} className="flex items-center gap-2 p-2 border border-border rounded-md bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                    <button onClick={() => handleLoadDialog(d)} className="flex-1 text-left min-w-0">
+                      <p className="text-xs font-medium truncate">{d.service} — {d.clientType}</p>
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {new Date(d.timestamp).toLocaleString("ru-RU")} · {d.messages.length} сообщ.
+                      </p>
+                    </button>
+                    <button onClick={() => deleteDialog(d.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showConfig && !showSaved && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border">
             <div className="p-6 space-y-3">
               <Field label="Услуга">

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import ConfigSidebar, { type ScriptConfig, type GenerationMode } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
@@ -8,12 +8,14 @@ import SiteAudit from "@/components/SiteAudit";
 import ObjectionTrainer from "@/components/ObjectionTrainer";
 import ClientSimulator from "@/components/ClientSimulator";
 import ServicesManager from "@/components/ServicesManager";
+import GenerationHistory from "@/components/GenerationHistory";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useDisplaySettings } from "@/hooks/useDisplaySettings";
 import { useServices } from "@/hooks/useServices";
+import { useHistory } from "@/hooks/useHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Settings, Sun, Moon, FileText, SlidersHorizontal, Home, Globe, Zap, MessageCircle, Package } from "lucide-react";
+import { Settings, Sun, Moon, FileText, SlidersHorizontal, Home, Globe, Zap, MessageCircle, Package, History } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
   managerName: "",
@@ -28,10 +30,25 @@ const defaultConfig: ScriptConfig = {
   currency: "RUB",
   emailSubtype: "follow-up",
   emailObjection: "",
+  scriptLength: "medium",
+  dozimSubtype: "thinking",
+  transcriptSubmode: "analysis",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services";
-type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services";
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history";
+type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services" | "history";
+
+const MODE_LABELS: Record<GenerationMode, string> = {
+  script: "Скрипт",
+  "service-info": "Инфо по услуге",
+  arguments: "Аргументы",
+  "buffer-questions": "Буферные вопросы",
+  "transcript-analysis": "Анализ диалога",
+  email: "Письмо",
+  "knowledge-base": "База знаний",
+  dozim: "Дожим",
+  messenger: "Мессенджер",
+};
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -40,16 +57,33 @@ export default function Index() {
   const { theme, toggle } = useTheme();
   const { settings: displaySettings, update: updateDisplay, reset: resetDisplay } = useDisplaySettings();
   const { services, serviceNames, addService, updateService, deleteService, resetToDefaults, getServiceContext } = useServices();
+  const { history, addToHistory, deleteFromHistory, clearHistory } = useHistory();
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<MobileTab>("config");
   const [showDesktopSettings, setShowDesktopSettings] = useState(false);
   const [desktopPanel, setDesktopPanel] = useState<DesktopPanel>("main");
+
+  // Track completed generation to save to history
+  const [pendingHistorySave, setPendingHistorySave] = useState(false);
+
+  useEffect(() => {
+    if (pendingHistorySave && !isGenerating && script) {
+      addToHistory({
+        mode: config.mode,
+        service: config.service,
+        label: script.slice(0, 100).replace(/\n/g, " "),
+        content: script,
+      });
+      setPendingHistorySave(false);
+    }
+  }, [pendingHistorySave, isGenerating, script]);
 
   const generate = useCallback(
     (overrideContext?: string) => {
       if (isGenerating) return;
       setIsGenerating(true);
       setScript("");
+      setPendingHistorySave(true);
 
       if (isMobile) setMobileTab("output");
       if (desktopPanel !== "main") setDesktopPanel("main");
@@ -57,9 +91,9 @@ export default function Index() {
       // Enrich context with service details
       const svcContext = getServiceContext(config.service);
       const baseContext = overrideContext || config.context;
-      const enrichedContext = svcContext ? `${svcContext}\n\n${baseContext}` : baseContext;
+      const enrichedContext = svcContext ? `${svcContext}\n\nКОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:\n${baseContext}` : baseContext;
 
-      const payload = {
+      const payload: Record<string, string> = {
         ...config,
         context: enrichedContext,
       };
@@ -71,6 +105,7 @@ export default function Index() {
         onError: (msg) => {
           toast.error(msg);
           setIsGenerating(false);
+          setPendingHistorySave(false);
         },
       });
     },
@@ -92,12 +127,22 @@ export default function Index() {
     [generate]
   );
 
+  const handleHistoryLoad = useCallback(
+    (content: string) => {
+      setScript(content);
+      if (isMobile) setMobileTab("output");
+      if (desktopPanel !== "main") setDesktopPanel("main");
+    },
+    [isMobile, desktopPanel]
+  );
+
   const betaTabs: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] = [
     { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
     { value: "audit", label: "Аудит", icon: <Globe className="w-4 h-4" />, beta: true },
     { value: "objections", label: "Возражения", icon: <Zap className="w-4 h-4" />, beta: true },
     { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" />, beta: true },
     { value: "services", label: "Услуги", icon: <Package className="w-4 h-4" /> },
+    { value: "history", label: "История", icon: <History className="w-4 h-4" /> },
   ];
 
   // Desktop layout
@@ -200,6 +245,15 @@ export default function Index() {
                 className="flex-1"
               />
             )}
+            {desktopPanel === "history" && (
+              <GenerationHistory
+                history={history}
+                onLoad={handleHistoryLoad}
+                onDelete={deleteFromHistory}
+                onClear={clearHistory}
+                className="flex-1"
+              />
+            )}
           </div>
         </div>
       </div>
@@ -259,6 +313,9 @@ export default function Index() {
         {mobileTab === "services" && (
           <ServicesManager services={services} onAdd={addService} onUpdate={updateService} onDelete={deleteService} onReset={resetToDefaults} className="h-full" />
         )}
+        {mobileTab === "history" && (
+          <GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" />
+        )}
       </div>
 
       <nav className="flex items-center justify-around border-t border-border bg-card py-2 shrink-0 overflow-x-auto">
@@ -268,7 +325,7 @@ export default function Index() {
         <MobileNavBtn active={mobileTab === "objections"} onClick={() => setMobileTab("objections")} icon={<Zap className="w-5 h-5" />} label="Возражения" />
         <MobileNavBtn active={mobileTab === "simulator"} onClick={() => setMobileTab("simulator")} icon={<MessageCircle className="w-5 h-5" />} label="Симулятор" />
         <MobileNavBtn active={mobileTab === "services"} onClick={() => setMobileTab("services")} icon={<Package className="w-5 h-5" />} label="Услуги" />
-        <MobileNavBtn active={mobileTab === "display-settings"} onClick={() => setMobileTab("display-settings")} icon={<SlidersHorizontal className="w-5 h-5" />} label="Вид" />
+        <MobileNavBtn active={mobileTab === "history"} onClick={() => setMobileTab("history")} icon={<History className="w-5 h-5" />} label="История" />
       </nav>
     </div>
   );

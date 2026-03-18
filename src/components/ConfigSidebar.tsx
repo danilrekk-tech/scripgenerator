@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { Slider } from "@/components/ui/slider";
 
-export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base";
+export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base" | "dozim" | "messenger";
 
 export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
+
+export type DozimSubtype = "thinking" | "invoice-sent" | "silent-after-kp";
+
+export type TranscriptSubmode = "analysis" | "next-call";
 
 export type ScriptConfig = {
   managerName: string;
@@ -17,6 +22,9 @@ export type ScriptConfig = {
   currency: Currency;
   emailSubtype: EmailSubtype;
   emailObjection: string;
+  scriptLength: string;
+  dozimSubtype: DozimSubtype;
+  transcriptSubmode: TranscriptSubmode;
 };
 
 export type Currency = "RUB" | "UZS" | "BYN" | "KZT";
@@ -59,15 +67,18 @@ const TONES = [
   "Агрессивный closer",
   "Дружеский партнёр",
   "Не продающий",
+  "Простыми словами",
 ];
 
 const MODES: { value: GenerationMode; label: string; icon: string }[] = [
   { value: "script", label: "Скрипт продаж", icon: "📋" },
+  { value: "dozim", label: "Дожим клиента", icon: "🎯" },
+  { value: "messenger", label: "Скрипт для мессенджера", icon: "💬" },
+  { value: "email", label: "Письма клиенту", icon: "✉️" },
   { value: "service-info", label: "Инфо по услуге", icon: "📦" },
   { value: "arguments", label: "Аргументы и выгоды", icon: "💡" },
   { value: "buffer-questions", label: "Буферные вопросы", icon: "❓" },
   { value: "transcript-analysis", label: "Анализ диалога", icon: "🎙️" },
-  { value: "email", label: "Письма клиенту", icon: "✉️" },
   { value: "knowledge-base", label: "База знаний", icon: "📚" },
 ];
 
@@ -80,6 +91,24 @@ const EMAIL_SUBTYPES: { value: EmailSubtype; label: string }[] = [
   { value: "custom", label: "Свой вариант" },
 ];
 
+const DOZIM_SUBTYPES: { value: DozimSubtype; label: string; desc: string }[] = [
+  { value: "thinking", label: "Клиент думает", desc: "Для тех кто «подумает» и пропал" },
+  { value: "invoice-sent", label: "Счёт выставлен", desc: "Ожидается оплата, нужно ускорить" },
+  { value: "silent-after-kp", label: "Молчит после КП", desc: "Отправили КП — тишина" },
+];
+
+const TRANSCRIPT_SUBMODES: { value: TranscriptSubmode; label: string; desc: string }[] = [
+  { value: "analysis", label: "Анализ + идеальный скрипт", desc: "Разбор ошибок и как надо было" },
+  { value: "next-call", label: "Скрипт следующего звонка", desc: "Дожим на основе анализа диалога" },
+];
+
+const SCRIPT_LENGTH_LABELS: Record<string, string> = {
+  short: "Короткий",
+  medium: "Средний",
+  long: "Подробный",
+  detailed: "Максимально детальный",
+};
+
 const MODE_LABELS: Record<GenerationMode, string> = {
   script: "Сгенерировать скрипт",
   "service-info": "Описать услугу",
@@ -88,6 +117,8 @@ const MODE_LABELS: Record<GenerationMode, string> = {
   "transcript-analysis": "Проанализировать и сгенерировать",
   email: "Сгенерировать письмо",
   "knowledge-base": "Сгенерировать для базы знаний",
+  dozim: "Сгенерировать дожим",
+  messenger: "Сгенерировать для мессенджера",
 };
 
 interface Props {
@@ -104,11 +135,16 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
     onChange({ ...config, [key]: value });
 
   const showSituation = config.mode === "script" || config.mode === "buffer-questions";
-  const showTone = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
-  const showNames = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
+  const showTone = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email" || config.mode === "dozim" || config.mode === "messenger";
+  const showNames = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email" || config.mode === "dozim" || config.mode === "messenger";
   const showTranscript = config.mode === "transcript-analysis";
-  const showPrice = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email";
+  const showPrice = config.mode === "script" || config.mode === "transcript-analysis" || config.mode === "email" || config.mode === "dozim" || config.mode === "messenger";
   const showEmail = config.mode === "email";
+  const showDozim = config.mode === "dozim";
+  const showLength = config.mode === "script" || config.mode === "dozim" || config.mode === "messenger";
+  const showTranscriptSubmode = config.mode === "transcript-analysis";
+
+  const lengthIdx = ["short", "medium", "long", "detailed"].indexOf(config.scriptLength);
 
   const canGenerate = (() => {
     if (config.mode === "transcript-analysis") return config.transcript.trim().length > 20;
@@ -144,6 +180,28 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
           ))}
         </div>
       </Field>
+
+      {/* Dozim subtype */}
+      {showDozim && (
+        <Field label="Тип дожима">
+          <div className="flex flex-col gap-1.5">
+            {DOZIM_SUBTYPES.map((ds) => (
+              <button
+                key={ds.value}
+                onClick={() => update("dozimSubtype", ds.value)}
+                className={`text-left text-xs px-3 py-2 rounded-md border transition-all duration-200 btn-tactile ${
+                  config.dozimSubtype === ds.value
+                    ? "bg-primary/15 text-primary border-primary/30"
+                    : "bg-secondary border-border text-secondary-foreground hover:border-primary/20"
+                }`}
+              >
+                <span className="block font-medium">{ds.label}</span>
+                <span className="block text-[10px] text-muted-foreground mt-0.5">{ds.desc}</span>
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
 
       {/* Email subtype */}
       {showEmail && (
@@ -185,6 +243,28 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
             value={config.emailObjection}
             onChange={(e) => update("emailObjection", e.target.value)}
           />
+        </Field>
+      )}
+
+      {/* Transcript submode */}
+      {showTranscriptSubmode && (
+        <Field label="Что сгенерировать">
+          <div className="flex flex-col gap-1.5">
+            {TRANSCRIPT_SUBMODES.map((ts) => (
+              <button
+                key={ts.value}
+                onClick={() => update("transcriptSubmode", ts.value)}
+                className={`text-left text-xs px-3 py-2 rounded-md border transition-all duration-200 btn-tactile ${
+                  config.transcriptSubmode === ts.value
+                    ? "bg-primary/15 text-primary border-primary/30"
+                    : "bg-secondary border-border text-secondary-foreground hover:border-primary/20"
+                }`}
+              >
+                <span className="block font-medium">{ts.label}</span>
+                <span className="block text-[10px] text-muted-foreground mt-0.5">{ts.desc}</span>
+              </button>
+            ))}
+          </div>
         </Field>
       )}
 
@@ -276,6 +356,26 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
                 {t}
               </button>
             ))}
+          </div>
+        </Field>
+      )}
+
+      {/* Script length */}
+      {showLength && (
+        <Field label={`Длина: ${SCRIPT_LENGTH_LABELS[config.scriptLength]}`}>
+          <Slider
+            value={[lengthIdx >= 0 ? lengthIdx : 1]}
+            min={0}
+            max={3}
+            step={1}
+            onValueChange={([v]) => {
+              const lengths = ["short", "medium", "long", "detailed"];
+              update("scriptLength", lengths[v]);
+            }}
+          />
+          <div className="flex justify-between text-[10px] text-muted-foreground -mt-1">
+            <span>Кратко</span>
+            <span>Детально</span>
           </div>
         </Field>
       )}
