@@ -56,7 +56,11 @@ export function useServices() {
   const getServiceContext = useCallback((serviceName: string) => {
     const svc = services.find((s) => s.name === serviceName);
     if (!svc) return "";
-    return `Услуга: ${svc.name}\nОписание: ${svc.description}\nКлючевые пункты: ${svc.keyPoints.join(", ")}`;
+    return `ДАННЫЕ ОБ УСЛУГЕ (СТРОГО ПРИДЕРЖИВАЙСЯ ЭТОГО ОПИСАНИЯ, НЕ ДОБАВЛЯЙ НИЧЕГО ОТ СЕБЯ):
+Название: ${svc.name}
+Описание: ${svc.description}
+Что ВХОДИТ в услугу (ТОЛЬКО эти пункты, НЕ придумывай другие): ${svc.keyPoints.join("; ")}
+ВАЖНО: Если какой-то аспект НЕ указан в ключевых пунктах выше — НЕ включай его в генерацию. Используй ТОЛЬКО перечисленные пункты.`;
   }, [services]);
 
   return { services, serviceNames, addService, updateService, deleteService, resetToDefaults, getServiceContext };
