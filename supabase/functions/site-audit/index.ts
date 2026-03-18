@@ -22,7 +22,6 @@ serve(async (req) => {
       targetUrl = `https://${targetUrl}`;
     }
 
-    // Fetch the page
     let html = "";
     let fetchError = false;
     let statusCode = 0;
@@ -52,9 +51,7 @@ serve(async (req) => {
     if (fetchError) {
       checks.push({ name: "Доступность сайта", status: "fail", detail: "Сайт недоступен или заблокировал запрос" });
       return new Response(JSON.stringify({
-        url: targetUrl,
-        score: 0,
-        checks,
+        url: targetUrl, score: 0, checks,
         summary: "Сайт недоступен. Проверьте правильность URL.",
         recommendations: ["Проверьте правильность URL", "Убедитесь что сайт работает"],
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -62,8 +59,8 @@ serve(async (req) => {
 
     // Status code
     if (statusCode === 200) {
-      checks.push({ name: "HTTP-статус", status: "pass", detail: `200 OK` });
-      score += 10;
+      checks.push({ name: "HTTP-статус", status: "pass", detail: "200 OK" });
+      score += 8;
     } else {
       checks.push({ name: "HTTP-статус", status: "fail", detail: `Код ответа: ${statusCode}` });
     }
@@ -71,10 +68,10 @@ serve(async (req) => {
     // Response time
     if (responseTime < 1000) {
       checks.push({ name: "Скорость ответа", status: "pass", detail: `${responseTime}мс — отлично` });
-      score += 10;
+      score += 8;
     } else if (responseTime < 3000) {
       checks.push({ name: "Скорость ответа", status: "warn", detail: `${responseTime}мс — можно улучшить` });
-      score += 5;
+      score += 4;
     } else {
       checks.push({ name: "Скорость ответа", status: "fail", detail: `${responseTime}мс — слишком медленно` });
     }
@@ -85,10 +82,10 @@ serve(async (req) => {
       const titleLen = titleMatch[1].trim().length;
       if (titleLen >= 30 && titleLen <= 70) {
         checks.push({ name: "Title тег", status: "pass", detail: `"${titleMatch[1].trim().slice(0, 60)}..." (${titleLen} симв.)` });
-        score += 10;
+        score += 8;
       } else {
         checks.push({ name: "Title тег", status: "warn", detail: `Длина ${titleLen} симв. (рекомендуется 30-70)` });
-        score += 5;
+        score += 4;
       }
     } else {
       checks.push({ name: "Title тег", status: "fail", detail: "Отсутствует" });
@@ -101,10 +98,10 @@ serve(async (req) => {
       const descLen = descMatch[1].trim().length;
       if (descLen >= 100 && descLen <= 160) {
         checks.push({ name: "Meta Description", status: "pass", detail: `${descLen} симв. — оптимально` });
-        score += 10;
+        score += 8;
       } else {
         checks.push({ name: "Meta Description", status: "warn", detail: `${descLen} симв. (рекомендуется 100-160)` });
-        score += 5;
+        score += 4;
       }
     } else {
       checks.push({ name: "Meta Description", status: "fail", detail: "Отсутствует" });
@@ -114,7 +111,7 @@ serve(async (req) => {
     const h1Match = html.match(/<h1[^>]*>([^<]*)<\/h1>/i);
     if (h1Match) {
       checks.push({ name: "Тег H1", status: "pass", detail: `Найден: "${h1Match[1].trim().slice(0, 50)}"` });
-      score += 10;
+      score += 7;
     } else {
       checks.push({ name: "Тег H1", status: "fail", detail: "Отсутствует на главной странице" });
     }
@@ -123,7 +120,7 @@ serve(async (req) => {
     const viewportMatch = html.match(/<meta[^>]+name=["']viewport["']/i);
     if (viewportMatch) {
       checks.push({ name: "Адаптивность (viewport)", status: "pass", detail: "Мета-тег viewport настроен" });
-      score += 10;
+      score += 7;
     } else {
       checks.push({ name: "Адаптивность (viewport)", status: "fail", detail: "Мета-тег viewport отсутствует" });
     }
@@ -131,7 +128,7 @@ serve(async (req) => {
     // HTTPS
     if (targetUrl.startsWith("https://")) {
       checks.push({ name: "HTTPS", status: "pass", detail: "Сайт использует HTTPS" });
-      score += 10;
+      score += 7;
     } else {
       checks.push({ name: "HTTPS", status: "fail", detail: "Сайт не использует HTTPS" });
     }
@@ -141,10 +138,10 @@ serve(async (req) => {
     const imgsNoAlt = imgTags.filter((t) => !t.match(/alt=["'][^"']+["']/i));
     if (imgTags.length === 0) {
       checks.push({ name: "Alt-теги изображений", status: "warn", detail: "Изображений не обнаружено" });
-      score += 5;
+      score += 4;
     } else if (imgsNoAlt.length === 0) {
       checks.push({ name: "Alt-теги изображений", status: "pass", detail: `Все ${imgTags.length} изображений имеют alt` });
-      score += 10;
+      score += 7;
     } else {
       checks.push({ name: "Alt-теги изображений", status: "warn", detail: `${imgsNoAlt.length} из ${imgTags.length} без alt-тега` });
       score += 3;
@@ -159,7 +156,7 @@ serve(async (req) => {
       checks.push({ name: "Open Graph теги", status: "warn", detail: "OG-разметка отсутствует" });
     }
 
-    // Robots/canonical
+    // Canonical
     const canonicalMatch = html.match(/<link[^>]+rel=["']canonical["']/i);
     if (canonicalMatch) {
       checks.push({ name: "Canonical URL", status: "pass", detail: "Canonical тег установлен" });
@@ -168,14 +165,81 @@ serve(async (req) => {
       checks.push({ name: "Canonical URL", status: "warn", detail: "Canonical тег не найден" });
     }
 
+    // Schema.org microdata
+    const schemaJsonLd = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>/gi) || [];
+    const schemaMicrodata = html.match(/itemscope|itemtype=["']https?:\/\/schema\.org/gi) || [];
+    const schemaRdfa = html.match(/typeof=["'][^"']*schema\.org/gi) || [];
+    const totalSchemaMarkers = schemaJsonLd.length + schemaMicrodata.length + schemaRdfa.length;
+    
+    if (totalSchemaMarkers > 0) {
+      const types: string[] = [];
+      // Extract JSON-LD types
+      const jsonLdBlocks = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+      for (const block of jsonLdBlocks) {
+        const typeMatch = block.match(/"@type"\s*:\s*"([^"]+)"/);
+        if (typeMatch) types.push(typeMatch[1]);
+      }
+      // Extract microdata types
+      const microdataTypes = html.match(/itemtype=["']https?:\/\/schema\.org\/([^"']+)["']/gi) || [];
+      for (const mt of microdataTypes) {
+        const m = mt.match(/schema\.org\/([^"']+)/i);
+        if (m) types.push(m[1]);
+      }
+      
+      const typesStr = types.length > 0 ? ` (${types.slice(0, 5).join(", ")})` : "";
+      checks.push({ name: "Schema.org микроразметка", status: "pass", detail: `Найдено ${totalSchemaMarkers} блок(ов)${typesStr}` });
+      score += 7;
+    } else {
+      checks.push({ name: "Schema.org микроразметка", status: "fail", detail: "Микроразметка Schema.org не обнаружена — критично для SEO и AI-поиска" });
+    }
+
+    // Neuro-search optimization markers
+    let neuroScore = 0;
+    const neuroDetails: string[] = [];
+    
+    // Check for FAQ schema (important for AI answers)
+    const hasFaqSchema = html.match(/FAQPage|faqpage/i);
+    if (hasFaqSchema) { neuroScore++; neuroDetails.push("FAQ Schema"); }
+    
+    // Check for HowTo schema
+    const hasHowTo = html.match(/HowTo/i) && (schemaJsonLd.length > 0 || schemaMicrodata.length > 0);
+    if (hasHowTo) { neuroScore++; neuroDetails.push("HowTo Schema"); }
+    
+    // Check for structured headings (h2, h3 hierarchy)
+    const h2Count = (html.match(/<h2[^>]*>/gi) || []).length;
+    const h3Count = (html.match(/<h3[^>]*>/gi) || []).length;
+    if (h2Count >= 3 && h3Count >= 2) { neuroScore++; neuroDetails.push(`Иерархия заголовков (${h2Count}×H2, ${h3Count}×H3)`); }
+    
+    // Check for structured lists
+    const listCount = (html.match(/<(?:ul|ol)[^>]*>/gi) || []).length;
+    if (listCount >= 2) { neuroScore++; neuroDetails.push(`Структурированные списки (${listCount})`); }
+    
+    // Check for data tables
+    const tableCount = (html.match(/<table[^>]*>/gi) || []).length;
+    if (tableCount > 0) { neuroScore++; neuroDetails.push("Табличные данные"); }
+
+    // Check for Article/WebPage/Organization schema
+    const hasArticle = html.match(/"@type"\s*:\s*"(Article|NewsArticle|BlogPosting|WebPage|Organization)"/i);
+    if (hasArticle) { neuroScore++; neuroDetails.push(`${hasArticle[1]} Schema`); }
+
+    if (neuroScore >= 4) {
+      checks.push({ name: "Оптимизация под Нейропоиск", status: "pass", detail: `Хорошая оптимизация: ${neuroDetails.join(", ")}` });
+      score += 7;
+    } else if (neuroScore >= 2) {
+      checks.push({ name: "Оптимизация под Нейропоиск", status: "warn", detail: `Частичная: ${neuroDetails.length > 0 ? neuroDetails.join(", ") : "мало структурированных данных"}. Добавьте FAQ Schema, HowTo, структурированные заголовки.` });
+      score += 3;
+    } else {
+      checks.push({ name: "Оптимизация под Нейропоиск", status: "fail", detail: "Не оптимизирован для AI/нейропоиска. Нет FAQ Schema, HowTo, мало структурированных данных." });
+    }
+
     // HTML size
     const sizeKb = Math.round(html.length / 1024);
     if (sizeKb < 100) {
       checks.push({ name: "Размер HTML", status: "pass", detail: `${sizeKb} КБ — оптимально` });
-      score += 5;
+      score += 4;
     } else if (sizeKb < 300) {
       checks.push({ name: "Размер HTML", status: "warn", detail: `${sizeKb} КБ — можно оптимизировать` });
-      score += 3;
+      score += 2;
     } else {
       checks.push({ name: "Размер HTML", status: "fail", detail: `${sizeKb} КБ — слишком большой` });
     }
@@ -184,7 +248,7 @@ serve(async (req) => {
     const yearMatch = html.match(/(?:©|&copy;|copyright)\s*(\d{4})/i) || html.match(/(\d{4})\s*[-–]\s*(\d{4})/);
     if (yearMatch) {
       checks.push({ name: "Год создания/копирайт", status: "pass", detail: `Найдено: ${yearMatch[0]}` });
-      score += 5;
+      score += 4;
     } else {
       checks.push({ name: "Год создания/копирайт", status: "warn", detail: "Не удалось определить" });
     }
@@ -246,11 +310,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({
-      url: targetUrl,
-      score,
-      checks,
-      summary,
-      recommendations,
+      url: targetUrl, score, checks, summary, recommendations,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (e) {

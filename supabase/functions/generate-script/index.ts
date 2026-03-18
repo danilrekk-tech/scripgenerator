@@ -10,7 +10,19 @@ function getToneDescription(tone: string): string {
   if (tone === "Не продающий") {
     return `Тон: мягкий, ненавязчивый. Ты НЕ продаёшь — ты показываешь клиенту что ему это объективно необходимо, и вы кстати можете с этим помочь по выгодной цене. Никакого давления, никаких прямых призывов купить. Подача: экспертная рекомендация, а не продажа.`;
   }
+  if (tone === "Простыми словами") {
+    return `Тон: максимально простой и понятный. Говори так, как будто объясняешь человеку далёкому от технологий. Никаких терминов (SEO, CTR, конверсия, лиды и т.д.) — заменяй их простыми аналогиями. Вместо "SEO-оптимизация" скажи "чтобы ваш сайт находили в поиске". Вместо "конверсия" — "чтобы больше посетителей становились клиентами". Язык должен быть бытовым, дружелюбным, как разговор с соседом.`;
+  }
   return `Тон: ${tone || "Уверенный эксперт"}`;
+}
+
+function getScriptLengthInstruction(length: string): string {
+  switch (length) {
+    case "short": return "\nДЛИНА: Короткий скрипт — только ключевые фразы, 5-8 реплик максимум. Без лишних деталей.";
+    case "long": return "\nДЛИНА: Подробный скрипт — развёрнутые реплики, несколько вариантов ответов на каждое возражение, детальные переходы.";
+    case "detailed": return "\nДЛИНА: Максимально детальный скрипт — каждый этап расписан подробно, множество вариантов, включи все возможные сценарии, ответвления диалога и альтернативные пути.";
+    default: return "\nДЛИНА: Средний скрипт — оптимальный баланс между краткостью и детальностью.";
+  }
 }
 
 function getPriceInstruction(priceRub: string, currency: string): string {
@@ -49,12 +61,80 @@ function getEmailSubtypeInstruction(subtype: string, objection: string): string 
   }
 }
 
-function getSystemPrompt(mode: string, managerVar: string, clientVar: string, tone: string, priceRub: string, currency: string, emailSubtype: string, emailObjection: string) {
-  const base = `Ты — опытный эксперт по продажам digital-услуг (SEO, AI-оптимизация, голосовой поиск, наполнение контентом, техническая оптимизация сайтов, оптимизация под нейропоиск, юридические правки ФЗ-152/ФЗ-168). Пиши на русском языке. Не используй эмодзи. Пиши профессионально.`;
+function getDozimSubtypeInstruction(subtype: string): string {
+  switch (subtype) {
+    case "thinking":
+      return `Ситуация дожима: Клиент сказал "я подумаю" / "нужно посоветоваться" / "перезвоню" и пропал. Нужно вернуть клиента в диалог, создать ощущение срочности, но без навязчивости. Подчеркни что откладывание = потеря времени/денег.`;
+    case "invoice-sent":
+      return `Ситуация дожима: Счёт выставлен, ожидается оплата. Клиент тянет с оплатой. Нужно мягко ускорить процесс, напомнить о выгодах начала работ, создать ощущение что время работает против клиента.`;
+    case "silent-after-kp":
+      return `Ситуация дожима: Отправили коммерческое предложение — клиент молчит. Нужно вернуть контакт, узнать получил ли КП, есть ли вопросы, предложить обсудить детали.`;
+    default:
+      return "";
+  }
+}
+
+function getSystemPrompt(mode: string, managerVar: string, clientVar: string, tone: string, priceRub: string, currency: string, emailSubtype: string, emailObjection: string, scriptLength: string, dozimSubtype: string, transcriptSubmode: string) {
+  const base = `Ты — опытный эксперт по продажам digital-услуг (SEO, AI-оптимизация, голосовой поиск, наполнение контентом, техническая оптимизация сайтов, оптимизация под нейропоиск, юридические правки ФЗ-152/ФЗ-168). Пиши на русском языке. Не используй эмодзи. Пиши профессионально.
+
+КРИТИЧЕСКИ ВАЖНО: Если в контексте указана информация об услуге (описание и ключевые пункты), ты ОБЯЗАН использовать ТОЛЬКО эти данные. НЕ выдумывай услуги, этапы работ или функции которые НЕ указаны в описании услуги. Если что-то не указано в ключевых пунктах — НЕ включай это в скрипт.`;
 
   const priceInstr = getPriceInstruction(priceRub, currency);
+  const lengthInstr = getScriptLengthInstruction(scriptLength);
 
   switch (mode) {
+    case "dozim":
+      return `${base}
+
+Ты генерируешь скрипты для ДОЖИМА клиентов — возврата клиентов которые затягивают решение или пропали.
+
+${getDozimSubtypeInstruction(dozimSubtype)}
+${getToneDescription(tone)}
+${priceInstr}
+${lengthInstr}
+
+ПРАВИЛА:
+1. Скрипт должен быть готов к использованию — конкретные фразы для звонка/сообщения.
+2. Используй [Имя менеджера] для подписи. Если указано — подставь "${managerVar}".
+3. Используй [Имя клиента] для обращения. Если указано — подставь "${clientVar}".
+4. Если имена НЕ указаны — оставь переменные в квадратных скобках.
+5. Дай 2-3 варианта подхода (мягкий, средний, настойчивый).
+6. Включи конкретные аргументы почему клиенту выгодно решить вопрос сейчас.
+
+СТРУКТУРА:
+## СКРИПТ ДОЖИМА
+Основные реплики менеджера с вариантами.
+
+## РЕКОМЕНДАЦИИ ДЛЯ МЕНЕДЖЕРА
+Краткие советы по подходу (выдели визуально что это внутренние заметки).`;
+
+    case "messenger":
+      return `${base}
+
+Ты генерируешь скрипты для общения в МЕССЕНДЖЕРАХ (WhatsApp, Telegram, Viber и др.).
+
+${getToneDescription(tone)}
+${priceInstr}
+${lengthInstr}
+
+ПРАВИЛА:
+1. Сообщения должны быть КОРОТКИМИ — 1-3 предложения на сообщение.
+2. Структура: серия сообщений, а не один длинный текст.
+3. Каждое сообщение начинай с новой строки и нумеруй.
+4. Используй [Имя менеджера] и [Имя клиента] (подставь "${managerVar}" и "${clientVar}" если указаны).
+5. Учитывай специфику мессенджеров: неформальный тон, быстрые ответы, без длинных абзацев.
+6. Включи варианты ответов на возможные реакции клиента.
+
+СТРУКТУРА:
+## СКРИПТ ДЛЯ МЕССЕНДЖЕРА
+Серия коротких сообщений.
+
+## ВАРИАНТЫ ОТВЕТОВ
+На типичные реакции клиента.
+
+## РЕКОМЕНДАЦИИ ДЛЯ МЕНЕДЖЕРА
+Краткие советы (выдели как внутренние заметки).`;
+
     case "objection-training":
       return `${base}
 
@@ -118,6 +198,34 @@ ${priceInstr}
 Будь конкретен, давай цифры и примеры.`;
 
     case "transcript-analysis":
+      if (transcriptSubmode === "next-call") {
+        return `${base}
+
+Тебе будет предоставлена транскрибация реального диалога между менеджером и клиентом.
+Твоя задача:
+1. КРАТКО проанализировать диалог: выявить сильные и слабые стороны менеджера.
+2. Определить потребности, боли и возражения клиента из диалога.
+3. Сгенерировать СКРИПТ СЛЕДУЮЩЕГО ЗВОНКА (дожим) — с учётом всего что было в предыдущем диалоге.
+4. Скрипт должен учитывать конкретные фразы клиента, его возражения и потребности.
+
+${getToneDescription(tone)}
+${priceInstr}
+
+СТРУКТУРА ОТВЕТА:
+## АНАЛИЗ ПРЕДЫДУЩЕГО ДИАЛОГА
+- Сильные стороны менеджера
+- Слабые стороны и ошибки
+- Выявленные потребности и боли клиента
+- Возражения которые остались необработанными
+
+## СКРИПТ СЛЕДУЮЩЕГО ЗВОНКА
+Полный скрипт для дожима/продолжения работы с этим клиентом, учитывающий всю историю.
+
+## РЕКОМЕНДАЦИИ ДЛЯ МЕНЕДЖЕРА
+Советы по подходу к этому конкретному клиенту.
+
+Используй [Имя менеджера] и [Имя клиента] (подставь "${managerVar}" и "${clientVar}" если указаны).`;
+      }
       return `${base}
 
 Тебе будет предоставлена транскрибация реального диалога между менеджером и клиентом (2 спикера). 
@@ -200,12 +308,32 @@ ${priceInstr}
 6. ${getToneDescription(tone)}
 7. Включай конкретные цифры, факты и выгоды.
 8. Скрипт должен быть развёрнутым и детальным.
-${priceInstr}`;
+${priceInstr}
+${lengthInstr}`;
   }
 }
 
 function getUserPrompt(mode: string, service: string, situation: string, tone: string, context: string, transcript: string, emailSubtype: string, emailObjection: string, extraParams?: Record<string, string>) {
   switch (mode) {
+    case "dozim":
+      return `Сгенерируй скрипт дожима клиента.
+
+Услуга: ${service}
+${tone ? `Тон: ${tone}` : ""}
+${context ? `Дополнительный контекст: ${context}` : ""}
+
+Сгенерируй полный скрипт с вариантами подхода.`;
+
+    case "messenger":
+      return `Сгенерируй скрипт для общения в мессенджерах.
+
+Услуга: ${service}
+Ситуация: ${situation || "Первое сообщение"}
+${tone ? `Тон: ${tone}` : ""}
+${context ? `Дополнительный контекст: ${context}` : ""}
+
+Сгенерируй серию коротких сообщений, готовых к отправке в WhatsApp/Telegram.`;
+
     case "objection-training": {
       const difficulty = extraParams?.difficulty || "medium";
       const count = extraParams?.count || "5";
@@ -250,7 +378,7 @@ ${context ? `Дополнительный контекст: ${context}` : ""}
 Дай максимально полное описание с терминами, процессом работ, DIY-инструкцией и FAQ.`;
 
     case "transcript-analysis":
-      return `Проанализируй следующую транскрибацию диалога и сгенерируй идеальный скрипт.
+      return `Проанализируй следующую транскрибацию диалога и сгенерируй результат.
 
 Услуга: ${service}
 ${context ? `Дополнительный контекст: ${context}` : ""}
@@ -258,7 +386,7 @@ ${context ? `Дополнительный контекст: ${context}` : ""}
 ТРАНСКРИБАЦИЯ ДИАЛОГА:
 ${transcript}
 
-Дай детальный анализ и полный идеальный скрипт.`;
+Дай детальный анализ и полный скрипт.`;
 
     case "service-info":
       return `Сгенерируй подробное описание услуги для менеджера по продажам.
@@ -302,14 +430,14 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency, emailSubtype, emailObjection, difficulty, count } = body;
+    const { managerName, clientName, service, situation, tone, context, mode, transcript, priceRub, currency, emailSubtype, emailObjection, difficulty, count, scriptLength, dozimSubtype, transcriptSubmode } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const managerVar = managerName?.trim() || "[Имя менеджера]";
     const clientVar = clientName?.trim() || "[Имя клиента]";
 
-    const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar, tone, priceRub, currency, emailSubtype || "follow-up", emailObjection || "");
+    const systemPrompt = getSystemPrompt(mode || "script", managerVar, clientVar, tone, priceRub, currency, emailSubtype || "follow-up", emailObjection || "", scriptLength || "medium", dozimSubtype || "thinking", transcriptSubmode || "analysis");
     const userPrompt = getUserPrompt(mode || "script", service, situation, tone, context, transcript, emailSubtype || "follow-up", emailObjection || "", { difficulty, count });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

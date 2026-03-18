@@ -43,7 +43,27 @@ const MODE_EMPTY: Record<GenerationMode, { title: string; subtitle: string }> = 
     title: "Знания — сила продаж.",
     subtitle: "Сгенерируй описание услуг, терминов и DIY-инструкций для базы знаний.",
   },
+  dozim: {
+    title: "Дожми. Не упусти.",
+    subtitle: "Выбери ситуацию дожима — получи готовый скрипт для возврата клиента.",
+  },
+  messenger: {
+    title: "Короткие сообщения — быстрый результат.",
+    subtitle: "Получи адаптированные скрипты для WhatsApp, Telegram и других мессенджеров.",
+  },
 };
+
+// Internal/analysis section markers
+const INTERNAL_MARKERS = [
+  "АНАЛИЗ ДИАЛОГА", "АНАЛИЗ", "ЧТО БЫЛО ХОРОШО", "ОШИБКИ", "УПУЩЕННЫЕ ВОЗМОЖНОСТИ",
+  "ВЫЯВЛЕННЫЕ ПОТРЕБНОСТИ", "СИЛЬНЫЕ СТОРОНЫ", "СЛАБЫЕ СТОРОНЫ", "РЕКОМЕНДАЦИИ",
+  "КОММЕНТАРИЙ", "ПОЯСНЕНИЕ", "ПРИМЕЧАНИЕ", "ДЛЯ МЕНЕДЖЕРА", "ВНУТРЕННИЕ ЗАМЕТКИ",
+];
+
+function isInternalSection(title: string): boolean {
+  const upper = title.toUpperCase().replace(/[*#]/g, "").trim();
+  return INTERNAL_MARKERS.some((m) => upper.includes(m));
+}
 
 export default function ScriptOutput({ script, isGenerating, mode, displaySettings, className }: Props) {
   const stages = useMemo(() => {
@@ -127,50 +147,68 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
                 <div className="mb-6 pb-4 border-b border-border">
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Этапы</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {stages.map((s, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          document.getElementById(`stage-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }}
-                        className="text-[11px] px-2 py-1 rounded-sm border border-border bg-secondary text-secondary-foreground hover:border-primary/30 hover:text-primary transition-all btn-tactile flex items-center gap-1"
-                      >
-                        <ChevronRight className="w-3 h-3" />
-                        {s.title}
-                      </button>
-                    ))}
+                    {stages.map((s, i) => {
+                      const internal = isInternalSection(s.title);
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            document.getElementById(`stage-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }}
+                          className={`text-[11px] px-2 py-1 rounded-sm border transition-all btn-tactile flex items-center gap-1 ${
+                            internal
+                              ? "border-accent/30 bg-accent/10 text-accent-foreground hover:border-accent/50"
+                              : "border-border bg-secondary text-secondary-foreground hover:border-primary/30 hover:text-primary"
+                          }`}
+                        >
+                          <ChevronRight className="w-3 h-3" />
+                          {internal && <span className="text-[9px]">📝</span>}
+                          {s.title}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Stages */}
-              {stages.map((stage, i) => (
-                <div
-                  key={i}
-                  id={`stage-${i}`}
-                  className="mb-2"
-                  style={{ marginBottom: `${displaySettings.paragraphSpacing}px` }}
-                >
-                  {displaySettings.showStageHeaders && stages.length > 1 && (
-                    <h2
-                      className="font-semibold text-primary mb-3 pb-2 border-b border-primary/10"
-                      style={{ fontSize: `${displaySettings.stageHeaderSize}px` }}
-                    >
-                      {stage.title}
-                    </h2>
-                  )}
+              {stages.map((stage, i) => {
+                const internal = isInternalSection(stage.title);
+                return (
                   <div
-                    className={`text-foreground whitespace-pre-wrap ${
-                      displaySettings.scriptBgEnabled
-                        ? "bg-secondary/50 border border-border rounded-md p-4"
-                        : ""
-                    }`}
-                    style={textStyle}
+                    key={i}
+                    id={`stage-${i}`}
+                    className="mb-2"
+                    style={{ marginBottom: `${displaySettings.paragraphSpacing}px` }}
                   >
-                    {renderText(stage.content)}
+                    {displaySettings.showStageHeaders && stages.length > 1 && (
+                      <h2
+                        className={`font-semibold mb-3 pb-2 border-b ${
+                          internal
+                            ? "text-muted-foreground border-muted-foreground/20 italic"
+                            : "text-primary border-primary/10"
+                        }`}
+                        style={{ fontSize: `${displaySettings.stageHeaderSize}px` }}
+                      >
+                        {internal && <span className="mr-2 text-sm">📝</span>}
+                        {stage.title}
+                      </h2>
+                    )}
+                    <div
+                      className={`whitespace-pre-wrap ${
+                        internal
+                          ? "text-muted-foreground bg-muted/50 border border-border rounded-md p-4 text-sm italic"
+                          : displaySettings.scriptBgEnabled
+                          ? "text-foreground bg-secondary/50 border border-border rounded-md p-4"
+                          : "text-foreground"
+                      }`}
+                      style={internal ? { ...textStyle, fontSize: `${Math.max(Number(displaySettings.fontSize) - 1, 12)}px` } : textStyle}
+                    >
+                      {renderText(stage.content)}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {isGenerating && <span className="cursor-blink" />}
             </motion.div>
