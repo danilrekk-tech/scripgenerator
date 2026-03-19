@@ -131,7 +131,7 @@ interface Props {
   transcriberUrl?: string;
 }
 
-export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className }: Props) {
+export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl }: Props) {
   const update = (key: keyof ScriptConfig, value: string) =>
     onChange({ ...config, [key]: value });
 
