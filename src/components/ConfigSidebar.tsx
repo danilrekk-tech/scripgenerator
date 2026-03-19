@@ -128,6 +128,7 @@ interface Props {
   isGenerating: boolean;
   serviceNames: string[];
   className?: string;
+  transcriberUrl?: string;
 }
 
 export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className }: Props) {
