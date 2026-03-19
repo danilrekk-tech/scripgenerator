@@ -128,9 +128,10 @@ interface Props {
   isGenerating: boolean;
   serviceNames: string[];
   className?: string;
+  transcriberUrl?: string;
 }
 
-export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className }: Props) {
+export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl }: Props) {
   const update = (key: keyof ScriptConfig, value: string) =>
     onChange({ ...config, [key]: value });
 
@@ -270,13 +271,24 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
 
       {showTranscript && (
         <Field label="Транскрибация диалога">
+          {transcriberUrl && (
+            <a
+              href={transcriberUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground mb-2 transition-colors"
+            >
+              <span>Открыть транскрибатор</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            </a>
+          )}
           <textarea
             className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all duration-200 resize-none h-40 font-mono text-xs"
             placeholder={"Спикер 1: Добрый день...\nСпикер 2: Здравствуйте..."}
             value={config.transcript}
             onChange={(e) => update("transcript", e.target.value)}
           />
-          <p className="text-[10px] text-muted-foreground">Минимум 20 символов.</p>
+          <p className="text-[10px] text-muted-foreground">Минимум 20 символов.{!transcriberUrl && " Укажите URL транскрибатора в настройках."}</p>
         </Field>
       )}
 

@@ -5,94 +5,94 @@
 @tailwind utilities;
 
 @layer base {
-  /* Dark theme (default) */
+  /* Dark theme */
   :root {
-    --background: 220 15% 5%;
-    --foreground: 210 20% 98%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 215 15% 8%;
-    --card-foreground: 210 20% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 215 15% 10%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 210 20% 98%;
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 4%;
 
-    --secondary: 215 15% 15%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 70%;
 
-    --muted: 215 15% 12%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 150 60% 50%;
-    --accent-foreground: 150 60% 10%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 90%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 215 15% 20%;
-    --input: 215 15% 15%;
-    --ring: 210 100% 50%;
+    --border: 0 0% 15%;
+    --input: 0 0% 12%;
+    --ring: 0 0% 60%;
 
     --radius: 0.5rem;
 
-    --shadow-tactile: inset 0 1px 1px rgba(255,255,255,0.05), 0 10px 15px -3px rgba(0,0,0,0.4);
-    --shadow-glow: 0 0 20px rgba(0,102,255,0.3);
-    --shadow-card: 0 1px 2px 0 rgba(0,0,0,0.05), 0 4px 6px -1px rgba(0,0,0,0.1);
+    --shadow-tactile: inset 0 1px 1px rgba(255,255,255,0.03), 0 8px 16px -4px rgba(0,0,0,0.5);
+    --shadow-glow: 0 0 20px rgba(255,255,255,0.05);
+    --shadow-card: 0 1px 2px 0 rgba(0,0,0,0.1), 0 4px 8px -2px rgba(0,0,0,0.15);
 
-    --sidebar-background: 215 15% 7%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 210 100% 50%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 215 15% 12%;
-    --sidebar-accent-foreground: 210 20% 85%;
-    --sidebar-border: 215 15% 20%;
-    --sidebar-ring: 210 100% 50%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 70%;
+    --sidebar-primary: 0 0% 95%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 60%;
   }
 
-  /* Light theme */
+  /* Light theme — premium white */
   [data-theme="light"] {
-    --background: 0 0% 98%;
-    --foreground: 220 15% 10%;
+    --background: 0 0% 99%;
+    --foreground: 0 0% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 10%;
+    --card-foreground: 0 0% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 10%;
+    --popover-foreground: 0 0% 8%;
 
-    --primary: 210 100% 45%;
+    --primary: 0 0% 8%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 93%;
-    --secondary-foreground: 220 15% 30%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 35%;
 
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 150 60% 40%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 15%;
 
-    --destructive: 0 84% 55%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 85%;
-    --input: 220 15% 93%;
-    --ring: 210 100% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 95%;
+    --ring: 0 0% 40%;
 
-    --shadow-tactile: inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 8px -2px rgba(0,0,0,0.1);
-    --shadow-glow: 0 0 20px rgba(0,102,255,0.15);
-    --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.04);
+    --shadow-tactile: inset 0 1px 1px rgba(255,255,255,0.9), 0 2px 6px -2px rgba(0,0,0,0.08);
+    --shadow-glow: 0 0 20px rgba(0,0,0,0.04);
+    --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.04), 0 2px 4px -1px rgba(0,0,0,0.03);
 
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 220 15% 30%;
-    --sidebar-primary: 210 100% 45%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 35%;
+    --sidebar-primary: 0 0% 8%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 95%;
-    --sidebar-accent-foreground: 220 15% 30%;
-    --sidebar-border: 220 15% 85%;
-    --sidebar-ring: 210 100% 45%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 40%;
   }
 }
 
@@ -114,7 +114,7 @@
 
 /* Variable tag highlighting */
 .variable-tag {
-  @apply bg-primary/10 text-primary border border-primary/20 rounded-sm px-1 font-medium;
+  @apply bg-accent text-accent-foreground border border-border rounded-sm px-1 font-medium;
   font-family: 'IBM Plex Mono', monospace;
 }
 
@@ -127,7 +127,7 @@
 .cursor-blink::after {
   content: '▊';
   animation: blink-cursor 0.8s step-end infinite;
-  @apply text-primary ml-0.5;
+  @apply text-foreground/40 ml-0.5;
 }
 
 /* Tactile button press */
@@ -137,14 +137,14 @@
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
-  border-radius: 3px;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
@@ -158,4 +158,21 @@
 
 .progress-bar {
   animation: progress-indeterminate 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+/* Script output rich text */
+.script-content strong {
+  @apply text-foreground font-semibold;
+}
+
+.script-content em {
+  @apply text-muted-foreground;
+}
+
+.script-content .numbered-item {
+  @apply pl-4 py-2 border-l-2 border-border mb-2;
+}
+
+.script-content .numbered-item-number {
+  @apply text-muted-foreground font-mono text-xs mr-2;
 }
