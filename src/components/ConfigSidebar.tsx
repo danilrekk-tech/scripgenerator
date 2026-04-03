@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Slider } from "@/components/ui/slider";
 
-export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base" | "dozim" | "messenger";
+export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base" | "dozim" | "messenger" | "touch-chain" | "funnel" | "anti-script" | "utp" | "sms" | "voicemail" | "social-posts" | "crm-template" | "checklist" | "glossary";
 export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
 export type DozimSubtype = "thinking" | "invoice-sent" | "silent-after-kp";
 export type TranscriptSubmode = "analysis" | "next-call";
@@ -35,16 +35,36 @@ export function convertToRub(amount: number, currency: Currency): number { retur
 const SITUATIONS = ["Холодный звонок", "Отработка возражения", "Усиление аргументом", "Закрытие сделки", "Повторный контакт", "Уточнение потребностей"];
 const TONES = ["Уверенный эксперт", "Мягкий консультант", "Агрессивный closer", "Дружеский партнёр", "Не продающий", "Простыми словами"];
 
-const MODES: { value: GenerationMode; label: string; icon: string }[] = [
-  { value: "script", label: "Скрипт продаж", icon: "📋" },
-  { value: "dozim", label: "Дожим клиента", icon: "🎯" },
-  { value: "messenger", label: "Мессенджер", icon: "💬" },
-  { value: "email", label: "Письма", icon: "✉️" },
-  { value: "service-info", label: "Инфо по услуге", icon: "📦" },
-  { value: "arguments", label: "Аргументы", icon: "💡" },
-  { value: "buffer-questions", label: "Буферные вопросы", icon: "❓" },
-  { value: "transcript-analysis", label: "Анализ диалога", icon: "🎙️" },
-  { value: "knowledge-base", label: "База знаний", icon: "📚" },
+type ModeGroup = { label: string; modes: { value: GenerationMode; label: string; icon: string }[] };
+
+const MODE_GROUPS: ModeGroup[] = [
+  { label: "Продажи", modes: [
+    { value: "script", label: "Скрипт продаж", icon: "📋" },
+    { value: "dozim", label: "Дожим клиента", icon: "🎯" },
+    { value: "messenger", label: "Мессенджер", icon: "💬" },
+    { value: "touch-chain", label: "Цепочка касаний", icon: "🔗" },
+    { value: "funnel", label: "Воронка продаж", icon: "📊" },
+  ]},
+  { label: "Контент", modes: [
+    { value: "email", label: "Письма", icon: "✉️" },
+    { value: "sms", label: "SMS", icon: "📱" },
+    { value: "voicemail", label: "Автоответчик", icon: "📞" },
+    { value: "social-posts", label: "Посты для соцсетей", icon: "📢" },
+  ]},
+  { label: "Аналитика", modes: [
+    { value: "transcript-analysis", label: "Анализ диалога", icon: "🎙️" },
+    { value: "anti-script", label: "Антискрипт", icon: "🚫" },
+  ]},
+  { label: "Материалы", modes: [
+    { value: "service-info", label: "Инфо по услуге", icon: "📦" },
+    { value: "arguments", label: "Аргументы", icon: "💡" },
+    { value: "buffer-questions", label: "Буферные вопросы", icon: "❓" },
+    { value: "knowledge-base", label: "База знаний", icon: "📚" },
+    { value: "utp", label: "Генератор УТП", icon: "💎" },
+    { value: "checklist", label: "Чек-лист звонка", icon: "✅" },
+    { value: "glossary", label: "Глоссарий", icon: "📖" },
+    { value: "crm-template", label: "Шаблоны CRM", icon: "🗂️" },
+  ]},
 ];
 
 const EMAIL_SUBTYPES: { value: EmailSubtype; label: string }[] = [
@@ -70,14 +90,19 @@ const MODE_LABELS: Record<GenerationMode, string> = {
   script: "Сгенерировать скрипт", "service-info": "Описать услугу", arguments: "Сгенерировать аргументы",
   "buffer-questions": "Сгенерировать вопросы", "transcript-analysis": "Проанализировать", email: "Сгенерировать письмо",
   "knowledge-base": "Для базы знаний", dozim: "Сгенерировать дожим", messenger: "Для мессенджера",
+  "touch-chain": "Создать цепочку", funnel: "Создать воронку", "anti-script": "Создать антискрипт",
+  utp: "Сгенерировать УТП", sms: "Сгенерировать SMS", voicemail: "Скрипт автоответчика",
+  "social-posts": "Создать посты", "crm-template": "Шаблоны CRM", checklist: "Создать чек-лист",
+  glossary: "Создать глоссарий",
 };
 
-// Quick templates
 const TEMPLATES = [
   { label: "Холодный звонок по SEO", config: { mode: "script" as GenerationMode, service: "SEO-продвижение", situation: "Холодный звонок", tone: "Уверенный эксперт" } },
   { label: "Дожим после КП", config: { mode: "dozim" as GenerationMode, dozimSubtype: "silent-after-kp" as DozimSubtype } },
   { label: "Письмо: follow-up", config: { mode: "email" as GenerationMode, emailSubtype: "follow-up" as EmailSubtype } },
-  { label: "Простыми словами", config: { mode: "script" as GenerationMode, tone: "Простыми словами", situation: "Уточнение потребностей" } },
+  { label: "Цепочка касаний", config: { mode: "touch-chain" as GenerationMode } },
+  { label: "Антискрипт (ошибки)", config: { mode: "anti-script" as GenerationMode } },
+  { label: "Чек-лист звонка", config: { mode: "checklist" as GenerationMode } },
 ];
 
 interface Props {
@@ -92,16 +117,17 @@ interface Props {
 
 export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl }: Props) {
   const [showTemplates, setShowTemplates] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
 
   const showSituation = config.mode === "script" || config.mode === "buffer-questions";
-  const showTone = ["script", "transcript-analysis", "email", "dozim", "messenger"].includes(config.mode);
-  const showNames = ["script", "transcript-analysis", "email", "dozim", "messenger"].includes(config.mode);
+  const showTone = ["script", "transcript-analysis", "email", "dozim", "messenger", "touch-chain", "funnel", "voicemail"].includes(config.mode);
+  const showNames = ["script", "transcript-analysis", "email", "dozim", "messenger", "touch-chain", "funnel"].includes(config.mode);
   const showTranscript = config.mode === "transcript-analysis";
-  const showPrice = ["script", "transcript-analysis", "email", "dozim", "messenger"].includes(config.mode);
+  const showPrice = ["script", "transcript-analysis", "email", "dozim", "messenger", "touch-chain", "funnel"].includes(config.mode);
   const showEmail = config.mode === "email";
   const showDozim = config.mode === "dozim";
-  const showLength = ["script", "dozim", "messenger"].includes(config.mode);
+  const showLength = ["script", "dozim", "messenger", "touch-chain", "funnel"].includes(config.mode);
   const showTranscriptSubmode = config.mode === "transcript-analysis";
 
   const lengthIdx = ["short", "medium", "long", "detailed"].indexOf(config.scriptLength);
@@ -111,46 +137,56 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
     return true;
   })();
 
+  // Find which group current mode belongs to
+  const currentGroup = MODE_GROUPS.find(g => g.modes.some(m => m.value === config.mode));
+
   return (
-    <aside className={`w-80 shrink-0 border-r border-border/50 glass-panel p-6 flex flex-col gap-5 overflow-y-auto ${className || ""}`}>
+    <aside className={`w-80 shrink-0 border-r border-border/50 glass-panel p-5 flex flex-col gap-4 overflow-y-auto ${className || ""}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">Конфигурация</h2>
+          <h2 className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-0.5">Конфигурация</h2>
           <p className="text-[10px] text-muted-foreground">Параметры генерации</p>
         </div>
-        <button
-          onClick={() => setShowTemplates(!showTemplates)}
-          className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all btn-tactile ${showTemplates ? "chip-active" : "chip-inactive"}`}
-        >
+        <button onClick={() => setShowTemplates(!showTemplates)}
+          className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all btn-tactile ${showTemplates ? "chip-active" : "chip-inactive"}`}>
           ⚡ Шаблоны
         </button>
       </div>
 
-      {/* Quick templates */}
       {showTemplates && (
-        <div className="flex flex-col gap-1.5 -mt-2">
+        <div className="flex flex-col gap-1 -mt-2">
           {TEMPLATES.map((t) => (
-            <button
-              key={t.label}
-              onClick={() => { onChange({ ...config, ...t.config }); setShowTemplates(false); }}
-              className="text-left text-xs px-3 py-2 rounded-lg border border-border/50 glass-card hover:bg-accent/50 transition-all btn-tactile text-foreground"
-            >
+            <button key={t.label} onClick={() => { onChange({ ...config, ...t.config }); setShowTemplates(false); }}
+              className="text-left text-xs px-3 py-2 rounded-lg border border-border/50 glass-card hover:bg-accent/50 transition-all btn-tactile text-foreground">
               {t.label}
             </button>
           ))}
         </div>
       )}
 
-      {/* Mode */}
+      {/* Mode selection - grouped */}
       <Field label="Режим генерации">
-        <div className="grid grid-cols-1 gap-1.5">
-          {MODES.map((m) => (
-            <button key={m.value} onClick={() => update("mode", m.value)}
-              className={`text-left text-xs px-3 py-2 rounded-lg border transition-all btn-tactile flex items-center gap-2 ${
-                config.mode === m.value ? "chip-active" : "chip-inactive"
-              }`}>
-              <span>{m.icon}</span><span>{m.label}</span>
-            </button>
+        <div className="space-y-1.5">
+          {MODE_GROUPS.map((group) => (
+            <div key={group.label}>
+              <button onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}
+                className="w-full text-left text-[10px] font-medium uppercase tracking-widest text-muted-foreground py-1 hover:text-foreground transition-colors flex items-center justify-between">
+                {group.label}
+                <span className="text-[8px]">{group.modes.some(m => m.value === config.mode) ? "●" : ""}</span>
+              </button>
+              {(expandedGroup === group.label || group.modes.some(m => m.value === config.mode)) && (
+                <div className="space-y-1 mb-2">
+                  {group.modes.map((m) => (
+                    <button key={m.value} onClick={() => update("mode", m.value)}
+                      className={`w-full text-left text-xs px-3 py-1.5 rounded-lg border transition-all btn-tactile flex items-center gap-2 ${
+                        config.mode === m.value ? "chip-active" : "chip-inactive"
+                      }`}>
+                      <span className="text-sm">{m.icon}</span><span>{m.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </Field>
@@ -222,11 +258,11 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
       {showNames && (
         <>
           <Field label="Имя менеджера">
-            <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               placeholder="Алексей" value={config.managerName} onChange={(e) => update("managerName", e.target.value)} />
           </Field>
           <Field label="Имя клиента">
-            <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               placeholder="Иван Петрович" value={config.clientName} onChange={(e) => update("clientName", e.target.value)} />
           </Field>
         </>
@@ -280,7 +316,7 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
       {showPrice && (
         <Field label="Цена комплекса услуг">
           <div className="flex gap-2">
-            <input type="number" className="flex-1 glass-input border border-border/50 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            <input type="number" className="flex-1 glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               placeholder="Сумма" value={config.priceRub} onChange={(e) => update("priceRub", e.target.value)} />
             <select value={config.currency} onChange={(e) => onChange({ ...config, currency: e.target.value as Currency })}
               className="glass-input border border-border/50 rounded-lg px-2 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all">
