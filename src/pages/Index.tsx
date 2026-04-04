@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import ConfigSidebar, { type ScriptConfig, type GenerationMode } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
@@ -16,6 +16,9 @@ import CallTimer from "@/components/CallTimer";
 import ActivityDashboard from "@/components/ActivityDashboard";
 import ScriptComparison from "@/components/ScriptComparison";
 import CaseLibrary from "@/components/CaseLibrary";
+import CommandPalette from "@/components/CommandPalette";
+import PhraseBank from "@/components/PhraseBank";
+import ClientPersonasPanel from "@/components/ClientPersonasPanel";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useDisplaySettings } from "@/hooks/useDisplaySettings";
@@ -26,12 +29,16 @@ import { useAppSettings } from "@/hooks/useAppSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { useCloudBackup } from "@/hooks/useCloudBackup";
 import { useFavorites } from "@/hooks/useFavorites";
+import { usePhraseBank } from "@/hooks/usePhraseBank";
+import { useClientPersonas } from "@/hooks/useClientPersonas";
+import { useScriptNotes } from "@/hooks/useScriptNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Wrench, Menu, Star, Settings, ChevronRight, Brain, Timer, BarChart3, Columns2, BookOpen,
+  Search, BookMarked, Users, Keyboard,
 } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
@@ -41,8 +48,8 @@ const defaultConfig: ScriptConfig = {
   dozimSubtype: "thinking", transcriptSubmode: "analysis",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases";
-type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases";
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas";
+type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -57,7 +64,10 @@ export default function Index() {
   const { appSettings, updateAppSetting } = useAppSettings();
   const { user, signIn, signUp, signOut } = useAuth();
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
-  useCloudBackup(user?.id ?? null);
+  const { phrases, addPhrase, removePhrase } = usePhraseBank();
+  const { personas, addPersona, updatePersona, removePersona } = useClientPersonas();
+  const { notes, addNote, removeNote, clearNotes } = useScriptNotes();
+  const { syncNow } = useCloudBackup(user?.id ?? null);
   const isMobile = useIsMobile();
 
   const [mobileTab, setMobileTab] = useState<MobileTab>("config");
@@ -69,6 +79,22 @@ export default function Index() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showToolsSheet, setShowToolsSheet] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      const key = e.key.toLowerCase();
+      if (key === "k") { e.preventDefault(); setShowCommandPalette((p) => !p); }
+      if (key === "g") { e.preventDefault(); generate(); }
+      if (key === "s") { e.preventDefault(); if (script) { navigator.clipboard.writeText(script); toast.success("Скопировано"); } }
+      if (key === "e") { e.preventDefault(); if (script) { const blob = new Blob([script], { type: "text/plain" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `script-${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); } }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [script]);
 
   useEffect(() => {
     if (pendingHistorySave && !isGenerating && script) {
@@ -79,7 +105,7 @@ export default function Index() {
 
   const generate = useCallback((overrideContext?: string) => {
     if (isGenerating) return;
-    setIsGenerating(true); setScript(""); setPendingHistorySave(true);
+    setIsGenerating(true); setScript(""); setPendingHistorySave(true); clearNotes();
     if (isMobile) setMobileTab("output");
     if (desktopPanel !== "main") setDesktopPanel("main");
     const svcContext = getServiceContext(config.service);
@@ -92,7 +118,7 @@ export default function Index() {
       onDone: () => setIsGenerating(false),
       onError: (msg) => { toast.error(msg); setIsGenerating(false); setPendingHistorySave(false); },
     });
-  }, [config, isGenerating, isMobile, desktopPanel, getServiceContext]);
+  }, [config, isGenerating, isMobile, desktopPanel, getServiceContext, clearNotes]);
 
   const handleCompanionGenerate = useCallback((type: "objections" | "arguments" | "benefits" | "dozim") => {
     if (isGenerating || !script) return;
@@ -118,12 +144,36 @@ export default function Index() {
   const handleHistoryLoad = useCallback((content: string) => { setScript(content); if (isMobile) setMobileTab("output"); if (desktopPanel !== "main") setDesktopPanel("main"); }, [isMobile, desktopPanel]);
   const handleSavePreset = () => { if (!presetName.trim()) return; savePreset(presetName.trim(), config); setPresetName(""); setShowPresetSave(false); toast.success("Пресет сохранён"); };
   const handleLoadPreset = (presetConfig: Partial<ScriptConfig>) => { setConfig((prev) => ({ ...prev, ...presetConfig })); toast.success("Пресет загружен"); };
+  const handleScriptEdit = useCallback((newScript: string) => setScript(newScript), []);
 
   const handleToggleFavorite = useCallback(() => {
     if (!script) return;
     if (isFavorite(script)) { const fav = favorites.find((f) => f.content === script); if (fav) removeFavorite(fav.id); toast.success("Удалено из избранного"); }
     else { addFavorite({ label: script.slice(0, 80).replace(/\n/g, " "), content: script, mode: config.mode, service: config.service }); toast.success("Добавлено в избранное"); }
   }, [script, isFavorite, favorites, addFavorite, removeFavorite, config]);
+
+  const handleCopyPhrase = useCallback((text: string) => { navigator.clipboard.writeText(text); toast.success("Фраза скопирована"); }, []);
+
+  // Command palette items
+  const commandItems = useMemo(() => [
+    { id: "gen", label: "Сгенерировать скрипт", desc: "Ctrl+G", icon: <Zap className="w-4 h-4" />, action: () => generate(), category: "Действия" },
+    { id: "copy", label: "Копировать результат", desc: "Ctrl+S", icon: <FileText className="w-4 h-4" />, action: () => { if (script) { navigator.clipboard.writeText(script); toast.success("Скопировано"); } }, category: "Действия" },
+    { id: "main", label: "Генератор", icon: <FileText className="w-4 h-4" />, action: () => setDesktopPanel("main"), category: "Навигация" },
+    { id: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" />, action: () => setDesktopPanel("audit"), category: "Навигация" },
+    { id: "quiz", label: "Квиз-тренажёр", icon: <Brain className="w-4 h-4" />, action: () => setDesktopPanel("quiz"), category: "Навигация" },
+    { id: "sim", label: "Симулятор клиента", icon: <MessageCircle className="w-4 h-4" />, action: () => setDesktopPanel("simulator"), category: "Навигация" },
+    { id: "obj", label: "Тренажёр возражений", icon: <Zap className="w-4 h-4" />, action: () => setDesktopPanel("objections"), category: "Навигация" },
+    { id: "hist", label: "История генераций", icon: <History className="w-4 h-4" />, action: () => setDesktopPanel("history"), category: "Навигация" },
+    { id: "fav", label: "Избранное", icon: <Star className="w-4 h-4" />, action: () => setDesktopPanel("favorites"), category: "Навигация" },
+    { id: "svc", label: "Управление услугами", icon: <Package className="w-4 h-4" />, action: () => setDesktopPanel("services"), category: "Навигация" },
+    { id: "phrases", label: "Банк фраз", icon: <BookMarked className="w-4 h-4" />, action: () => setDesktopPanel("phrases"), category: "Навигация" },
+    { id: "personas", label: "Персоны клиентов", icon: <Users className="w-4 h-4" />, action: () => setDesktopPanel("personas"), category: "Навигация" },
+    { id: "timer", label: "Таймер звонка", icon: <Timer className="w-4 h-4" />, action: () => setDesktopPanel("timer"), category: "Инструменты" },
+    { id: "dash", label: "Дашборд активности", icon: <BarChart3 className="w-4 h-4" />, action: () => setDesktopPanel("dashboard"), category: "Инструменты" },
+    { id: "compare", label: "Сравнение скриптов", icon: <Columns2 className="w-4 h-4" />, action: () => setDesktopPanel("comparison"), category: "Инструменты" },
+    { id: "cases", label: "Библиотека кейсов", icon: <BookOpen className="w-4 h-4" />, action: () => setDesktopPanel("cases"), category: "Инструменты" },
+    { id: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" />, action: () => setDesktopPanel("settings"), category: "Навигация" },
+  ], [generate, script]);
 
   const desktopTabs: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] = [
     { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
@@ -135,6 +185,8 @@ export default function Index() {
     { value: "timer", label: "Таймер", icon: <Timer className="w-4 h-4" /> },
     { value: "dashboard", label: "Дашборд", icon: <BarChart3 className="w-4 h-4" /> },
     { value: "comparison", label: "Сравнение", icon: <Columns2 className="w-4 h-4" /> },
+    { value: "phrases", label: "Фразы", icon: <BookMarked className="w-4 h-4" /> },
+    { value: "personas", label: "Персоны", icon: <Users className="w-4 h-4" /> },
     { value: "services", label: "Услуги", icon: <Package className="w-4 h-4" /> },
     { value: "history", label: "История", icon: <History className="w-4 h-4" /> },
     { value: "favorites", label: "Избранное", icon: <Star className="w-4 h-4" /> },
@@ -162,6 +214,9 @@ export default function Index() {
               ))}
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              <button onClick={() => setShowCommandPalette(true)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Ctrl+K">
+                <Search className="w-4 h-4" />
+              </button>
               {desktopPanel === "main" && (
                 <>
                   <div className="relative">
@@ -206,7 +261,8 @@ export default function Index() {
                 {showDesktopSettings && (<div className="w-80 shrink-0 border-r border-border/50 glass-panel p-6 overflow-y-auto"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>)}
                 <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings}
                   onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
-                  isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} />
+                  isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
+                  onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
                 {!showDesktopSettings && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} />}
               </>
             )}
@@ -221,10 +277,13 @@ export default function Index() {
             {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" /></div>}
             {desktopPanel === "comparison" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ScriptComparison history={history} favorites={favorites} className="h-full" /></div>}
             {desktopPanel === "cases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CaseLibrary className="h-full" /></div>}
-            {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} /></div>}
+            {desktopPanel === "phrases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" /></div>}
+            {desktopPanel === "personas" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" /></div>}
+            {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} /></div>}
           </div>
         </div>
         <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
+        <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} items={commandItems} />
       </div>
     );
   }
@@ -238,6 +297,8 @@ export default function Index() {
     { tab: "quiz" as MobileTab, label: "Квиз-тренажёр", icon: <Brain className="w-5 h-5" />, desc: "ИИ оценивает ваш ответ" },
     { tab: "timer" as MobileTab, label: "Таймер звонка", icon: <Timer className="w-5 h-5" />, desc: "Контроль этапов разговора" },
     { tab: "cases" as MobileTab, label: "Библиотека кейсов", icon: <BookOpen className="w-5 h-5" />, desc: "Эталонные сценарии" },
+    { tab: "phrases" as MobileTab, label: "Банк фраз", icon: <BookMarked className="w-5 h-5" />, desc: "Удачные формулировки" },
+    { tab: "personas" as MobileTab, label: "Персоны клиентов", icon: <Users className="w-5 h-5" />, desc: "Профили типичных клиентов" },
   ];
 
   const menuItems = [
@@ -264,7 +325,7 @@ export default function Index() {
 
       <div className="flex-1 overflow-hidden">
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
-        {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} />}
+        {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
         {mobileTab === "display-settings" && <div className="h-full overflow-y-auto p-6"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>}
         {mobileTab === "audit" && <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" />}
@@ -278,12 +339,14 @@ export default function Index() {
         {mobileTab === "dashboard" && <ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" />}
         {mobileTab === "comparison" && <ScriptComparison history={history} favorites={favorites} className="h-full" />}
         {mobileTab === "cases" && <CaseLibrary className="h-full" />}
+        {mobileTab === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" />}
+        {mobileTab === "personas" && <ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" />}
       </div>
 
       <nav className="glass-panel border-t border-border/50 flex items-center justify-around py-2 shrink-0 z-10">
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
-        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
+        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
         <MobileNavBtn active={["services", "history", "favorites", "display-settings", "dashboard", "comparison"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
       </nav>
 
@@ -361,10 +424,11 @@ function FavoritesPanel({ favorites, onLoad, onRemove }: { favorites: any[]; onL
   );
 }
 
-function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme, onThemeChange, user, onSignIn, onSignOut }: {
+function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow }: {
   transcriberUrl: string; onTranscriberUrlChange: (v: string) => void;
   currentTheme: any; onThemeChange: (t: any) => void;
   user: any; onSignIn: () => void; onSignOut: () => void;
+  onSyncNow?: () => void;
 }) {
   return (
     <div className="flex-1 p-8 max-w-xl overflow-y-auto">
@@ -374,9 +438,16 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme
         <div>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Аккаунт</label>
           {user ? (
-            <div className="glass-card border border-border/50 rounded-xl p-4 flex items-center justify-between">
-              <div><p className="text-sm text-foreground font-medium">{user.email}</p><p className="text-[10px] text-muted-foreground">Данные синхронизируются с облаком</p></div>
-              <button onClick={onSignOut} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">Выйти</button>
+            <div className="glass-card border border-border/50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div><p className="text-sm text-foreground font-medium">{user.email}</p><p className="text-[10px] text-muted-foreground">Данные синхронизируются с облаком</p></div>
+                <button onClick={onSignOut} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">Выйти</button>
+              </div>
+              {onSyncNow && (
+                <button onClick={() => { onSyncNow(); }} className="text-xs px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors btn-tactile">
+                  Синхронизировать сейчас
+                </button>
+              )}
             </div>
           ) : (
             <button onClick={onSignIn} className="w-full glass-card border border-border/50 rounded-xl p-4 text-left hover:bg-accent/30 transition-colors">
@@ -391,6 +462,15 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme
           <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
             placeholder="https://transcriber.example.com" value={transcriberUrl} onChange={(e) => onTranscriberUrlChange(e.target.value)} />
           <p className="text-[10px] text-muted-foreground mt-1.5">Ссылка доступна в разделе «Анализ диалога»</p>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Горячие клавиши</label>
+          <div className="glass-card border border-border/50 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Командная палитра</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+K</kbd></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Генерация</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+G</kbd></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Копировать</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+S</kbd></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Экспорт TXT</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+E</kbd></div>
+          </div>
         </div>
       </div>
     </div>
