@@ -1,0 +1,1 @@
+ALTER TABLE public.user_data ADD CONSTRAINT user_data_user_id_data_type_unique UNIQUE (user_id, data_type);
