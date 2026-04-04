@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SYNC_KEYS = [
   "scriptengine-services",
@@ -13,6 +14,7 @@ const SYNC_KEYS = [
 
 export function useCloudBackup(userId: string | null) {
   const restored = useRef(false);
+  const syncingRef = useRef(false);
 
   // Restore from cloud on login
   useEffect(() => {
@@ -20,58 +22,92 @@ export function useCloudBackup(userId: string | null) {
     restored.current = true;
 
     (async () => {
-      const { data: rows } = await supabase
-        .from("user_data" as any)
-        .select("data_type, data")
-        .eq("user_id", userId);
+      try {
+        const { data: rows, error } = await supabase
+          .from("user_data")
+          .select("data_type, data")
+          .eq("user_id", userId);
 
-      if (rows && (rows as any[]).length > 0) {
-        (rows as any[]).forEach((row: { data_type: string; data: any }) => {
-          const existing = localStorage.getItem(row.data_type);
-          // Only restore if local is empty
-          if (!existing || existing === "[]" || existing === "{}") {
-            localStorage.setItem(row.data_type, JSON.stringify(row.data));
+        if (error) {
+          console.error("Cloud restore error:", error);
+          return;
+        }
+
+        if (rows && rows.length > 0) {
+          let restoredCount = 0;
+          rows.forEach((row) => {
+            const existing = localStorage.getItem(row.data_type);
+            if (!existing || existing === "[]" || existing === "{}") {
+              localStorage.setItem(row.data_type, JSON.stringify(row.data));
+              restoredCount++;
+            }
+          });
+          if (restoredCount > 0) {
+            window.dispatchEvent(new Event("cloud-data-restored"));
+            toast.success("Данные восстановлены из облака");
           }
-        });
-        window.dispatchEvent(new Event("cloud-data-restored"));
+        }
+      } catch (e) {
+        console.error("Cloud restore failed:", e);
       }
     })();
   }, [userId]);
 
-  // Periodic sync to cloud
-  useEffect(() => {
-    if (!userId) return;
+  const syncToCloud = useCallback(async () => {
+    if (!userId || syncingRef.current) return;
+    syncingRef.current = true;
 
-    const syncToCloud = async () => {
+    try {
       for (const key of SYNC_KEYS) {
         const raw = localStorage.getItem(key);
         if (!raw) continue;
         try {
           const data = JSON.parse(raw);
-          await (supabase.from("user_data" as any) as any).upsert(
-            {
-              user_id: userId,
-              data_type: key,
-              data,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id,data_type" }
-          );
+          const { error } = await supabase
+            .from("user_data")
+            .upsert(
+              {
+                user_id: userId,
+                data_type: key,
+                data,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "user_id,data_type" }
+            );
+          if (error) console.error(`Sync error for ${key}:`, error);
         } catch {}
       }
+    } finally {
+      syncingRef.current = false;
+    }
+  }, [userId]);
+
+  // Periodic sync + sync on storage changes
+  useEffect(() => {
+    if (!userId) return;
+
+    const timer = setTimeout(syncToCloud, 3000);
+    const interval = setInterval(syncToCloud, 30000);
+
+    const onStorage = () => {
+      clearTimeout(debounceRef);
+      debounceRef = window.setTimeout(syncToCloud, 2000);
     };
+    let debounceRef: number;
 
-    const timer = setTimeout(syncToCloud, 5000);
-    const interval = setInterval(syncToCloud, 60000);
-
-    // Also sync on storage events
-    const onStorage = () => syncToCloud();
     window.addEventListener("storage", onStorage);
+
+    // Sync before unload
+    const onBeforeUnload = () => syncToCloud();
+    window.addEventListener("beforeunload", onBeforeUnload);
 
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("beforeunload", onBeforeUnload);
     };
-  }, [userId]);
+  }, [userId, syncToCloud]);
+
+  return { syncNow: syncToCloud };
 }
