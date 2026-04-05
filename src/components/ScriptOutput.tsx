@@ -63,7 +63,6 @@ const COMPANION_BUTTONS = [
   { type: "dozim" as const, label: "Дожим", icon: Target, desc: "Закрытие сделки" },
 ];
 
-// Highlight keywords: questions (?), prices (руб/₽), CTA phrases
 function highlightKeywords(text: string): boolean {
   return /\?|руб|₽|\d+\s*000|позвоните|оставьте|напишите|закажите|оформите/i.test(text);
 }
@@ -122,7 +121,12 @@ function showQr(script: string) {
 }
 
 export default function ScriptOutput({ script, isGenerating, mode, displaySettings, className, onCompanionGenerate, onScoreScript, isFavorite, onToggleFavorite, isScoring, onScriptEdit, notes, onAddNote, onRemoveNote }: Props) {
-  const stages = useMemo(() => (script ? parseStages(script) : []), [script]);
+  const stages = useMemo(() => {
+    if (!script) return [];
+    const parsed = parseStages(script);
+    // Filter out empty stages (fix white blocks)
+    return parsed.filter(s => s.content.trim().length > 0 || s.title.trim().length > 0);
+  }, [script]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [collapsedStages, setCollapsedStages] = useState<Set<number>>(new Set());
@@ -176,11 +180,10 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
   return (
     <main className={`flex-1 flex flex-col min-w-0 overflow-hidden ${className || ""}`}>
       {/* Header */}
-      <div className="border-b border-border/30 px-6 md:px-8 py-4 flex items-center justify-between shrink-0">
+      <div className="border-b border-border/30 px-4 md:px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-base font-semibold tracking-tight text-foreground">ScriptEngine</h1>
-            <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide uppercase">Stop pitching. Start closing.</p>
+            <h1 className="text-sm font-semibold tracking-tight text-foreground">Результат</h1>
           </div>
           {script && (
             <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l border-border/30">
@@ -191,25 +194,25 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
           )}
         </div>
         {script && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {onToggleFavorite && (
-              <button onClick={onToggleFavorite} className={`p-2 rounded-lg transition-all btn-tactile ${isFavorite ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              <button onClick={onToggleFavorite} className={`p-1.5 rounded-lg transition-all btn-tactile ${isFavorite ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                 <Star className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
               </button>
             )}
             {onScoreScript && (
-              <button onClick={onScoreScript} disabled={isScoring} className="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-all btn-tactile" title="Оценить скрипт">
+              <button onClick={onScoreScript} disabled={isScoring} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-all btn-tactile" title="Оценить скрипт">
                 {isScoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />}
               </button>
             )}
-            <button onClick={() => showQr(script)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-all btn-tactile" title="QR-код">
+            <button onClick={() => showQr(script)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-all btn-tactile" title="QR-код">
               <QrCode className="w-4 h-4" />
             </button>
-            <button onClick={() => copyText(script, "all")} className="text-[11px] px-3 py-1.5 rounded-lg border border-border/50 glass-card text-foreground hover:bg-accent/50 transition-all btn-tactile flex items-center gap-1.5">
-              <Copy className="w-3 h-3" />{copiedId === "all" ? "Скопировано" : "Копировать"}
+            <button onClick={() => copyText(script, "all")} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-border/50 glass-card text-foreground hover:bg-accent/50 transition-all btn-tactile flex items-center gap-1">
+              <Copy className="w-3 h-3" />{copiedId === "all" ? "✓" : "Копировать"}
             </button>
             <div className="relative">
-              <button onClick={() => setShowExportMenu(!showExportMenu)} className="text-[11px] px-3 py-1.5 rounded-lg border border-border/50 glass-card text-foreground hover:bg-accent/50 transition-all btn-tactile flex items-center gap-1.5">
+              <button onClick={() => setShowExportMenu(!showExportMenu)} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-border/50 glass-card text-foreground hover:bg-accent/50 transition-all btn-tactile flex items-center gap-1">
                 <Download className="w-3 h-3" /> Экспорт
               </button>
               {showExportMenu && (
@@ -228,7 +231,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
 
       <div className="flex-1 flex min-h-0">
         {/* Main content */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-8">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8">
           <AnimatePresence mode="wait">
             {script ? (
               <motion.div key="script" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ maxWidth: `${displaySettings.maxWidth}ch` }} className="mx-auto">
@@ -238,6 +241,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
                     <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Содержание</p>
                     <div className="flex flex-wrap gap-1.5">
                       {stages.map((s, i) => {
+                        if (!s.title) return null;
                         const internal = isInternalSection(s.title);
                         return (
                           <button key={i} onClick={() => document.getElementById(`stage-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
@@ -254,14 +258,17 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
 
                 {/* Stages */}
                 {stages.map((stage, i) => {
+                  // Skip stages with no content and no title
+                  if (!stage.content.trim() && !stage.title.trim()) return null;
+                  
                   const internal = isInternalSection(stage.title);
                   const isCollapsed = collapsedStages.has(i);
                   const stageNotes = notes?.filter((n) => n.paragraphIndex === i) || [];
 
                   return (
                     <div key={i} id={`stage-${i}`} style={{ marginBottom: `${displaySettings.paragraphSpacing}px` }}>
-                      {displaySettings.showStageHeaders && stages.length > 1 && (
-                        <div className={`flex items-center gap-2 mb-3 pb-2 border-b ${internal ? "border-dashed border-border/30" : "border-border/30"}`}>
+                      {displaySettings.showStageHeaders && stages.length > 1 && stage.title && (
+                        <div className={`flex items-center gap-2 mb-3 pb-2 border-b ${internal ? "border-dashed border-border/30" : "border-border/30"} group`}>
                           <button onClick={() => toggleCollapse(i)} className="p-0.5 rounded hover:bg-accent/50 transition-colors text-muted-foreground">
                             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                           </button>
@@ -269,7 +276,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
                           <h2 className={`flex-1 font-medium tracking-tight ${internal ? "text-muted-foreground text-sm" : "text-foreground"}`} style={!internal ? { fontSize: `${displaySettings.stageHeaderSize}px` } : undefined}>
                             {stage.title}
                           </h2>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => copyText(stage.content, `stage-${i}`)} className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground transition-colors" title="Копировать блок">
                               {copiedId === `stage-${i}` ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
                             </button>
@@ -309,7 +316,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
                         </div>
                       )}
 
-                      {!isCollapsed && (
+                      {!isCollapsed && stage.content.trim() && (
                         <>
                           {editingStage === i ? (
                             <div className="space-y-2">
@@ -320,7 +327,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
                               </div>
                             </div>
                           ) : (
-                            <div className={`script-content group ${internal ? "text-muted-foreground glass-card border border-dashed border-border/30 rounded-xl p-5 text-sm" : displaySettings.scriptBgEnabled ? "text-foreground glass-card border border-border/30 rounded-xl p-5" : "text-foreground"}`}
+                            <div className={`script-content ${internal ? "text-muted-foreground glass-card border border-dashed border-border/30 rounded-xl p-4 text-sm" : displaySettings.scriptBgEnabled ? "text-foreground glass-card border border-border/30 rounded-xl p-4" : "text-foreground"}`}
                               style={internal ? { ...textStyle, fontSize: `${Math.max(Number(displaySettings.fontSize) - 1, 12)}px` } : textStyle}>
                               {renderRichText(stage.content, displaySettings.highlightVariables)}
                             </div>

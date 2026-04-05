@@ -34,11 +34,12 @@ import { useClientPersonas } from "@/hooks/useClientPersonas";
 import { useScriptNotes } from "@/hooks/useScriptNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Wrench, Menu, Star, Settings, ChevronRight, Brain, Timer, BarChart3, Columns2, BookOpen,
-  Search, BookMarked, Users, Keyboard,
+  Search, BookMarked, Users, ChevronLeft, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
@@ -80,8 +81,8 @@ export default function Index() {
   const [showToolsSheet, setShowToolsSheet] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
@@ -154,7 +155,6 @@ export default function Index() {
 
   const handleCopyPhrase = useCallback((text: string) => { navigator.clipboard.writeText(text); toast.success("Фраза скопирована"); }, []);
 
-  // Command palette items
   const commandItems = useMemo(() => [
     { id: "gen", label: "Сгенерировать скрипт", desc: "Ctrl+G", icon: <Zap className="w-4 h-4" />, action: () => generate(), category: "Действия" },
     { id: "copy", label: "Копировать результат", desc: "Ctrl+S", icon: <FileText className="w-4 h-4" />, action: () => { if (script) { navigator.clipboard.writeText(script); toast.success("Скопировано"); } }, category: "Действия" },
@@ -175,61 +175,190 @@ export default function Index() {
     { id: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" />, action: () => setDesktopPanel("settings"), category: "Навигация" },
   ], [generate, script]);
 
-  const desktopTabs: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] = [
-    { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
-    { value: "audit", label: "Аудит", icon: <Globe className="w-4 h-4" />, beta: true },
-    { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
-    { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" />, beta: true },
-    { value: "objections", label: "Возражения", icon: <Zap className="w-4 h-4" /> },
-    { value: "cases", label: "Кейсы", icon: <BookOpen className="w-4 h-4" /> },
-    { value: "timer", label: "Таймер", icon: <Timer className="w-4 h-4" /> },
-    { value: "dashboard", label: "Дашборд", icon: <BarChart3 className="w-4 h-4" /> },
-    { value: "comparison", label: "Сравнение", icon: <Columns2 className="w-4 h-4" /> },
-    { value: "phrases", label: "Фразы", icon: <BookMarked className="w-4 h-4" /> },
-    { value: "personas", label: "Персоны", icon: <Users className="w-4 h-4" /> },
-    { value: "services", label: "Услуги", icon: <Package className="w-4 h-4" /> },
-    { value: "history", label: "История", icon: <History className="w-4 h-4" /> },
-    { value: "favorites", label: "Избранное", icon: <Star className="w-4 h-4" /> },
-    { value: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" /> },
+  type NavGroup = { label: string; items: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] };
+
+  const navGroups: NavGroup[] = [
+    { label: "Основное", items: [
+      { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
+      { value: "history", label: "История", icon: <History className="w-4 h-4" /> },
+      { value: "favorites", label: "Избранное", icon: <Star className="w-4 h-4" /> },
+    ]},
+    { label: "Инструменты", items: [
+      { value: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" />, beta: true },
+      { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" />, beta: true },
+      { value: "objections", label: "Возражения", icon: <Zap className="w-4 h-4" /> },
+      { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
+      { value: "timer", label: "Таймер", icon: <Timer className="w-4 h-4" /> },
+    ]},
+    { label: "Аналитика", items: [
+      { value: "dashboard", label: "Дашборд", icon: <BarChart3 className="w-4 h-4" /> },
+      { value: "comparison", label: "Сравнение", icon: <Columns2 className="w-4 h-4" /> },
+    ]},
+    { label: "Библиотека", items: [
+      { value: "cases", label: "Кейсы", icon: <BookOpen className="w-4 h-4" /> },
+      { value: "phrases", label: "Банк фраз", icon: <BookMarked className="w-4 h-4" /> },
+      { value: "personas", label: "Персоны", icon: <Users className="w-4 h-4" /> },
+      { value: "services", label: "Услуги", icon: <Package className="w-4 h-4" /> },
+    ]},
   ];
 
+  // Desktop layout
   if (!isMobile) {
     return (
+      <TooltipProvider delayDuration={400}>
       <div className="flex h-screen overflow-hidden">
-        {desktopPanel === "main" && (
-          <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
-            serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-r border-border/50" />
-        )}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="glass-panel border-b border-border/50 px-4 py-2 flex items-center justify-between gap-2 shrink-0 z-10">
-            <div className="flex items-center gap-0.5 overflow-x-auto">
-              {desktopTabs.map((tab) => (
-                <button key={tab.value} onClick={() => setDesktopPanel(tab.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 shrink-0 btn-tactile ${
-                    desktopPanel === tab.value ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  }`}>
-                  {tab.icon}{tab.label}
-                  {tab.beta && <span className="text-[8px] uppercase tracking-wider opacity-50 font-mono">β</span>}
-                </button>
-              ))}
+        {/* Left sidebar navigation */}
+        <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-52"}`}>
+          {/* Logo */}
+          <div className="px-3 py-4 border-b border-border/30 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <button onClick={() => setShowCommandPalette(true)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Ctrl+K">
-                <Search className="w-4 h-4" />
-              </button>
-              {desktopPanel === "main" && (
-                <>
-                  <div className="relative">
-                    <button onClick={() => setShowPresetSave(!showPresetSave)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Пресеты"><Save className="w-4 h-4" /></button>
-                    {showPresetSave && (
-                      <div className="absolute right-0 top-full mt-1 w-72 glass-card border border-border/50 rounded-xl shadow-lg z-50 p-3">
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Сохранить пресет</p>
-                        <div className="flex gap-1.5 mb-3">
-                          <input className="flex-1 glass-input border border-border/50 rounded-lg px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" placeholder="Название..." value={presetName} onChange={(e) => setPresetName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSavePreset()} />
-                          <button onClick={handleSavePreset} disabled={!presetName.trim()} className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:opacity-90 disabled:opacity-30 btn-tactile">Сохранить</button>
-                        </div>
-                        {presets.length > 0 && (
-                          <><p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Загрузить</p>
+            {!sidebarCollapsed && (
+              <div className="min-w-0">
+                <h1 className="text-sm font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
+              </div>
+            )}
+          </div>
+
+          {/* Nav items */}
+          <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4">
+            {navGroups.map((group) => (
+              <div key={group.label}>
+                {!sidebarCollapsed && (
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1.5">{group.label}</p>
+                )}
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const isActive = desktopPanel === item.value;
+                    const btn = (
+                      <button
+                        key={item.value}
+                        onClick={() => setDesktopPanel(item.value)}
+                        className={`w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 btn-tactile ${
+                          sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"
+                        } ${
+                          isActive
+                            ? "bg-primary/10 text-primary shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                        }`}
+                      >
+                        <span className="shrink-0">{item.icon}</span>
+                        {!sidebarCollapsed && (
+                          <span className="text-xs font-medium truncate flex-1 text-left">{item.label}</span>
+                        )}
+                        {!sidebarCollapsed && item.beta && (
+                          <span className="text-[8px] uppercase tracking-wider opacity-50 font-mono bg-primary/10 px-1 py-0.5 rounded">β</span>
+                        )}
+                      </button>
+                    );
+
+                    if (sidebarCollapsed) {
+                      return (
+                        <Tooltip key={item.value}>
+                          <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                          <TooltipContent side="right" className="text-xs">{item.label}</TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+                    return btn;
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+
+          {/* Bottom actions */}
+          <div className="border-t border-border/30 p-2 space-y-0.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={() => setDesktopPanel("settings")}
+                  className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${
+                    sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"
+                  } ${desktopPanel === "settings" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
+                  <Settings className="w-4 h-4 shrink-0" />
+                  {!sidebarCollapsed && <span className="text-xs font-medium">Настройки</span>}
+                </button>
+              </TooltipTrigger>
+              {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Настройки</TooltipContent>}
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={() => setShowCommandPalette(true)}
+                  className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${
+                    sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"
+                  } text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                  <Search className="w-4 h-4 shrink-0" />
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="text-xs font-medium flex-1 text-left">Поиск</span>
+                      <kbd className="text-[9px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">⌘K</kbd>
+                    </>
+                  )}
+                </button>
+              </TooltipTrigger>
+              {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Поиск ⌘K</TooltipContent>}
+            </Tooltip>
+
+            {user ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={signOut} className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    {!sidebarCollapsed && <span className="text-xs font-medium">Выйти</span>}
+                  </button>
+                </TooltipTrigger>
+                {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Выйти</TooltipContent>}
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={() => setShowAuthDialog(true)} className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                    <User className="w-4 h-4 shrink-0" />
+                    {!sidebarCollapsed && <span className="text-xs font-medium">Войти</span>}
+                  </button>
+                </TooltipTrigger>
+                {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Войти</TooltipContent>}
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                  {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                  {!sidebarCollapsed && <span className="text-xs font-medium">Свернуть</span>}
+                </button>
+              </TooltipTrigger>
+              {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Развернуть</TooltipContent>}
+            </Tooltip>
+          </div>
+        </aside>
+
+        {/* Main content area */}
+        <div className="flex-1 flex min-w-0">
+          {desktopPanel === "main" && (
+            <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
+              serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-r border-border/50" />
+          )}
+
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Compact top bar for context actions */}
+            {desktopPanel === "main" && (
+              <div className="glass-panel border-b border-border/50 px-4 py-1.5 flex items-center justify-end gap-1 shrink-0">
+                <div className="relative">
+                  <button onClick={() => setShowPresetSave(!showPresetSave)} className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Пресеты"><Save className="w-3.5 h-3.5" /></button>
+                  {showPresetSave && (
+                    <div className="absolute right-0 top-full mt-1 w-72 glass-card border border-border/50 rounded-xl shadow-lg z-50 p-3">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Сохранить пресет</p>
+                      <div className="flex gap-1.5 mb-3">
+                        <input className="flex-1 glass-input border border-border/50 rounded-lg px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" placeholder="Название..." value={presetName} onChange={(e) => setPresetName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSavePreset()} />
+                        <button onClick={handleSavePreset} disabled={!presetName.trim()} className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:opacity-90 disabled:opacity-30 btn-tactile">Сохранить</button>
+                      </div>
+                      {presets.length > 0 && (
+                        <>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Загрузить</p>
                           <div className="max-h-40 overflow-y-auto space-y-1">
                             {presets.map((p) => (
                               <div key={p.id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-accent/50 group">
@@ -237,54 +366,51 @@ export default function Index() {
                                 <button onClick={() => deletePreset(p.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"><Trash2 className="w-3 h-3" /></button>
                               </div>
                             ))}
-                          </div></>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={() => setShowDesktopSettings(!showDesktopSettings)} className={`p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors ${showDesktopSettings ? "bg-accent text-foreground" : ""}`} title="Настройки отображения">
-                    <SlidersHorizontal className="w-4 h-4" />
-                  </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => setShowDesktopSettings(!showDesktopSettings)} className={`p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors ${showDesktopSettings ? "bg-accent text-foreground" : ""}`} title="Настройки отображения">
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-1 min-h-0">
+              {desktopPanel === "main" && (
+                <>
+                  {showDesktopSettings && (<div className="w-80 shrink-0 border-r border-border/50 glass-panel p-6 overflow-y-auto"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>)}
+                  <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings}
+                    onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
+                    isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
+                    onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
+                  {!showDesktopSettings && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} />}
                 </>
               )}
-              {user ? (
-                <button onClick={signOut} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Выйти"><LogOut className="w-4 h-4" /></button>
-              ) : (
-                <button onClick={() => setShowAuthDialog(true)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Войти"><User className="w-4 h-4" /></button>
-              )}
+              {desktopPanel === "audit" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "objections" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ObjectionTrainer serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "simulator" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientSimulator serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "services" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ServicesManager services={services} onAdd={addService} onUpdate={updateService} onDelete={deleteService} onReset={resetToDefaults} className="h-full" /></div>}
+              {desktopPanel === "history" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" /></div>}
+              {desktopPanel === "favorites" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} /></div>}
+              {desktopPanel === "quiz" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><QuizMode serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "timer" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CallTimer className="h-full" /></div>}
+              {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "comparison" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ScriptComparison history={history} favorites={favorites} className="h-full" /></div>}
+              {desktopPanel === "cases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CaseLibrary className="h-full" /></div>}
+              {desktopPanel === "phrases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" /></div>}
+              {desktopPanel === "personas" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" /></div>}
+              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} /></div>}
             </div>
           </div>
-
-          <div className="flex flex-1 min-h-0">
-            {desktopPanel === "main" && (
-              <>
-                {showDesktopSettings && (<div className="w-80 shrink-0 border-r border-border/50 glass-panel p-6 overflow-y-auto"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>)}
-                <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings}
-                  onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
-                  isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
-                  onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
-                {!showDesktopSettings && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} />}
-              </>
-            )}
-            {desktopPanel === "audit" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" /></div>}
-            {desktopPanel === "objections" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ObjectionTrainer serviceNames={serviceNames} className="h-full" /></div>}
-            {desktopPanel === "simulator" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientSimulator serviceNames={serviceNames} className="h-full" /></div>}
-            {desktopPanel === "services" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ServicesManager services={services} onAdd={addService} onUpdate={updateService} onDelete={deleteService} onReset={resetToDefaults} className="h-full" /></div>}
-            {desktopPanel === "history" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" /></div>}
-            {desktopPanel === "favorites" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} /></div>}
-            {desktopPanel === "quiz" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><QuizMode serviceNames={serviceNames} className="h-full" /></div>}
-            {desktopPanel === "timer" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CallTimer className="h-full" /></div>}
-            {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" /></div>}
-            {desktopPanel === "comparison" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ScriptComparison history={history} favorites={favorites} className="h-full" /></div>}
-            {desktopPanel === "cases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CaseLibrary className="h-full" /></div>}
-            {desktopPanel === "phrases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" /></div>}
-            {desktopPanel === "personas" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" /></div>}
-            {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} /></div>}
-          </div>
         </div>
+
         <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
         <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} items={commandItems} />
       </div>
+      </TooltipProvider>
     );
   }
 
@@ -323,7 +449,8 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      {/* Content area with bottom padding for nav bar */}
+      <div className="flex-1 overflow-hidden pb-[60px]">
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
         {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
@@ -343,7 +470,8 @@ export default function Index() {
         {mobileTab === "personas" && <ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" />}
       </div>
 
-      <nav className="glass-panel border-t border-border/50 flex items-center justify-around py-2 shrink-0 z-10">
+      {/* Fixed bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-2 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}>
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
         <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
@@ -440,37 +568,29 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme
           {user ? (
             <div className="glass-card border border-border/50 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <div><p className="text-sm text-foreground font-medium">{user.email}</p><p className="text-[10px] text-muted-foreground">Данные синхронизируются с облаком</p></div>
-                <button onClick={onSignOut} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">Выйти</button>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{user.email}</p>
+                  <p className="text-[10px] text-muted-foreground">Авторизован</p>
+                </div>
+                <button onClick={onSignOut} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all btn-tactile">Выйти</button>
               </div>
               {onSyncNow && (
-                <button onClick={() => { onSyncNow(); }} className="text-xs px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors btn-tactile">
-                  Синхронизировать сейчас
-                </button>
+                <button onClick={onSyncNow} className="w-full text-xs px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all btn-tactile">☁️ Синхронизировать сейчас</button>
               )}
             </div>
           ) : (
-            <button onClick={onSignIn} className="w-full glass-card border border-border/50 rounded-xl p-4 text-left hover:bg-accent/30 transition-colors">
-              <p className="text-sm text-foreground font-medium">Войдите для облачного сохранения</p>
-              <p className="text-[10px] text-muted-foreground">Настройки, история и избранное будут синхронизироваться</p>
-            </button>
+            <button onClick={onSignIn} className="w-full glass-card border border-border/50 rounded-xl p-4 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-all btn-tactile">Войти для синхронизации данных →</button>
           )}
         </div>
-        <div><label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Тема оформления</label><ThemePicker current={currentTheme} onChange={onThemeChange} /></div>
         <div>
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-2">URL транскрибатора</label>
-          <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-            placeholder="https://transcriber.example.com" value={transcriberUrl} onChange={(e) => onTranscriberUrlChange(e.target.value)} />
-          <p className="text-[10px] text-muted-foreground mt-1.5">Ссылка доступна в разделе «Анализ диалога»</p>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Тема оформления</label>
+          <ThemePicker current={currentTheme} onChange={onThemeChange} />
         </div>
         <div>
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Горячие клавиши</label>
-          <div className="glass-card border border-border/50 rounded-xl p-4 space-y-2">
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Командная палитра</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+K</kbd></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Генерация</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+G</kbd></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Копировать</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+S</kbd></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Экспорт TXT</span><kbd className="px-1.5 py-0.5 rounded bg-muted/50 text-foreground text-[10px]">Ctrl+E</kbd></div>
-          </div>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">URL транскрибатора</label>
+          <input className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            placeholder="https://..." value={transcriberUrl} onChange={(e) => onTranscriberUrlChange(e.target.value)} />
+          <p className="text-[10px] text-muted-foreground mt-1.5">Ссылка для быстрого перехода из раздела анализа диалога</p>
         </div>
       </div>
     </div>
