@@ -19,6 +19,11 @@ import CaseLibrary from "@/components/CaseLibrary";
 import CommandPalette from "@/components/CommandPalette";
 import PhraseBank from "@/components/PhraseBank";
 import ClientPersonasPanel from "@/components/ClientPersonasPanel";
+import ScenarioBuilder from "@/components/ScenarioBuilder";
+import LiveCallAssistant from "@/components/LiveCallAssistant";
+import PreCallBrief from "@/components/PreCallBrief";
+import ObjectionLibrary from "@/components/ObjectionLibrary";
+import SalesStyleLab from "@/components/SalesStyleLab";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useDisplaySettings } from "@/hooks/useDisplaySettings";
@@ -39,7 +44,8 @@ import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Wrench, Menu, Star, Settings, ChevronRight, Brain, Timer, BarChart3, Columns2, BookOpen,
-  Search, BookMarked, Users, ChevronLeft, PanelLeftClose, PanelLeftOpen,
+  Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
+  GitBranch, Headphones, FileSearch, Shield, Palette,
 } from "lucide-react";
 
 const defaultConfig: ScriptConfig = {
@@ -49,8 +55,8 @@ const defaultConfig: ScriptConfig = {
   dozimSubtype: "thinking", transcriptSubmode: "analysis",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas";
-type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas";
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
+type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -168,6 +174,11 @@ export default function Index() {
     { id: "svc", label: "Управление услугами", icon: <Package className="w-4 h-4" />, action: () => setDesktopPanel("services"), category: "Навигация" },
     { id: "phrases", label: "Банк фраз", icon: <BookMarked className="w-4 h-4" />, action: () => setDesktopPanel("phrases"), category: "Навигация" },
     { id: "personas", label: "Персоны клиентов", icon: <Users className="w-4 h-4" />, action: () => setDesktopPanel("personas"), category: "Навигация" },
+    { id: "scenario", label: "Конструктор сценариев", icon: <GitBranch className="w-4 h-4" />, action: () => setDesktopPanel("scenario-builder"), category: "AI Studio" },
+    { id: "live-call", label: "Суфлёр", icon: <Headphones className="w-4 h-4" />, action: () => setDesktopPanel("live-call"), category: "AI Studio" },
+    { id: "brief", label: "Пре-сейл бриф", icon: <FileSearch className="w-4 h-4" />, action: () => setDesktopPanel("pre-call-brief"), category: "AI Studio" },
+    { id: "obj-lib", label: "Библиотека возражений", icon: <Shield className="w-4 h-4" />, action: () => setDesktopPanel("objection-library"), category: "AI Studio" },
+    { id: "style", label: "Лаборатория стиля", icon: <Palette className="w-4 h-4" />, action: () => setDesktopPanel("sales-style"), category: "AI Studio" },
     { id: "timer", label: "Таймер звонка", icon: <Timer className="w-4 h-4" />, action: () => setDesktopPanel("timer"), category: "Инструменты" },
     { id: "dash", label: "Дашборд активности", icon: <BarChart3 className="w-4 h-4" />, action: () => setDesktopPanel("dashboard"), category: "Инструменты" },
     { id: "compare", label: "Сравнение скриптов", icon: <Columns2 className="w-4 h-4" />, action: () => setDesktopPanel("comparison"), category: "Инструменты" },
@@ -183,10 +194,17 @@ export default function Index() {
       { value: "history", label: "История", icon: <History className="w-4 h-4" /> },
       { value: "favorites", label: "Избранное", icon: <Star className="w-4 h-4" /> },
     ]},
+    { label: "AI Studio", items: [
+      { value: "scenario-builder", label: "Сценарии", icon: <GitBranch className="w-4 h-4" /> },
+      { value: "live-call", label: "Суфлёр", icon: <Headphones className="w-4 h-4" /> },
+      { value: "pre-call-brief", label: "Бриф", icon: <FileSearch className="w-4 h-4" /> },
+      { value: "objection-library", label: "Возражения", icon: <Shield className="w-4 h-4" /> },
+      { value: "sales-style", label: "Стиль", icon: <Palette className="w-4 h-4" /> },
+    ]},
     { label: "Инструменты", items: [
-      { value: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" />, beta: true },
-      { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" />, beta: true },
-      { value: "objections", label: "Возражения", icon: <Zap className="w-4 h-4" /> },
+      { value: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" /> },
+      { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" /> },
+      { value: "objections", label: "Тренажёр", icon: <Zap className="w-4 h-4" /> },
       { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
       { value: "timer", label: "Таймер", icon: <Timer className="w-4 h-4" /> },
     ]},
@@ -402,6 +420,11 @@ export default function Index() {
               {desktopPanel === "cases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CaseLibrary className="h-full" /></div>}
               {desktopPanel === "phrases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" /></div>}
               {desktopPanel === "personas" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" /></div>}
+              {desktopPanel === "scenario-builder" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ScenarioBuilder serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "live-call" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><LiveCallAssistant serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "pre-call-brief" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PreCallBrief serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "objection-library" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ObjectionLibrary serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "sales-style" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SalesStyleLab className="h-full" /></div>}
               {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} /></div>}
             </div>
           </div>
@@ -417,6 +440,11 @@ export default function Index() {
   // Mobile
   const toolItems = [
     { tab: "armory" as MobileTab, label: "Арсенал", icon: <Zap className="w-5 h-5" />, desc: "Быстрая отработка возражений" },
+    { tab: "scenario-builder" as MobileTab, label: "Конструктор сценариев", icon: <GitBranch className="w-5 h-5" />, desc: "Дерево диалога с ветвлениями" },
+    { tab: "live-call" as MobileTab, label: "Суфлёр", icon: <Headphones className="w-5 h-5" />, desc: "Подсказки во время звонка" },
+    { tab: "pre-call-brief" as MobileTab, label: "Пре-сейл бриф", icon: <FileSearch className="w-5 h-5" />, desc: "Досье на клиента" },
+    { tab: "objection-library" as MobileTab, label: "Библиотека возражений", icon: <Shield className="w-5 h-5" />, desc: "База возражений с ответами" },
+    { tab: "sales-style" as MobileTab, label: "Лаборатория стиля", icon: <Palette className="w-5 h-5" />, desc: "Персональный профиль продаж" },
     { tab: "audit" as MobileTab, label: "Аудит сайта", icon: <Globe className="w-5 h-5" />, desc: "SEO-аудит сайта" },
     { tab: "objections" as MobileTab, label: "Тренажёр возражений", icon: <Zap className="w-5 h-5" />, desc: "Генерация возражений" },
     { tab: "simulator" as MobileTab, label: "Симулятор клиента", icon: <MessageCircle className="w-5 h-5" />, desc: "Практика с AI-клиентом" },
@@ -437,7 +465,7 @@ export default function Index() {
   ];
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-3 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><FileText className="w-4 h-4 text-primary-foreground" /></div>
@@ -450,7 +478,7 @@ export default function Index() {
       </header>
 
       {/* Content area with bottom padding for nav bar */}
-      <div className="flex-1 overflow-hidden pb-[60px]">
+      <div className="flex-1 overflow-hidden pb-[72px]">
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
         {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
@@ -468,18 +496,23 @@ export default function Index() {
         {mobileTab === "cases" && <CaseLibrary className="h-full" />}
         {mobileTab === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" />}
         {mobileTab === "personas" && <ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" />}
+        {mobileTab === "scenario-builder" && <ScenarioBuilder serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "live-call" && <LiveCallAssistant serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "pre-call-brief" && <PreCallBrief serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "objection-library" && <ObjectionLibrary serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "sales-style" && <SalesStyleLab className="h-full" />}
       </div>
 
       {/* Fixed bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-2 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}>
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
-        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
+        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
         <MobileNavBtn active={["services", "history", "favorites", "display-settings", "dashboard", "comparison"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
       </nav>
 
       <Sheet open={showToolsSheet} onOpenChange={setShowToolsSheet}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl">
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto">
           <SheetHeader><SheetTitle className="text-base">Инструменты</SheetTitle></SheetHeader>
           <div className="flex flex-col gap-2 py-4">
             {toolItems.map((item) => (
