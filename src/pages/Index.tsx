@@ -56,7 +56,7 @@ const defaultConfig: ScriptConfig = {
 };
 
 type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
-type DesktopPanel = "main" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
+type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -88,6 +88,8 @@ export default function Index() {
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // For simulator tool overlay - preserve simulator state while viewing tools
+  const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -161,10 +163,16 @@ export default function Index() {
 
   const handleCopyPhrase = useCallback((text: string) => { navigator.clipboard.writeText(text); toast.success("Фраза скопирована"); }, []);
 
+  // Handler for simulator tool overlay
+  const handleSimulatorOpenTool = useCallback((toolId: string) => {
+    setSimulatorToolOverlay(toolId);
+  }, []);
+
   const commandItems = useMemo(() => [
     { id: "gen", label: "Сгенерировать скрипт", desc: "Ctrl+G", icon: <Zap className="w-4 h-4" />, action: () => generate(), category: "Действия" },
     { id: "copy", label: "Копировать результат", desc: "Ctrl+S", icon: <FileText className="w-4 h-4" />, action: () => { if (script) { navigator.clipboard.writeText(script); toast.success("Скопировано"); } }, category: "Действия" },
     { id: "main", label: "Генератор", icon: <FileText className="w-4 h-4" />, action: () => setDesktopPanel("main"), category: "Навигация" },
+    { id: "armory", label: "Арсенал", icon: <Zap className="w-4 h-4" />, action: () => setDesktopPanel("armory"), category: "Навигация" },
     { id: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" />, action: () => setDesktopPanel("audit"), category: "Навигация" },
     { id: "quiz", label: "Квиз-тренажёр", icon: <Brain className="w-4 h-4" />, action: () => setDesktopPanel("quiz"), category: "Навигация" },
     { id: "sim", label: "Симулятор клиента", icon: <MessageCircle className="w-4 h-4" />, action: () => setDesktopPanel("simulator"), category: "Навигация" },
@@ -191,6 +199,7 @@ export default function Index() {
   const navGroups: NavGroup[] = [
     { label: "Основное", items: [
       { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
+      { value: "armory", label: "Арсенал", icon: <Zap className="w-4 h-4" /> },
       { value: "history", label: "История", icon: <History className="w-4 h-4" /> },
       { value: "favorites", label: "Избранное", icon: <Star className="w-4 h-4" /> },
     ]},
@@ -201,8 +210,7 @@ export default function Index() {
       { value: "objection-library", label: "Возражения", icon: <Shield className="w-4 h-4" /> },
       { value: "sales-style", label: "Стиль", icon: <Palette className="w-4 h-4" /> },
     ]},
-    { label: "Инструменты", items: [
-      { value: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" /> },
+    { label: "Тренировка", items: [
       { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" /> },
       { value: "objections", label: "Тренажёр", icon: <Zap className="w-4 h-4" /> },
       { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
@@ -226,25 +234,21 @@ export default function Index() {
       <TooltipProvider delayDuration={400}>
       <div className="flex h-screen overflow-hidden">
         {/* Left sidebar navigation */}
-        <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-52"}`}>
-          {/* Logo */}
-          <div className="px-3 py-4 border-b border-border/30 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+        <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-48"}`}>
+          <div className="px-3 py-3 border-b border-border/30 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4 text-primary-foreground" />
             </div>
             {!sidebarCollapsed && (
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
-              </div>
+              <h1 className="text-xs font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
             )}
           </div>
 
-          {/* Nav items */}
-          <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4">
+          <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-3">
             {navGroups.map((group) => (
               <div key={group.label}>
                 {!sidebarCollapsed && (
-                  <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1.5">{group.label}</p>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1">{group.label}</p>
                 )}
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
@@ -253,8 +257,8 @@ export default function Index() {
                       <button
                         key={item.value}
                         onClick={() => setDesktopPanel(item.value)}
-                        className={`w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 btn-tactile ${
-                          sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"
+                        className={`w-full flex items-center gap-2 rounded-lg transition-all duration-200 btn-tactile ${
+                          sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"
                         } ${
                           isActive
                             ? "bg-primary/10 text-primary shadow-sm"
@@ -263,10 +267,7 @@ export default function Index() {
                       >
                         <span className="shrink-0">{item.icon}</span>
                         {!sidebarCollapsed && (
-                          <span className="text-xs font-medium truncate flex-1 text-left">{item.label}</span>
-                        )}
-                        {!sidebarCollapsed && item.beta && (
-                          <span className="text-[8px] uppercase tracking-wider opacity-50 font-mono bg-primary/10 px-1 py-0.5 rounded">β</span>
+                          <span className="text-xs font-medium truncate">{item.label}</span>
                         )}
                       </button>
                     );
@@ -279,20 +280,19 @@ export default function Index() {
                         </Tooltip>
                       );
                     }
-                    return btn;
+                    return <div key={item.value}>{btn}</div>;
                   })}
                 </div>
               </div>
             ))}
           </nav>
 
-          {/* Bottom actions */}
-          <div className="border-t border-border/30 p-2 space-y-0.5">
+          <div className="border-t border-border/30 p-1.5 space-y-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={() => setDesktopPanel("settings")}
-                  className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${
-                    sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"
+                  className={`w-full flex items-center gap-2 rounded-lg transition-all btn-tactile ${
+                    sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"
                   } ${desktopPanel === "settings" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}>
                   <Settings className="w-4 h-4 shrink-0" />
                   {!sidebarCollapsed && <span className="text-xs font-medium">Настройки</span>}
@@ -304,14 +304,14 @@ export default function Index() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={() => setShowCommandPalette(true)}
-                  className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${
-                    sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"
+                  className={`w-full flex items-center gap-2 rounded-lg transition-all btn-tactile ${
+                    sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"
                   } text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
                   <Search className="w-4 h-4 shrink-0" />
                   {!sidebarCollapsed && (
                     <>
                       <span className="text-xs font-medium flex-1 text-left">Поиск</span>
-                      <kbd className="text-[9px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">⌘K</kbd>
+                      <kbd className="text-[9px] text-muted-foreground bg-muted/60 px-1 py-0.5 rounded">⌘K</kbd>
                     </>
                   )}
                 </button>
@@ -322,7 +322,7 @@ export default function Index() {
             {user ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button onClick={signOut} className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                  <button onClick={signOut} className={`w-full flex items-center gap-2 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
                     <LogOut className="w-4 h-4 shrink-0" />
                     {!sidebarCollapsed && <span className="text-xs font-medium">Выйти</span>}
                   </button>
@@ -332,7 +332,7 @@ export default function Index() {
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button onClick={() => setShowAuthDialog(true)} className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                  <button onClick={() => setShowAuthDialog(true)} className={`w-full flex items-center gap-2 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
                     <User className="w-4 h-4 shrink-0" />
                     {!sidebarCollapsed && <span className="text-xs font-medium">Войти</span>}
                   </button>
@@ -344,7 +344,7 @@ export default function Index() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className={`w-full flex items-center gap-2.5 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-2"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
+                  className={`w-full flex items-center gap-2 rounded-lg transition-all btn-tactile ${sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"} text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
                   {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
                   {!sidebarCollapsed && <span className="text-xs font-medium">Свернуть</span>}
                 </button>
@@ -356,13 +356,14 @@ export default function Index() {
 
         {/* Main content area */}
         <div className="flex-1 flex min-w-0">
+          {/* Config sidebar shown in generator panel (replaces old Armory position) */}
           {desktopPanel === "main" && (
             <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
               serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-r border-border/50" />
           )}
 
           <div className="flex-1 flex flex-col min-w-0">
-            {/* Compact top bar for context actions */}
+            {/* Compact top bar */}
             {desktopPanel === "main" && (
               <div className="glass-panel border-b border-border/50 px-4 py-1.5 flex items-center justify-end gap-1 shrink-0">
                 <div className="relative">
@@ -399,17 +400,21 @@ export default function Index() {
             <div className="flex flex-1 min-h-0">
               {desktopPanel === "main" && (
                 <>
-                  {showDesktopSettings && (<div className="w-80 shrink-0 border-r border-border/50 glass-panel p-6 overflow-y-auto"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>)}
+                  {showDesktopSettings && (<div className="w-72 shrink-0 border-r border-border/50 glass-panel p-5 overflow-y-auto"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>)}
                   <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings}
                     onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
                     isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
                     onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
-                  {!showDesktopSettings && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} />}
                 </>
               )}
+              {desktopPanel === "armory" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" /></div>}
               {desktopPanel === "audit" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "objections" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ObjectionTrainer serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "simulator" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientSimulator serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "simulator" && (
+                <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden relative">
+                  <ClientSimulator serviceNames={serviceNames} className="h-full" onOpenTool={handleSimulatorOpenTool} />
+                </div>
+              )}
               {desktopPanel === "services" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ServicesManager services={services} onAdd={addService} onUpdate={updateService} onDelete={deleteService} onReset={resetToDefaults} className="h-full" /></div>}
               {desktopPanel === "history" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" /></div>}
               {desktopPanel === "favorites" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} /></div>}
@@ -429,6 +434,26 @@ export default function Index() {
             </div>
           </div>
         </div>
+
+        {/* Simulator tool overlay - shows tools without losing simulator progress */}
+        <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
+          <SheetContent side="right" className="glass-panel w-[400px] sm:w-[500px] p-0">
+            <SheetHeader className="px-4 py-3 border-b border-border/50">
+              <SheetTitle className="text-sm">
+                {simulatorToolOverlay === "armory" && "Арсенал возражений"}
+                {simulatorToolOverlay === "objection-library" && "Библиотека возражений"}
+                {simulatorToolOverlay === "phrases" && "Банк фраз"}
+                {simulatorToolOverlay === "live-call" && "Суфлёр"}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="h-[calc(100%-52px)] overflow-y-auto">
+              {simulatorToolOverlay === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0" />}
+              {simulatorToolOverlay === "objection-library" && <ObjectionLibrary serviceNames={serviceNames} className="h-full" />}
+              {simulatorToolOverlay === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" />}
+              {simulatorToolOverlay === "live-call" && <LiveCallAssistant serviceNames={serviceNames} className="h-full" />}
+            </div>
+          </SheetContent>
+        </Sheet>
 
         <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
         <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} items={commandItems} />
@@ -466,7 +491,7 @@ export default function Index() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-      <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-3 shrink-0 z-10">
+      <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><FileText className="w-4 h-4 text-primary-foreground" /></div>
           <h1 className="text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
@@ -477,15 +502,14 @@ export default function Index() {
         </div>
       </header>
 
-      {/* Content area with bottom padding for nav bar */}
-      <div className="flex-1 overflow-hidden pb-[72px]">
+      <div className="flex-1 overflow-hidden" style={{ paddingBottom: "calc(60px + env(safe-area-inset-bottom, 8px))" }}>
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
         {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
         {mobileTab === "display-settings" && <div className="h-full overflow-y-auto p-6"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>}
         {mobileTab === "audit" && <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" />}
         {mobileTab === "objections" && <ObjectionTrainer serviceNames={serviceNames} className="h-full" />}
-        {mobileTab === "simulator" && <ClientSimulator serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "simulator" && <ClientSimulator serviceNames={serviceNames} className="h-full" onOpenTool={(id) => setSimulatorToolOverlay(id)} />}
         {mobileTab === "services" && <ServicesManager services={services} onAdd={addService} onUpdate={updateService} onDelete={deleteService} onReset={resetToDefaults} className="h-full" />}
         {mobileTab === "history" && <GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" />}
         {mobileTab === "favorites" && <FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} />}
@@ -503,8 +527,28 @@ export default function Index() {
         {mobileTab === "sales-style" && <SalesStyleLab className="h-full" />}
       </div>
 
+      {/* Mobile tool overlay for simulator */}
+      <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto p-0">
+          <SheetHeader className="px-4 py-3 border-b border-border/50">
+            <SheetTitle className="text-sm">
+              {simulatorToolOverlay === "armory" && "Арсенал возражений"}
+              {simulatorToolOverlay === "objection-library" && "Библиотека возражений"}
+              {simulatorToolOverlay === "phrases" && "Банк фраз"}
+              {simulatorToolOverlay === "live-call" && "Суфлёр"}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {simulatorToolOverlay === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0" />}
+            {simulatorToolOverlay === "objection-library" && <ObjectionLibrary serviceNames={serviceNames} />}
+            {simulatorToolOverlay === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} />}
+            {simulatorToolOverlay === "live-call" && <LiveCallAssistant serviceNames={serviceNames} />}
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Fixed bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-2 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}>
+      <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-1.5 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 6px)" }}>
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
         <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
@@ -514,12 +558,12 @@ export default function Index() {
       <Sheet open={showToolsSheet} onOpenChange={setShowToolsSheet}>
         <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto">
           <SheetHeader><SheetTitle className="text-base">Инструменты</SheetTitle></SheetHeader>
-          <div className="flex flex-col gap-2 py-4">
+          <div className="flex flex-col gap-1.5 py-3">
             {toolItems.map((item) => (
-              <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowToolsSheet(false); }} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-accent/50 transition-colors text-left">
+              <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowToolsSheet(false); }} className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-accent/50 transition-colors text-left">
                 <div className="text-primary">{item.icon}</div>
-                <div><div className="text-sm font-medium text-foreground">{item.label}</div><div className="text-[11px] text-muted-foreground">{item.desc}</div></div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                <div className="flex-1 min-w-0"><div className="text-sm font-medium text-foreground">{item.label}</div><div className="text-[10px] text-muted-foreground truncate">{item.desc}</div></div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
               </button>
             ))}
           </div>
@@ -529,9 +573,9 @@ export default function Index() {
       <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
         <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl">
           <SheetHeader><SheetTitle className="text-base">Меню</SheetTitle></SheetHeader>
-          <div className="flex flex-col gap-2 py-4">
+          <div className="flex flex-col gap-1.5 py-3">
             {menuItems.map((item) => (
-              <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-accent/50 transition-colors text-left">
+              <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-accent/50 transition-colors text-left">
                 <div className="text-primary">{item.icon}</div>
                 <div className="text-sm font-medium text-foreground">{item.label}</div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
