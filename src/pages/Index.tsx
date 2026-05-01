@@ -207,11 +207,6 @@ export default function Index() {
       { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" /> },
       { value: "objections", label: "Тренажёр", icon: <Zap className="w-4 h-4" /> },
       { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
-      { value: "timer", label: "Таймер", icon: <Timer className="w-4 h-4" /> },
-    ]},
-    { label: "Аналитика", items: [
-      { value: "dashboard", label: "Дашборд", icon: <BarChart3 className="w-4 h-4" /> },
-      { value: "comparison", label: "Сравнение", icon: <Columns2 className="w-4 h-4" /> },
     ]},
     { label: "Библиотека", items: [
       { value: "cases", label: "Кейсы", icon: <BookOpen className="w-4 h-4" /> },
