@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import {
   ClipboardList, Target, MessageSquare, Link2, BarChart3,
@@ -124,7 +124,7 @@ interface Props {
 
 export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl }: Props) {
   const [showTemplates, setShowTemplates] = useState(false);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
   const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
 
   const showSituation = config.mode === "script" || config.mode === "buffer-questions";
