@@ -12,9 +12,6 @@ import GenerationHistory from "@/components/GenerationHistory";
 import ThemePicker from "@/components/ThemePicker";
 import AuthDialog from "@/components/AuthDialog";
 import QuizMode from "@/components/QuizMode";
-import CallTimer from "@/components/CallTimer";
-import ActivityDashboard from "@/components/ActivityDashboard";
-import ScriptComparison from "@/components/ScriptComparison";
 import CaseLibrary from "@/components/CaseLibrary";
 import CommandPalette from "@/components/CommandPalette";
 import PhraseBank from "@/components/PhraseBank";
@@ -43,7 +40,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
-  Wrench, Menu, Star, Settings, ChevronRight, Brain, Timer, BarChart3, Columns2, BookOpen,
+  Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
   Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette,
 } from "lucide-react";
@@ -55,8 +52,8 @@ const defaultConfig: ScriptConfig = {
   dozimSubtype: "thinking", transcriptSubmode: "analysis",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
-type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
+type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -187,10 +184,6 @@ export default function Index() {
     { id: "brief", label: "Пре-сейл бриф", icon: <FileSearch className="w-4 h-4" />, action: () => setDesktopPanel("pre-call-brief"), category: "AI Studio" },
     { id: "obj-lib", label: "Библиотека возражений", icon: <Shield className="w-4 h-4" />, action: () => setDesktopPanel("objection-library"), category: "AI Studio" },
     { id: "style", label: "Лаборатория стиля", icon: <Palette className="w-4 h-4" />, action: () => setDesktopPanel("sales-style"), category: "AI Studio" },
-    { id: "timer", label: "Таймер звонка", icon: <Timer className="w-4 h-4" />, action: () => setDesktopPanel("timer"), category: "Инструменты" },
-    { id: "dash", label: "Дашборд активности", icon: <BarChart3 className="w-4 h-4" />, action: () => setDesktopPanel("dashboard"), category: "Инструменты" },
-    { id: "compare", label: "Сравнение скриптов", icon: <Columns2 className="w-4 h-4" />, action: () => setDesktopPanel("comparison"), category: "Инструменты" },
-    { id: "cases", label: "Библиотека кейсов", icon: <BookOpen className="w-4 h-4" />, action: () => setDesktopPanel("cases"), category: "Инструменты" },
     { id: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" />, action: () => setDesktopPanel("settings"), category: "Навигация" },
   ], [generate, script]);
 
