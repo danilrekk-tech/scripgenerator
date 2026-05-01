@@ -24,7 +24,7 @@ interface Props {
 }
 
 const MODE_EMPTY: Record<string, { title: string; subtitle: string }> = {
-  script: { title: "Stop pitching. Start closing.", subtitle: "Настрой параметры и нажми «Сгенерировать»" },
+  script: { title: "Хватит уговаривать. Пора закрывать.", subtitle: "Настрой параметры и нажми «Сгенерировать»" },
   "service-info": { title: "Знай свой продукт", subtitle: "Выбери услугу — получи полный разбор" },
   arguments: { title: "Факты побеждают", subtitle: "Аргументы, факты и выгоды" },
   "buffer-questions": { title: "Правильный вопрос — половина продажи", subtitle: "Вопросы для выявления потребностей" },
