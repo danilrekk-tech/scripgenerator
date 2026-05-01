@@ -155,8 +155,8 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
           <p className="text-[10px] text-muted-foreground">Параметры генерации</p>
         </div>
         <button onClick={() => setShowTemplates(!showTemplates)}
-          className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all btn-tactile ${showTemplates ? "chip-active" : "chip-inactive"}`}>
-          ⚡ Шаблоны
+          className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all btn-tactile inline-flex items-center gap-1 ${showTemplates ? "chip-active" : "chip-inactive"}`}>
+          <Zap className="w-3 h-3" /> Шаблоны
         </button>
       </div>
 
@@ -171,30 +171,40 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </div>
       )}
 
-      {/* Mode selection - grouped */}
+      {/* Mode selection — compact card grid */}
       <Field label="Режим генерации">
-        <div className="space-y-1.5">
-          {MODE_GROUPS.map((group) => (
-            <div key={group.label}>
-              <button onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}
-                className="w-full text-left text-[10px] font-medium uppercase tracking-widest text-muted-foreground py-1 hover:text-foreground transition-colors flex items-center justify-between">
-                {group.label}
-                <span className="text-[8px]">{group.modes.some(m => m.value === config.mode) ? "●" : ""}</span>
-              </button>
-              {(expandedGroup === group.label || group.modes.some(m => m.value === config.mode)) && (
-                <div className="space-y-1 mb-2">
-                  {group.modes.map((m) => (
-                    <button key={m.value} onClick={() => update("mode", m.value)}
-                      className={`w-full text-left text-xs px-3 py-1.5 rounded-lg border transition-all btn-tactile flex items-center gap-2 ${
-                        config.mode === m.value ? "chip-active" : "chip-inactive"
-                      }`}>
-                      <span className="text-sm">{m.icon}</span><span>{m.label}</span>
-                    </button>
-                  ))}
+        <div className="space-y-3">
+          {MODE_GROUPS.map((group) => {
+            const isActiveGroup = group.modes.some(m => m.value === config.mode);
+            return (
+              <div key={group.label}>
+                <div className="flex items-center gap-2 mb-1.5 px-0.5">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{group.label}</p>
+                  <div className="h-px flex-1 bg-border/40" />
+                  {isActiveGroup && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="grid grid-cols-2 gap-1.5">
+                  {group.modes.map((m) => {
+                    const Icon = m.Icon;
+                    const active = config.mode === m.value;
+                    return (
+                      <button key={m.value} onClick={() => update("mode", m.value)}
+                        className={`group relative text-left px-2 py-2 rounded-lg border transition-all btn-tactile flex flex-col gap-1 min-h-[58px] ${
+                          active
+                            ? "border-primary/40 bg-primary/10 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]"
+                            : "border-border/50 bg-card/40 hover:border-primary/30 hover:bg-accent/40"
+                        }`}>
+                        <Icon className={`w-3.5 h-3.5 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                        <span className={`text-[11px] leading-tight font-medium ${active ? "text-primary" : "text-foreground"}`}>
+                          {m.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Field>
 
