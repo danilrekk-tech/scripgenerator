@@ -224,9 +224,7 @@ export default function Index() {
         {/* Left sidebar navigation */}
         <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-48"}`}>
           <div className="px-3 py-3 border-b border-border/30 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <FileText className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <img src="/icon-192.png" alt="ScriptEngine" className="w-7 h-7 rounded-lg shrink-0 object-cover" />
             {!sidebarCollapsed && (
               <h1 className="text-xs font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
             )}
@@ -475,7 +473,7 @@ export default function Index() {
     <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><FileText className="w-4 h-4 text-primary-foreground" /></div>
+          <img src="/icon-192.png" alt="ScriptEngine" className="w-7 h-7 rounded-lg object-cover" />
           <h1 className="text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
         </button>
         <div className="flex items-center gap-1">
