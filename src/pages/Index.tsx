@@ -12,9 +12,6 @@ import GenerationHistory from "@/components/GenerationHistory";
 import ThemePicker from "@/components/ThemePicker";
 import AuthDialog from "@/components/AuthDialog";
 import QuizMode from "@/components/QuizMode";
-import CallTimer from "@/components/CallTimer";
-import ActivityDashboard from "@/components/ActivityDashboard";
-import ScriptComparison from "@/components/ScriptComparison";
 import CaseLibrary from "@/components/CaseLibrary";
 import CommandPalette from "@/components/CommandPalette";
 import PhraseBank from "@/components/PhraseBank";
@@ -43,7 +40,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
-  Wrench, Menu, Star, Settings, ChevronRight, Brain, Timer, BarChart3, Columns2, BookOpen,
+  Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
   Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette,
 } from "lucide-react";
@@ -55,8 +52,8 @@ const defaultConfig: ScriptConfig = {
   dozimSubtype: "thinking", transcriptSubmode: "analysis",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
-type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "timer" | "dashboard" | "comparison" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
+type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -187,10 +184,6 @@ export default function Index() {
     { id: "brief", label: "Пре-сейл бриф", icon: <FileSearch className="w-4 h-4" />, action: () => setDesktopPanel("pre-call-brief"), category: "AI Studio" },
     { id: "obj-lib", label: "Библиотека возражений", icon: <Shield className="w-4 h-4" />, action: () => setDesktopPanel("objection-library"), category: "AI Studio" },
     { id: "style", label: "Лаборатория стиля", icon: <Palette className="w-4 h-4" />, action: () => setDesktopPanel("sales-style"), category: "AI Studio" },
-    { id: "timer", label: "Таймер звонка", icon: <Timer className="w-4 h-4" />, action: () => setDesktopPanel("timer"), category: "Инструменты" },
-    { id: "dash", label: "Дашборд активности", icon: <BarChart3 className="w-4 h-4" />, action: () => setDesktopPanel("dashboard"), category: "Инструменты" },
-    { id: "compare", label: "Сравнение скриптов", icon: <Columns2 className="w-4 h-4" />, action: () => setDesktopPanel("comparison"), category: "Инструменты" },
-    { id: "cases", label: "Библиотека кейсов", icon: <BookOpen className="w-4 h-4" />, action: () => setDesktopPanel("cases"), category: "Инструменты" },
     { id: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" />, action: () => setDesktopPanel("settings"), category: "Навигация" },
   ], [generate, script]);
 
@@ -214,11 +207,6 @@ export default function Index() {
       { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" /> },
       { value: "objections", label: "Тренажёр", icon: <Zap className="w-4 h-4" /> },
       { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
-      { value: "timer", label: "Таймер", icon: <Timer className="w-4 h-4" /> },
-    ]},
-    { label: "Аналитика", items: [
-      { value: "dashboard", label: "Дашборд", icon: <BarChart3 className="w-4 h-4" /> },
-      { value: "comparison", label: "Сравнение", icon: <Columns2 className="w-4 h-4" /> },
     ]},
     { label: "Библиотека", items: [
       { value: "cases", label: "Кейсы", icon: <BookOpen className="w-4 h-4" /> },
@@ -236,9 +224,7 @@ export default function Index() {
         {/* Left sidebar navigation */}
         <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-48"}`}>
           <div className="px-3 py-3 border-b border-border/30 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <FileText className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <img src="/icon-192.png" alt="ScriptEngine" className="w-7 h-7 rounded-lg shrink-0 object-cover" />
             {!sidebarCollapsed && (
               <h1 className="text-xs font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
             )}
@@ -356,11 +342,7 @@ export default function Index() {
 
         {/* Main content area */}
         <div className="flex-1 flex min-w-0">
-          {/* Config sidebar shown in generator panel (replaces old Armory position) */}
-          {desktopPanel === "main" && (
-            <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
-              serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-r border-border/50" />
-          )}
+          {/* Generator config sidebar moved to RIGHT side — see below */}
 
           <div className="flex-1 flex flex-col min-w-0">
             {/* Compact top bar */}
@@ -405,6 +387,8 @@ export default function Index() {
                     onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
                     isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
                     onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
+                  <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
+                    serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-l border-border/50" />
                 </>
               )}
               {desktopPanel === "armory" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" /></div>}
@@ -419,9 +403,6 @@ export default function Index() {
               {desktopPanel === "history" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" /></div>}
               {desktopPanel === "favorites" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} /></div>}
               {desktopPanel === "quiz" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><QuizMode serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "timer" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CallTimer className="h-full" /></div>}
-              {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "comparison" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ScriptComparison history={history} favorites={favorites} className="h-full" /></div>}
               {desktopPanel === "cases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CaseLibrary className="h-full" /></div>}
               {desktopPanel === "phrases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" /></div>}
               {desktopPanel === "personas" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" /></div>}
@@ -474,7 +455,6 @@ export default function Index() {
     { tab: "objections" as MobileTab, label: "Тренажёр возражений", icon: <Zap className="w-5 h-5" />, desc: "Генерация возражений" },
     { tab: "simulator" as MobileTab, label: "Симулятор клиента", icon: <MessageCircle className="w-5 h-5" />, desc: "Практика с AI-клиентом" },
     { tab: "quiz" as MobileTab, label: "Квиз-тренажёр", icon: <Brain className="w-5 h-5" />, desc: "ИИ оценивает ваш ответ" },
-    { tab: "timer" as MobileTab, label: "Таймер звонка", icon: <Timer className="w-5 h-5" />, desc: "Контроль этапов разговора" },
     { tab: "cases" as MobileTab, label: "Библиотека кейсов", icon: <BookOpen className="w-5 h-5" />, desc: "Эталонные сценарии" },
     { tab: "phrases" as MobileTab, label: "Банк фраз", icon: <BookMarked className="w-5 h-5" />, desc: "Удачные формулировки" },
     { tab: "personas" as MobileTab, label: "Персоны клиентов", icon: <Users className="w-5 h-5" />, desc: "Профили типичных клиентов" },
@@ -484,8 +464,6 @@ export default function Index() {
     { tab: "services" as MobileTab, label: "Услуги", icon: <Package className="w-5 h-5" /> },
     { tab: "history" as MobileTab, label: "История", icon: <History className="w-5 h-5" /> },
     { tab: "favorites" as MobileTab, label: "Избранное", icon: <Star className="w-5 h-5" /> },
-    { tab: "dashboard" as MobileTab, label: "Дашборд", icon: <BarChart3 className="w-5 h-5" /> },
-    { tab: "comparison" as MobileTab, label: "Сравнение", icon: <Columns2 className="w-5 h-5" /> },
     { tab: "display-settings" as MobileTab, label: "Настройки отображения", icon: <SlidersHorizontal className="w-5 h-5" /> },
   ];
 
@@ -493,7 +471,7 @@ export default function Index() {
     <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><FileText className="w-4 h-4 text-primary-foreground" /></div>
+          <img src="/icon-192.png" alt="ScriptEngine" className="w-7 h-7 rounded-lg object-cover" />
           <h1 className="text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
         </button>
         <div className="flex items-center gap-1">
@@ -514,9 +492,6 @@ export default function Index() {
         {mobileTab === "history" && <GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" />}
         {mobileTab === "favorites" && <FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} />}
         {mobileTab === "quiz" && <QuizMode serviceNames={serviceNames} className="h-full" />}
-        {mobileTab === "timer" && <CallTimer className="h-full" />}
-        {mobileTab === "dashboard" && <ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" />}
-        {mobileTab === "comparison" && <ScriptComparison history={history} favorites={favorites} className="h-full" />}
         {mobileTab === "cases" && <CaseLibrary className="h-full" />}
         {mobileTab === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" />}
         {mobileTab === "personas" && <ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" />}
@@ -551,8 +526,8 @@ export default function Index() {
       <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-1.5 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 6px)" }}>
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
-        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
-        <MobileNavBtn active={["services", "history", "favorites", "display-settings", "dashboard", "comparison"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
+        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
+        <MobileNavBtn active={["services", "history", "favorites", "display-settings"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
       </nav>
 
       <Sheet open={showToolsSheet} onOpenChange={setShowToolsSheet}>
