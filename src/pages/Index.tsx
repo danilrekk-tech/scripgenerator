@@ -342,11 +342,7 @@ export default function Index() {
 
         {/* Main content area */}
         <div className="flex-1 flex min-w-0">
-          {/* Config sidebar shown in generator panel (replaces old Armory position) */}
-          {desktopPanel === "main" && (
-            <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
-              serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-r border-border/50" />
-          )}
+          {/* Generator config sidebar moved to RIGHT side — see below */}
 
           <div className="flex-1 flex flex-col min-w-0">
             {/* Compact top bar */}
@@ -391,6 +387,8 @@ export default function Index() {
                     onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
                     isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
                     onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
+                  <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
+                    serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-l border-border/50" />
                 </>
               )}
               {desktopPanel === "armory" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" /></div>}
