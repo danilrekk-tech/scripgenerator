@@ -407,9 +407,6 @@ export default function Index() {
               {desktopPanel === "history" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" /></div>}
               {desktopPanel === "favorites" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} /></div>}
               {desktopPanel === "quiz" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><QuizMode serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "timer" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CallTimer className="h-full" /></div>}
-              {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "comparison" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ScriptComparison history={history} favorites={favorites} className="h-full" /></div>}
               {desktopPanel === "cases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CaseLibrary className="h-full" /></div>}
               {desktopPanel === "phrases" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" /></div>}
               {desktopPanel === "personas" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" /></div>}
@@ -462,7 +459,6 @@ export default function Index() {
     { tab: "objections" as MobileTab, label: "Тренажёр возражений", icon: <Zap className="w-5 h-5" />, desc: "Генерация возражений" },
     { tab: "simulator" as MobileTab, label: "Симулятор клиента", icon: <MessageCircle className="w-5 h-5" />, desc: "Практика с AI-клиентом" },
     { tab: "quiz" as MobileTab, label: "Квиз-тренажёр", icon: <Brain className="w-5 h-5" />, desc: "ИИ оценивает ваш ответ" },
-    { tab: "timer" as MobileTab, label: "Таймер звонка", icon: <Timer className="w-5 h-5" />, desc: "Контроль этапов разговора" },
     { tab: "cases" as MobileTab, label: "Библиотека кейсов", icon: <BookOpen className="w-5 h-5" />, desc: "Эталонные сценарии" },
     { tab: "phrases" as MobileTab, label: "Банк фраз", icon: <BookMarked className="w-5 h-5" />, desc: "Удачные формулировки" },
     { tab: "personas" as MobileTab, label: "Персоны клиентов", icon: <Users className="w-5 h-5" />, desc: "Профили типичных клиентов" },
@@ -472,8 +468,6 @@ export default function Index() {
     { tab: "services" as MobileTab, label: "Услуги", icon: <Package className="w-5 h-5" /> },
     { tab: "history" as MobileTab, label: "История", icon: <History className="w-5 h-5" /> },
     { tab: "favorites" as MobileTab, label: "Избранное", icon: <Star className="w-5 h-5" /> },
-    { tab: "dashboard" as MobileTab, label: "Дашборд", icon: <BarChart3 className="w-5 h-5" /> },
-    { tab: "comparison" as MobileTab, label: "Сравнение", icon: <Columns2 className="w-5 h-5" /> },
     { tab: "display-settings" as MobileTab, label: "Настройки отображения", icon: <SlidersHorizontal className="w-5 h-5" /> },
   ];
 
@@ -502,9 +496,6 @@ export default function Index() {
         {mobileTab === "history" && <GenerationHistory history={history} onLoad={handleHistoryLoad} onDelete={deleteFromHistory} onClear={clearHistory} className="h-full" />}
         {mobileTab === "favorites" && <FavoritesPanel favorites={favorites} onLoad={handleHistoryLoad} onRemove={removeFavorite} />}
         {mobileTab === "quiz" && <QuizMode serviceNames={serviceNames} className="h-full" />}
-        {mobileTab === "timer" && <CallTimer className="h-full" />}
-        {mobileTab === "dashboard" && <ActivityDashboard history={history} serviceNames={serviceNames} className="h-full" />}
-        {mobileTab === "comparison" && <ScriptComparison history={history} favorites={favorites} className="h-full" />}
         {mobileTab === "cases" && <CaseLibrary className="h-full" />}
         {mobileTab === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} className="h-full" />}
         {mobileTab === "personas" && <ClientPersonasPanel personas={personas} onAdd={addPersona} onUpdate={updatePersona} onRemove={removePersona} className="h-full" />}
@@ -539,8 +530,8 @@ export default function Index() {
       <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-1.5 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 6px)" }}>
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
-        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "timer", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
-        <MobileNavBtn active={["services", "history", "favorites", "display-settings", "dashboard", "comparison"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
+        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
+        <MobileNavBtn active={["services", "history", "favorites", "display-settings"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
       </nav>
 
       <Sheet open={showToolsSheet} onOpenChange={setShowToolsSheet}>
