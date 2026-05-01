@@ -125,7 +125,6 @@ interface Props {
 export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl }: Props) {
   const [showTemplates, setShowTemplates] = useState(false);
   const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
-  const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
 
   const showSituation = config.mode === "script" || config.mode === "buffer-questions";
   const showTone = ["script", "transcript-analysis", "email", "dozim", "messenger", "touch-chain", "funnel", "voicemail"].includes(config.mode);
