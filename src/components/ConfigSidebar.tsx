@@ -1,5 +1,12 @@
 import { useState, useCallback } from "react";
 import { Slider } from "@/components/ui/slider";
+import {
+  ClipboardList, Target, MessageSquare, Link2, BarChart3,
+  Mail, Smartphone, Phone, Megaphone,
+  Mic, Ban,
+  Package, Lightbulb, HelpCircle, BookOpen, Gem, CheckSquare, BookMarked, FolderKanban,
+  Zap, type LucideIcon,
+} from "lucide-react";
 
 export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base" | "dozim" | "messenger" | "touch-chain" | "funnel" | "anti-script" | "utp" | "sms" | "voicemail" | "social-posts" | "crm-template" | "checklist" | "glossary";
 export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
@@ -35,35 +42,35 @@ export function convertToRub(amount: number, currency: Currency): number { retur
 const SITUATIONS = ["Холодный звонок", "Отработка возражения", "Усиление аргументом", "Закрытие сделки", "Повторный контакт", "Уточнение потребностей"];
 const TONES = ["Уверенный эксперт", "Мягкий консультант", "Агрессивный closer", "Дружеский партнёр", "Не продающий", "Простыми словами"];
 
-type ModeGroup = { label: string; modes: { value: GenerationMode; label: string; icon: string }[] };
+type ModeGroup = { label: string; modes: { value: GenerationMode; label: string; Icon: LucideIcon }[] };
 
 const MODE_GROUPS: ModeGroup[] = [
   { label: "Продажи", modes: [
-    { value: "script", label: "Скрипт продаж", icon: "📋" },
-    { value: "dozim", label: "Дожим клиента", icon: "🎯" },
-    { value: "messenger", label: "Мессенджер", icon: "💬" },
-    { value: "touch-chain", label: "Цепочка касаний", icon: "🔗" },
-    { value: "funnel", label: "Воронка продаж", icon: "📊" },
+    { value: "script", label: "Скрипт продаж", Icon: ClipboardList },
+    { value: "dozim", label: "Дожим клиента", Icon: Target },
+    { value: "messenger", label: "Мессенджер", Icon: MessageSquare },
+    { value: "touch-chain", label: "Цепочка касаний", Icon: Link2 },
+    { value: "funnel", label: "Воронка продаж", Icon: BarChart3 },
   ]},
   { label: "Контент", modes: [
-    { value: "email", label: "Письма", icon: "✉️" },
-    { value: "sms", label: "SMS", icon: "📱" },
-    { value: "voicemail", label: "Автоответчик", icon: "📞" },
-    { value: "social-posts", label: "Посты для соцсетей", icon: "📢" },
+    { value: "email", label: "Письма", Icon: Mail },
+    { value: "sms", label: "SMS", Icon: Smartphone },
+    { value: "voicemail", label: "Автоответчик", Icon: Phone },
+    { value: "social-posts", label: "Посты для соцсетей", Icon: Megaphone },
   ]},
   { label: "Аналитика", modes: [
-    { value: "transcript-analysis", label: "Анализ диалога", icon: "🎙️" },
-    { value: "anti-script", label: "Антискрипт", icon: "🚫" },
+    { value: "transcript-analysis", label: "Анализ диалога", Icon: Mic },
+    { value: "anti-script", label: "Антискрипт", Icon: Ban },
   ]},
   { label: "Материалы", modes: [
-    { value: "service-info", label: "Инфо по услуге", icon: "📦" },
-    { value: "arguments", label: "Аргументы", icon: "💡" },
-    { value: "buffer-questions", label: "Буферные вопросы", icon: "❓" },
-    { value: "knowledge-base", label: "База знаний", icon: "📚" },
-    { value: "utp", label: "Генератор УТП", icon: "💎" },
-    { value: "checklist", label: "Чек-лист звонка", icon: "✅" },
-    { value: "glossary", label: "Глоссарий", icon: "📖" },
-    { value: "crm-template", label: "Шаблоны CRM", icon: "🗂️" },
+    { value: "service-info", label: "Инфо по услуге", Icon: Package },
+    { value: "arguments", label: "Аргументы", Icon: Lightbulb },
+    { value: "buffer-questions", label: "Буферные вопросы", Icon: HelpCircle },
+    { value: "knowledge-base", label: "База знаний", Icon: BookOpen },
+    { value: "utp", label: "Генератор УТП", Icon: Gem },
+    { value: "checklist", label: "Чек-лист звонка", Icon: CheckSquare },
+    { value: "glossary", label: "Глоссарий", Icon: BookMarked },
+    { value: "crm-template", label: "Шаблоны CRM", Icon: FolderKanban },
   ]},
 ];
 
