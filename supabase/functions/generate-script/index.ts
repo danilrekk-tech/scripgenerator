@@ -65,7 +65,9 @@ function getSystemPrompt(mode: string, managerVar: string, clientVar: string, to
   const nameInstr = `Используй "${managerVar}" для менеджера и "${clientVar}" для клиента. Если не указаны — оставь [Имя менеджера] / [Имя клиента].`;
 
   switch (mode) {
-    // === AI Studio modes ===
+    case "objection-quick":
+      return `${base}\n\nТы создаёшь ТОЧЕЧНЫЙ СКРИПТ — короткий ответ на КОНКРЕТНОЕ возражение клиента.\n${getToneDescription(tone)}\n${priceInstr}\n${nameInstr}\n\nСтруктура ответа:\n## Возражение\n(сформулируй возражение клиента в 1 строке)\n\n## Вариант 1 — мягкий\n(2-4 предложения, без давления)\n\n## Вариант 2 — экспертный\n(2-4 предложения, через факты и цифры)\n\n## Вариант 3 — прямой\n(2-4 предложения, чёткое закрытие)\n\n## Вопросы для углубления\n(2-3 вопроса, чтобы выяснить истинную причину)\n\n## Главная мысль\n(1 короткая фраза, которую менеджеру нужно донести)`;
+
     case "scenario-builder":
       return `${base}\n\nТы генерируешь ДЕРЕВО СЦЕНАРИЕВ РАЗГОВОРА в формате JSON. Каждый узел содержит реплику клиента (label) и ответ менеджера (response), плюс дочерние узлы (children) для ветвлений. Создай реалистичное дерево с 3-4 основными ветками и 2-3 уровнями вложенности. Строго JSON массив без markdown.`;
 
@@ -166,6 +168,8 @@ function getUserPrompt(mode: string, service: string, situation: string, tone: s
   const ctx = context ? `\nДополнительный контекст: ${context}` : "";
   
   switch (mode) {
+    case "objection-quick":
+      return `${context || `Возражение клиента: ${situation || "сомневается"}`}\nУслуга: ${service}`;
     case "scenario-builder":
       return `${context || `Построй дерево сценариев для продажи "${service}". Ситуация: ${situation}.`}`;
     case "live-call":

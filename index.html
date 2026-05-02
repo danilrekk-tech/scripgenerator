@@ -22,5 +22,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Remove third-party builder badges if injected at runtime
+      (function () {
+        var SELECTOR = '#lovable-badge, [id^="lovable-badge"], [class*="lovable-badge"], a[href*="lovable.dev"], a[href*="gpteng.co"], iframe[src*="lovable.dev"], div[data-lovable-badge]';
+        function nuke() {
+          document.querySelectorAll(SELECTOR).forEach(function (el) { el.remove(); });
+        }
+        new MutationObserver(nuke).observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', nuke);
+        setInterval(nuke, 2000);
+      })();
+    </script>
   </body>
 </html>

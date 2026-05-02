@@ -49,7 +49,7 @@ const defaultConfig: ScriptConfig = {
   managerName: "", clientName: "", service: "SEO-продвижение", situation: "Холодный звонок",
   tone: "Уверенный эксперт", context: "", mode: "script", transcript: "", priceRub: "",
   currency: "RUB", emailSubtype: "follow-up", emailObjection: "", scriptLength: "medium",
-  dozimSubtype: "thinking", transcriptSubmode: "analysis",
+  dozimSubtype: "thinking", transcriptSubmode: "analysis", personaId: "", quickTemplateId: "",
 };
 
 type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style";
