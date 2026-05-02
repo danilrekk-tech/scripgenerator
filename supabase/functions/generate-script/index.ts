@@ -168,6 +168,8 @@ function getUserPrompt(mode: string, service: string, situation: string, tone: s
   const ctx = context ? `\nДополнительный контекст: ${context}` : "";
   
   switch (mode) {
+    case "objection-quick":
+      return `${context || `Возражение клиента: ${situation || "сомневается"}`}\nУслуга: ${service}`;
     case "scenario-builder":
       return `${context || `Построй дерево сценариев для продажи "${service}". Ситуация: ${situation}.`}`;
     case "live-call":
