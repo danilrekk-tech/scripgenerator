@@ -11,6 +11,17 @@ export interface DisplaySettings {
   paragraphSpacing: number; // px
   maxWidth: number;        // ch
   highlightVariables: boolean;
+  // New flexible options
+  density: "compact" | "comfortable" | "spacious";
+  cornerRadius: number;       // px (4..24)
+  textAlign: "left" | "justify";
+  boldHeaders: boolean;
+  showMinimap: boolean;
+  showTableOfContents: boolean;
+  showWordCount: boolean;
+  numberedAccent: boolean;
+  cardShadow: "none" | "soft" | "elevated";
+  textColor: "default" | "muted" | "high-contrast";
 }
 
 const DEFAULTS: DisplaySettings = {
@@ -24,6 +35,16 @@ const DEFAULTS: DisplaySettings = {
   paragraphSpacing: 16,
   maxWidth: 65,
   highlightVariables: true,
+  density: "comfortable",
+  cornerRadius: 12,
+  textAlign: "left",
+  boldHeaders: true,
+  showMinimap: true,
+  showTableOfContents: true,
+  showWordCount: true,
+  numberedAccent: true,
+  cardShadow: "soft",
+  textColor: "default",
 };
 
 const STORAGE_KEY = "scriptengine-display-settings";

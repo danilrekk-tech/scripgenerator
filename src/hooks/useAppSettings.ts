@@ -2,10 +2,20 @@ import { useState, useEffect } from "react";
 
 interface AppSettings {
   transcriberUrl: string;
+  defaultManagerName: string;
+  defaultClientName: string;
+  defaultPersonaId: string;
+  autoFillVariables: boolean;
+  warnBeforeGenerate: boolean;
 }
 
 const DEFAULTS: AppSettings = {
   transcriberUrl: "",
+  defaultManagerName: "",
+  defaultClientName: "",
+  defaultPersonaId: "",
+  autoFillVariables: true,
+  warnBeforeGenerate: true,
 };
 
 const STORAGE_KEY = "scriptengine-app-settings";
