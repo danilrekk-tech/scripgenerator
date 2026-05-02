@@ -388,3 +388,21 @@
 .animate-fade-in-up {
   animation: fade-in-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
+
+/* Hide third-party builder badges — keep our own UI clean */
+#lovable-badge,
+[id^="lovable-badge"],
+[class*="lovable-badge"],
+a[href*="lovable.dev"],
+a[href*="gpteng.co"],
+a[href*="lovable.app/projects"],
+iframe[src*="lovable.dev"],
+div[data-lovable-badge],
+[data-testid*="lovable"] {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
