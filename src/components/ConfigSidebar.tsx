@@ -196,9 +196,9 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
   }, []);
 
   return (
-    <aside className={`w-80 shrink-0 border-r border-border/50 glass-panel p-4 flex flex-col gap-3 overflow-y-auto ${className || ""}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <aside className={`w-80 shrink-0 border-r border-border/50 glass-panel flex flex-col h-full min-h-0 ${className || ""}`}>
+      {/* Header — fixed top */}
+      <div className="flex items-center justify-between p-4 pb-2 shrink-0">
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-foreground mb-0.5">Конфигурация</h2>
           <p className="text-[10px] text-muted-foreground">Параметры генерации</p>
@@ -209,7 +209,10 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </button>
       </div>
 
-      {showTemplates && (
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-3 flex flex-col gap-3">
+
+
         <div className="flex flex-col gap-1 -mt-1 p-2 rounded-xl border border-border/40 bg-muted/20">
           {TEMPLATES.map((t) => (
             <button key={t.label} onClick={() => { onChange({ ...config, ...t.config }); setShowTemplates(false); }}
