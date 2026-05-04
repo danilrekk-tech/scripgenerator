@@ -210,7 +210,7 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-3 flex flex-col gap-3">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-[max(2rem,env(safe-area-inset-bottom))] flex flex-col gap-3" style={{ WebkitOverflowScrolling: "touch" }}>
 
 
         {showTemplates && (
