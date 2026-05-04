@@ -213,15 +213,16 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-3 flex flex-col gap-3">
 
 
-        <div className="flex flex-col gap-1 -mt-1 p-2 rounded-xl border border-border/40 bg-muted/20">
-          {TEMPLATES.map((t) => (
-            <button key={t.label} onClick={() => { onChange({ ...config, ...t.config }); setShowTemplates(false); }}
-              className="text-left text-xs px-3 py-2 rounded-lg hover:bg-accent/50 transition-all btn-tactile text-foreground">
-              {t.label}
-            </button>
-          ))}
-        </div>
-      )}
+        {showTemplates && (
+          <div className="flex flex-col gap-1 -mt-1 p-2 rounded-xl border border-border/40 bg-muted/20">
+            {TEMPLATES.map((t) => (
+              <button key={t.label} onClick={() => { onChange({ ...config, ...t.config }); setShowTemplates(false); }}
+                className="text-left text-xs px-3 py-2 rounded-lg hover:bg-accent/50 transition-all btn-tactile text-foreground">
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
       {/* === Section: What to generate === */}
       <Section open={openSections.has("what")} onToggle={() => toggleSection("what")} label="Что генерируем" badge={MODE_LABELS[config.mode]}>
