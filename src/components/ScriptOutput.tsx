@@ -231,7 +231,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
 
       <div className="flex-1 flex min-h-0">
         {/* Main content */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-8 pb-[max(6rem,calc(env(safe-area-inset-bottom)+5rem))]" style={{ WebkitOverflowScrolling: "touch" }}>
           <AnimatePresence mode="wait">
             {script ? (
               <motion.div key="script" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ maxWidth: `${displaySettings.maxWidth}ch` }} className="mx-auto">
