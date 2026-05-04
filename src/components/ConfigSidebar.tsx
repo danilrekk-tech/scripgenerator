@@ -209,7 +209,10 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </button>
       </div>
 
-      {showTemplates && (
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-3 flex flex-col gap-3">
+
+
         <div className="flex flex-col gap-1 -mt-1 p-2 rounded-xl border border-border/40 bg-muted/20">
           {TEMPLATES.map((t) => (
             <button key={t.label} onClick={() => { onChange({ ...config, ...t.config }); setShowTemplates(false); }}
