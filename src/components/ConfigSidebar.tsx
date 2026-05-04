@@ -196,9 +196,9 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
   }, []);
 
   return (
-    <aside className={`w-80 shrink-0 border-r border-border/50 glass-panel p-4 flex flex-col gap-3 overflow-y-auto ${className || ""}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <aside className={`w-80 shrink-0 border-r border-border/50 glass-panel flex flex-col h-full min-h-0 ${className || ""}`}>
+      {/* Header — fixed top */}
+      <div className="flex items-center justify-between p-4 pb-2 shrink-0">
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-foreground mb-0.5">Конфигурация</h2>
           <p className="text-[10px] text-muted-foreground">Параметры генерации</p>
