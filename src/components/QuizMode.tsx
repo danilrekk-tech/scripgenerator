@@ -114,9 +114,19 @@ export default function QuizMode({ serviceNames, className }: Props) {
         </div>
 
         {!scenario ? (
-          <button onClick={startQuiz} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl btn-tactile shadow-glow hover:opacity-90 text-sm flex items-center justify-center gap-2">
-            <Brain className="w-4 h-4" /> Начать квиз
-          </button>
+          <div className="space-y-4">
+            <div className="relative w-full max-w-[320px] mx-auto">
+              <img src={heroQuiz} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent rounded-2xl" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-foreground">{QUIZ_SCENARIOS_EXTENDED.length} реальных ситуаций</p>
+              <p className="text-xs text-muted-foreground mt-1">Цена · Сомнения · Конкуренты · Доверие · Гарантии</p>
+            </div>
+            <button onClick={startQuiz} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl btn-tactile shadow-glow hover:opacity-90 text-sm flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4" /> Начать квиз
+            </button>
+          </div>
         ) : (
           <div className="space-y-4">
             <div className="glass-card border border-border/50 rounded-xl p-4">
