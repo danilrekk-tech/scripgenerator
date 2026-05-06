@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen,
   Trash2, Clock, GraduationCap, Lightbulb, Trophy, BarChart3,
-  Zap, Shield, Wrench, X, ChevronRight
+  Zap, Shield, Wrench, X, ChevronRight, Sparkles
 } from "lucide-react";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
+import heroSimulator from "@/assets/hero-simulator.jpg";
 
 interface Message {
   role: "user" | "client";
