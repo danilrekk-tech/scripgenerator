@@ -110,11 +110,25 @@ export default function LiveCallAssistant({ serviceNames, className }: Props) {
             )}
           </motion.div>
         ) : (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <Mic className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Введите что говорит клиент</p>
-              <p className="text-xs text-muted-foreground mt-1">AI мгновенно подскажет ответ</p>
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="relative w-full max-w-[280px] mb-4">
+              <img src={heroSuflyor} alt="" loading="lazy" className="w-full rounded-2xl opacity-80 mix-blend-screen" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent rounded-2xl" />
+            </div>
+            <p className="text-sm font-medium text-foreground mb-1">Подскажу что ответить</p>
+            <p className="text-xs text-muted-foreground mb-4 max-w-xs">Введите фразу клиента — AI мгновенно сгенерирует ответ с учётом истории</p>
+            <div className="w-full max-w-sm space-y-2">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Быстрые сценарии</p>
+              {QUICK_CLIENT_LINES.slice(0, 2).map((cat) => (
+                <div key={cat.category} className="flex flex-wrap gap-1.5 justify-center">
+                  {cat.items.slice(0, 2).map((line) => (
+                    <button key={line} onClick={() => setClientSaid(line)}
+                      className="text-[11px] px-2.5 py-1 rounded-lg border border-border/50 glass-card text-muted-foreground hover:text-foreground hover:border-primary/30 btn-tactile flex items-center gap-1">
+                      <Zap className="w-2.5 h-2.5" /> {line}
+                    </button>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         )}
