@@ -114,12 +114,13 @@ export default function PreCallBrief({ serviceNames, className }: Props) {
             </div>
           </motion.div>
         ) : (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <FileSearch className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Введите данные о компании</p>
-              <p className="text-xs text-muted-foreground mt-1">AI подготовит досье и стратегию звонка</p>
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="relative w-full max-w-[320px] mb-4">
+              <img src={heroBrief} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
+            <p className="text-sm font-medium text-foreground">Введите данные о компании</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs">AI подготовит досье с болями, аргументами и стратегией звонка</p>
           </div>
         )}
       </div>
