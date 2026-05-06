@@ -495,15 +495,14 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
   );
 }
 
-function Section({ open, onToggle, label, badge, children }: { open: boolean; onToggle: () => void; label: string; badge?: string | false; children: React.ReactNode }) {
+function Section({ label, badge, children }: { open?: boolean; onToggle?: () => void; label: string; badge?: string | false; children: React.ReactNode }) {
   return (
-    <div className="border border-border/40 rounded-xl glass-card overflow-hidden">
-      <button onClick={onToggle} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-accent/30 transition-colors">
+    <div className="border border-border/40 rounded-xl glass-card overflow-visible">
+      <div className="w-full flex items-center gap-2 px-3 py-2 bg-accent/10">
         <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-foreground flex-1 text-left">{label}</span>
         {badge && <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">{badge}</span>}
-        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && <div className="p-3 pt-1 space-y-3 border-t border-border/30">{children}</div>}
+      </div>
+      <div className="p-3 pt-2 space-y-3 border-t border-border/30">{children}</div>
     </div>
   );
 }
