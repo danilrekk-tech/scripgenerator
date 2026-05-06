@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileSearch, Loader2, Globe, Building2, Copy, AlertTriangle } from "lucide-react";
+import { FileSearch, Loader2, Globe, Building2, Copy, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
+import { PRECALL_PRESETS } from "@/lib/toolPresets";
+import heroBrief from "@/assets/hero-brief.jpg";
 
 interface Props {
   serviceNames: string[];
