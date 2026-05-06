@@ -1,24 +1,15 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, RefreshCw, Loader2, CheckCircle, XCircle, Send } from "lucide-react";
+import { Brain, RefreshCw, Loader2, CheckCircle, XCircle, Send, Sparkles } from "lucide-react";
+import { QUIZ_SCENARIOS_EXTENDED } from "@/lib/toolPresets";
+import heroQuiz from "@/assets/hero-quiz.jpg";
 
 interface Props {
   serviceNames: string[];
   className?: string;
 }
 
-const SCENARIOS = [
-  "Клиент говорит «дорого»",
-  "Клиент говорит «подумаю»",
-  "Клиент говорит «уже есть подрядчик»",
-  "Клиент говорит «нет бюджета»",
-  "Клиент говорит «делаем сами»",
-  "Клиент говорит «не верю в SEO»",
-  "Клиент говорит «нет времени на это»",
-  "Клиент говорит «покажите кейсы»",
-  "Клиент говорит «а если не будет результата?»",
-  "Клиент говорит «мне это не нужно»",
-];
+const SCENARIOS = QUIZ_SCENARIOS_EXTENDED.map(s => s.situation);
 
 export default function QuizMode({ serviceNames, className }: Props) {
   const [service, setService] = useState(serviceNames[0] || "SEO-продвижение");
