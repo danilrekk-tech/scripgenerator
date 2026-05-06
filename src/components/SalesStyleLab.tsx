@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Palette, Loader2, Copy, Save, RotateCcw, CheckCircle } from "lucide-react";
+import { Palette, Loader2, Copy, Save, RotateCcw, CheckCircle, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
+import { STYLE_SAMPLE_DIALOGS } from "@/lib/toolPresets";
+import heroStyle from "@/assets/hero-style.jpg";
 
 const STORAGE_KEY = "scriptengine-sales-style";
 
