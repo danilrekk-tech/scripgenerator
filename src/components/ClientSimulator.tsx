@@ -331,6 +331,24 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                 </div>
               )}
 
+              {!started && (
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-primary" /> Готовые сценарии
+                  </p>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {SIMULATOR_SCENARIO_PRESETS.map(p => (
+                      <button key={p.label}
+                        onClick={() => setConfig(c => ({ ...c, clientType: p.clientType, mood: p.mood, budget: p.budget, objectionLevel: p.objectionLevel }))}
+                        className="text-left px-3 py-2 rounded-xl border border-border/50 glass-card hover:border-primary/30 btn-tactile">
+                        <p className="text-xs font-medium text-foreground">{p.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{p.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <Field label="Услуга">
                 <div className="flex flex-wrap gap-1.5">
                   {serviceNames.map((s) => (
