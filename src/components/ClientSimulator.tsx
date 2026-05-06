@@ -310,6 +310,12 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
         {showConfig && !showSaved && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border/50">
             <div className="p-4 space-y-3">
+              {!started && (
+                <div className="relative w-full max-w-[300px] mx-auto -mt-1 mb-1">
+                  <img src={heroSimulator} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent rounded-2xl" />
+                </div>
+              )}
               {/* Mode selector */}
               {!started && (
                 <div className="flex gap-2 mb-2">
