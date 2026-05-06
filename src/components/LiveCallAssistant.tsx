@@ -1,8 +1,10 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Headphones, Send, Loader2, RotateCcw, Mic, Volume2 } from "lucide-react";
+import { Headphones, Send, Loader2, RotateCcw, Volume2, Zap } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
+import { QUICK_CLIENT_LINES } from "@/lib/toolPresets";
+import heroSuflyor from "@/assets/hero-suflyor.jpg";
 
 interface Props {
   serviceNames: string[];
