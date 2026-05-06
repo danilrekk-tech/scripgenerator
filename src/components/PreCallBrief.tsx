@@ -78,6 +78,20 @@ export default function PreCallBrief({ serviceNames, className }: Props) {
             </div>
           </div>
 
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> Готовые шаблоны
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {PRECALL_PRESETS.map(p => (
+                <button key={p.label} onClick={() => { setCompanyName(p.company); setUrl(p.url); setService(p.service); }}
+                  className="text-[11px] px-2.5 py-1.5 rounded-lg border border-border/50 glass-card text-muted-foreground hover:text-foreground hover:border-primary/30 btn-tactile">
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button onClick={generateBrief} disabled={isGenerating || (!url.trim() && !companyName.trim())} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 btn-tactile">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSearch className="w-4 h-4" />}
             {isGenerating ? "Генерация брифа..." : "Сгенерировать бриф"}
