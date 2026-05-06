@@ -111,7 +111,13 @@ export default function SalesStyleLab({ className }: Props) {
             placeholder={"Вставьте 2-3 примера ваших реальных диалогов с клиентами...\n\nМенеджер: Добрый день! Меня зовут...\nКлиент: Здравствуйте, а чем вы..."}
             className="w-full glass-input border border-border/50 rounded-xl px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none h-32 font-mono"
           />
-          <p className="text-[10px] text-muted-foreground mt-1">Чем больше примеров — тем точнее профиль</p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-[10px] text-muted-foreground">Чем больше примеров — тем точнее профиль</p>
+            <button onClick={() => setDialogSamples(STYLE_SAMPLE_DIALOGS)}
+              className="text-[10px] text-primary hover:text-primary/80 flex items-center gap-1 btn-tactile">
+              <Sparkles className="w-3 h-3" /> Вставить пример
+            </button>
+          </div>
         </div>
 
         <button onClick={analyzeStyle} disabled={isGenerating || !dialogSamples.trim()} className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 btn-tactile">
