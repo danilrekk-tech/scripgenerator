@@ -137,6 +137,20 @@ export default function ScenarioBuilder({ serviceNames, className }: Props) {
             </div>
           </div>
 
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> Готовые сценарии
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {SCENARIO_PRESETS.map(p => (
+                <button key={p.label} onClick={() => { setService(p.service); setSituation(p.situation); }}
+                  className="text-[11px] px-2.5 py-1.5 rounded-lg border border-border/50 glass-card text-muted-foreground hover:text-foreground hover:border-primary/30 btn-tactile">
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button onClick={generateTree} disabled={isGenerating} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 btn-tactile transition-all">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
             {isGenerating ? "Генерация..." : "Построить сценарий"}
@@ -146,12 +160,13 @@ export default function ScenarioBuilder({ serviceNames, className }: Props) {
 
       <div className="flex-1 overflow-y-auto p-4">
         {tree.length === 0 ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <GitBranch className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Нажмите «Построить сценарий»</p>
-              <p className="text-xs text-muted-foreground mt-1">AI создаст дерево диалога с ветвлениями</p>
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="relative w-full max-w-[340px] mb-4">
+              <img src={heroScenario} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
+            <p className="text-sm font-medium text-foreground">Постройте дерево разговора</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs">AI создаст ветвящийся сценарий со всеми возможными ответами клиента</p>
           </div>
         ) : (
           tree.map(node => renderNode(node))
