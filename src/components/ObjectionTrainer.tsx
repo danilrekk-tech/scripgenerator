@@ -88,6 +88,12 @@ export default function ObjectionTrainer({ serviceNames, className }: Props) {
           <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">BETA</span>
         </div>
         <p className="text-xs text-muted-foreground">Тренируйте отработку возражений с автоматически сгенерированными кейсами</p>
+        {!objections && (
+          <div className="relative w-full max-w-[280px] mx-auto mt-4">
+            <img src={heroObjections} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
+          </div>
+        )}
       </div>
 
       <div className="p-6 space-y-4">
