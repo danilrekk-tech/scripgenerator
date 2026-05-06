@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, RefreshCw, Loader2, Copy } from "lucide-react";
+import heroObjections from "@/assets/hero-objections.jpg";
 
 interface Props {
   serviceNames: string[];
