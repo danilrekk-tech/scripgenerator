@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GitBranch, Plus, Trash2, ChevronRight, ChevronDown, Copy, Loader2, Zap } from "lucide-react";
+import { GitBranch, ChevronRight, ChevronDown, Copy, Loader2, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
+import { SCENARIO_PRESETS } from "@/lib/toolPresets";
+import heroScenario from "@/assets/hero-scenario.jpg";
 
 interface ScenarioNode {
   id: string;
