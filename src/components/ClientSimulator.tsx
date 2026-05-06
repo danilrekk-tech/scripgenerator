@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen,
   Trash2, Clock, GraduationCap, Lightbulb, Trophy, BarChart3,
-  Zap, Shield, Wrench, X, ChevronRight
+  Zap, Shield, Wrench, X, ChevronRight, Sparkles
 } from "lucide-react";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
+import heroSimulator from "@/assets/hero-simulator.jpg";
 
 interface Message {
   role: "user" | "client";
@@ -30,15 +32,7 @@ const MOODS = ["Заинтересованный", "Скептичный", "Ра
 const BUDGETS = ["Нет бюджета", "Ограниченный", "Средний", "Готов платить"];
 const OBJECTION_LEVELS = ["Низкий", "Средний", "Высокий", "Максимальный"];
 
-const TRAINER_TIPS = [
-  "Задай открытый вопрос, чтобы выявить потребность",
-  "Попробуй использовать технику SPIN",
-  "Назови конкретную цифру ROI",
-  "Используй social proof — упомяни кейс",
-  "Попробуй технику «Да, и...» вместо «Нет, но...»",
-  "Резюмируй боль клиента его же словами",
-  "Задай вопрос-мост: «А что если...?»",
-];
+const TRAINER_TIPS = TRAINER_TIPS_EXTENDED;
 
 interface Props {
   serviceNames: string[];
@@ -316,6 +310,12 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
         {showConfig && !showSaved && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border/50">
             <div className="p-4 space-y-3">
+              {!started && (
+                <div className="relative w-full max-w-[300px] mx-auto -mt-1 mb-1">
+                  <img src={heroSimulator} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent rounded-2xl" />
+                </div>
+              )}
               {/* Mode selector */}
               {!started && (
                 <div className="flex gap-2 mb-2">
@@ -334,6 +334,24 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                 <div className="glass-card border border-primary/20 rounded-xl p-3 bg-primary/5">
                   <p className="text-xs font-medium text-primary mb-1">🎓 Режим тренера</p>
                   <p className="text-[10px] text-muted-foreground">ИИ оценит каждый ваш ответ по шкале 1-10, даст обратную связь и подскажет как улучшить технику продаж.</p>
+                </div>
+              )}
+
+              {!started && (
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-primary" /> Готовые сценарии
+                  </p>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {SIMULATOR_SCENARIO_PRESETS.map(p => (
+                      <button key={p.label}
+                        onClick={() => setConfig(c => ({ ...c, clientType: p.clientType, mood: p.mood, budget: p.budget, objectionLevel: p.objectionLevel }))}
+                        className="text-left px-3 py-2 rounded-xl border border-border/50 glass-card hover:border-primary/30 btn-tactile">
+                        <p className="text-xs font-medium text-foreground">{p.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{p.description}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 

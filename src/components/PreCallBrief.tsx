@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileSearch, Loader2, Globe, Building2, Copy, AlertTriangle } from "lucide-react";
+import { FileSearch, Loader2, Globe, Building2, Copy, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
+import { PRECALL_PRESETS } from "@/lib/toolPresets";
+import heroBrief from "@/assets/hero-brief.jpg";
 
 interface Props {
   serviceNames: string[];
@@ -76,6 +78,20 @@ export default function PreCallBrief({ serviceNames, className }: Props) {
             </div>
           </div>
 
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> Готовые шаблоны
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {PRECALL_PRESETS.map(p => (
+                <button key={p.label} onClick={() => { setCompanyName(p.company); setUrl(p.url); setService(p.service); }}
+                  className="text-[11px] px-2.5 py-1.5 rounded-lg border border-border/50 glass-card text-muted-foreground hover:text-foreground hover:border-primary/30 btn-tactile">
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button onClick={generateBrief} disabled={isGenerating || (!url.trim() && !companyName.trim())} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 btn-tactile">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSearch className="w-4 h-4" />}
             {isGenerating ? "Генерация брифа..." : "Сгенерировать бриф"}
@@ -98,12 +114,13 @@ export default function PreCallBrief({ serviceNames, className }: Props) {
             </div>
           </motion.div>
         ) : (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <FileSearch className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Введите данные о компании</p>
-              <p className="text-xs text-muted-foreground mt-1">AI подготовит досье и стратегию звонка</p>
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="relative w-full max-w-[320px] mb-4">
+              <img src={heroBrief} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
+            <p className="text-sm font-medium text-foreground">Введите данные о компании</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs">AI подготовит досье с болями, аргументами и стратегией звонка</p>
           </div>
         )}
       </div>

@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Palette, Loader2, Copy, Save, RotateCcw, CheckCircle } from "lucide-react";
+import { Palette, Loader2, Copy, Save, RotateCcw, CheckCircle, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
+import { STYLE_SAMPLE_DIALOGS } from "@/lib/toolPresets";
+import heroStyle from "@/assets/hero-style.jpg";
 
 const STORAGE_KEY = "scriptengine-sales-style";
 
@@ -109,7 +111,13 @@ export default function SalesStyleLab({ className }: Props) {
             placeholder={"Вставьте 2-3 примера ваших реальных диалогов с клиентами...\n\nМенеджер: Добрый день! Меня зовут...\nКлиент: Здравствуйте, а чем вы..."}
             className="w-full glass-input border border-border/50 rounded-xl px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none h-32 font-mono"
           />
-          <p className="text-[10px] text-muted-foreground mt-1">Чем больше примеров — тем точнее профиль</p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-[10px] text-muted-foreground">Чем больше примеров — тем точнее профиль</p>
+            <button onClick={() => setDialogSamples(STYLE_SAMPLE_DIALOGS)}
+              className="text-[10px] text-primary hover:text-primary/80 flex items-center gap-1 btn-tactile">
+              <Sparkles className="w-3 h-3" /> Вставить пример
+            </button>
+          </div>
         </div>
 
         <button onClick={analyzeStyle} disabled={isGenerating || !dialogSamples.trim()} className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 btn-tactile">
@@ -138,12 +146,13 @@ export default function SalesStyleLab({ className }: Props) {
             </div>
           </motion.div>
         ) : (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <Palette className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Вставьте примеры диалогов</p>
-              <p className="text-xs text-muted-foreground mt-1">AI создаст ваш персональный профиль продавца</p>
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="relative w-full max-w-[320px] mb-4">
+              <img src={heroStyle} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
+            <p className="text-sm font-medium text-foreground">Найдём ваш почерк продаж</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs">Вставьте 2-3 диалога — AI определит сильные стороны и точки роста</p>
           </div>
         )}
       </div>
