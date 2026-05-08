@@ -83,7 +83,7 @@ export default function Index() {
   const [presetName, setPresetName] = useState("");
   const [showDesktopSettings, setShowDesktopSettings] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [showToolsSheet, setShowToolsSheet] = useState(false);
+  const [, setShowToolsSheet] = useState(false); void setShowToolsSheet;
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
