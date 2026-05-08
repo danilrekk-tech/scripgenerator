@@ -473,7 +473,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
       {/* Chat area */}
       {started && (
         <>
-          <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div ref={chatRef} className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3 pb-[max(2rem,env(safe-area-inset-bottom))]" style={{ WebkitOverflowScrolling: "touch" }}>
             {messages.map((msg, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className="max-w-[80%] space-y-1">
