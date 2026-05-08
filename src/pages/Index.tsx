@@ -476,7 +476,6 @@ export default function Index() {
     { tab: "services" as MobileTab, label: "Услуги", icon: <Package className="w-5 h-5" /> },
     { tab: "history" as MobileTab, label: "История", icon: <History className="w-5 h-5" /> },
     { tab: "favorites" as MobileTab, label: "Избранное", icon: <Star className="w-5 h-5" /> },
-    { tab: "display-settings" as MobileTab, label: "Настройки отображения", icon: <SlidersHorizontal className="w-5 h-5" /> },
   ];
 
   return (
