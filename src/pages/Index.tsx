@@ -662,17 +662,24 @@ function FavoritesPanel({ favorites, onLoad, onRemove }: { favorites: any[]; onL
   );
 }
 
-function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow }: {
+function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow, displaySettings, onUpdateDisplay, onResetDisplay }: {
   transcriberUrl: string; onTranscriberUrlChange: (v: string) => void;
   currentTheme: any; onThemeChange: (t: any) => void;
   user: any; onSignIn: () => void; onSignOut: () => void;
   onSyncNow?: () => void;
+  displaySettings?: any; onUpdateDisplay?: any; onResetDisplay?: any;
 }) {
   return (
-    <div className="flex-1 p-8 max-w-xl overflow-y-auto">
+    <div className="flex-1 p-8 max-w-2xl overflow-y-auto pb-24">
       <h2 className="text-lg font-semibold text-foreground mb-1">Настройки</h2>
       <p className="text-xs text-muted-foreground mb-8">Глобальные настройки ScriptEngine</p>
       <div className="space-y-8">
+        {displaySettings && onUpdateDisplay && onResetDisplay && (
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Отображение результата</label>
+            <DisplaySettingsPanel settings={displaySettings} onUpdate={onUpdateDisplay} onReset={onResetDisplay} currentTheme={currentTheme} onThemeChange={onThemeChange} />
+          </div>
+        )}
         <div>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Аккаунт</label>
           {user ? (
