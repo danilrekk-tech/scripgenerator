@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, X, Check, RotateCcw, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, RotateCcw, Package, Sparkles, Loader2 } from "lucide-react";
 import type { ServiceItem } from "@/hooks/useServices";
+import { streamScript } from "@/lib/streamChat";
+import { toast } from "sonner";
 
 interface Props {
   services: ServiceItem[];
@@ -15,7 +17,33 @@ interface Props {
 export default function ServicesManager({ services, onAdd, onUpdate, onDelete, onReset, className }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const [draft, setDraft] = useState({ name: "", description: "", keyPoints: "" });
+
+  const handleAiGenerate = () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    let buffer = "";
+    streamScript({
+      config: { mode: "service-generator", service: "", situation: "", tone: "", context: aiPrompt, transcript: "", priceRub: "", currency: "RUB", emailSubtype: "", emailObjection: "", managerName: "", clientName: "" },
+      onDelta: (d) => { buffer += d; },
+      onDone: () => {
+        setAiLoading(false);
+        try {
+          const cleaned = buffer.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          if (parsed.name) {
+            onAdd({ name: parsed.name, description: parsed.description || "", keyPoints: Array.isArray(parsed.keyPoints) ? parsed.keyPoints : [] });
+            toast.success("Услуга создана");
+            setAiPrompt(""); setShowAi(false);
+          } else { toast.error("Не удалось разобрать ответ"); }
+        } catch { toast.error("Ошибка парсинга"); }
+      },
+      onError: (m) => { setAiLoading(false); toast.error(m); },
+    });
+  };
 
   const startEdit = (svc: ServiceItem) => {
     setEditingId(svc.id);
@@ -64,6 +92,9 @@ export default function ServicesManager({ services, onAdd, onUpdate, onDelete, o
             <button onClick={onReset} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Сбросить к стандартным">
               <RotateCcw className="w-4 h-4" />
             </button>
+            <button onClick={() => { setShowAi(!showAi); setIsAdding(false); }} className="px-3 py-1.5 border border-primary/30 text-primary rounded-md text-xs font-medium hover:bg-primary/10 transition-all btn-tactile flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> AI
+            </button>
             <button onClick={startAdd} className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:opacity-90 transition-all btn-tactile flex items-center gap-1.5">
               <Plus className="w-3.5 h-3.5" />
               Добавить
@@ -73,6 +104,18 @@ export default function ServicesManager({ services, onAdd, onUpdate, onDelete, o
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-3">
+        {showAi && (
+          <div className="glass-card border border-primary/20 rounded-xl p-4 space-y-3 bg-primary/5">
+            <p className="text-[10px] uppercase tracking-widest text-primary flex items-center gap-1"><Sparkles className="w-3 h-3" /> Генератор услуги</p>
+            <textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Опишите услугу или вставьте текст КП. Например: «Аудит сайта на соответствие ФЗ-152, проверка cookies, политики, формы согласия»" className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none h-24" />
+            <div className="flex gap-2">
+              <button onClick={handleAiGenerate} disabled={!aiPrompt.trim() || aiLoading} className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium btn-tactile disabled:opacity-30 flex items-center gap-1.5">
+                {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} {aiLoading ? "Генерация..." : "Создать услугу"}
+              </button>
+              <button onClick={() => setShowAi(false)} className="px-3 py-1.5 border border-border/50 rounded-lg text-xs text-muted-foreground btn-tactile">Отмена</button>
+            </div>
+          </div>
+        )}
         {/* Add form */}
         <AnimatePresence>
           {isAdding && (

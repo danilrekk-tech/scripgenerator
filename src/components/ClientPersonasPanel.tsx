@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { ClientPersona } from "@/hooks/useClientPersonas";
-import { Plus, Trash2, Edit3, Save, X, Users } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, X, Users, Sparkles, Loader2 } from "lucide-react";
+import { streamScript } from "@/lib/streamChat";
+import { toast } from "sonner";
 
 interface Props {
   personas: ClientPersona[];
@@ -13,6 +15,9 @@ interface Props {
 export default function ClientPersonasPanel({ personas, onAdd, onUpdate, onRemove, className }: Props) {
   const [editId, setEditId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const [form, setForm] = useState({ name: "", role: "", traits: "", communication: "" });
 
   const handleAdd = () => {
@@ -20,6 +25,30 @@ export default function ClientPersonasPanel({ personas, onAdd, onUpdate, onRemov
     onAdd(form);
     setForm({ name: "", role: "", traits: "", communication: "" });
     setShowAdd(false);
+  };
+
+  const handleAiGenerate = () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    let buffer = "";
+    streamScript({
+      config: { mode: "persona-generator", service: "", situation: "", tone: "", context: aiPrompt, transcript: "", priceRub: "", currency: "RUB", emailSubtype: "", emailObjection: "", managerName: "", clientName: "" },
+      onDelta: (d) => { buffer += d; },
+      onDone: () => {
+        setAiLoading(false);
+        try {
+          const cleaned = buffer.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          if (parsed.name) {
+            onAdd({ name: parsed.name, role: parsed.role || "", traits: parsed.traits || "", communication: parsed.communication || "" });
+            toast.success("Персона создана");
+            setAiPrompt("");
+            setShowAi(false);
+          } else { toast.error("Не удалось разобрать ответ"); }
+        } catch { toast.error("Ошибка парсинга. Попробуйте уточнить описание."); }
+      },
+      onError: (m) => { setAiLoading(false); toast.error(m); },
+    });
   };
 
   return (
@@ -30,10 +59,28 @@ export default function ClientPersonasPanel({ personas, onAdd, onUpdate, onRemov
             <h2 className="text-lg font-semibold text-foreground mb-1">Персоны клиентов</h2>
             <p className="text-xs text-muted-foreground">Типичные профили для генерации</p>
           </div>
-          <button onClick={() => setShowAdd(!showAdd)} className="p-2 rounded-lg hover:bg-accent/50 text-primary transition-colors btn-tactile">
-            <Plus className="w-4 h-4" />
-          </button>
+          <div className="flex gap-1">
+            <button onClick={() => { setShowAi(!showAi); setShowAdd(false); }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-medium hover:bg-primary/10 transition-colors btn-tactile">
+              <Sparkles className="w-3.5 h-3.5" /> AI
+            </button>
+            <button onClick={() => { setShowAdd(!showAdd); setShowAi(false); }} className="p-2 rounded-lg hover:bg-accent/50 text-primary transition-colors btn-tactile">
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
+
+        {showAi && (
+          <div className="glass-card border border-primary/20 rounded-xl p-4 space-y-3 mb-4 bg-primary/5">
+            <p className="text-[10px] uppercase tracking-widest text-primary flex items-center gap-1"><Sparkles className="w-3 h-3" /> Генератор персоны</p>
+            <textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Опишите клиента: «Главный бухгалтер крупного завода, 50 лет, не любит риски, требует все документы»" className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none h-20" />
+            <div className="flex gap-2">
+              <button onClick={handleAiGenerate} disabled={!aiPrompt.trim() || aiLoading} className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium btn-tactile disabled:opacity-30 flex items-center gap-1.5">
+                {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} {aiLoading ? "Генерация..." : "Создать персону"}
+              </button>
+              <button onClick={() => setShowAi(false)} className="px-3 py-1.5 border border-border/50 rounded-lg text-xs text-muted-foreground btn-tactile">Отмена</button>
+            </div>
+          </div>
+        )}
 
         {showAdd && (
           <div className="glass-card border border-border/50 rounded-xl p-4 space-y-3 mb-4">

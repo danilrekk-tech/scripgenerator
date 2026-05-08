@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen,
   Trash2, Clock, GraduationCap, Lightbulb, Trophy, BarChart3,
-  Zap, Shield, Wrench, X, ChevronRight, Sparkles
+  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser
 } from "lucide-react";
+
+const SIM_STATE_KEY = "scriptengine-simulator-state";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
@@ -23,14 +25,19 @@ interface SimConfig {
   mood: string;
   budget: string;
   objectionLevel: string;
+  experience?: string;
+  companySize?: string;
+  customNote?: string;
 }
 
 type SimMode = "free" | "trainer";
 
-const CLIENT_TYPES = ["Директор малого бизнеса", "Маркетолог", "IT-директор", "Владелец e-commerce", "Стартапер"];
-const MOODS = ["Заинтересованный", "Скептичный", "Раздражённый", "Торопится", "Вежливый но холодный"];
-const BUDGETS = ["Нет бюджета", "Ограниченный", "Средний", "Готов платить"];
+const CLIENT_TYPES = ["Директор малого бизнеса", "Маркетолог", "IT-директор", "Владелец e-commerce", "Стартапер", "CFO/Финдиректор", "HR-директор", "Закупщик B2B", "Собственник производства", "Главврач клиники"];
+const MOODS = ["Заинтересованный", "Скептичный", "Раздражённый", "Торопится", "Вежливый но холодный", "Дружелюбный", "Агрессивный", "Нейтральный"];
+const BUDGETS = ["Нет бюджета", "Ограниченный", "Средний", "Готов платить", "Премиум-бюджет"];
 const OBJECTION_LEVELS = ["Низкий", "Средний", "Высокий", "Максимальный"];
+const EXPERIENCE_LEVELS = ["Новичок", "Средний", "Эксперт"];
+const COMPANY_SIZES = ["Микро (1-10)", "Малый (10-50)", "Средний (50-250)", "Крупный (250+)"];
 
 const TRAINER_TIPS = TRAINER_TIPS_EXTENDED;
 
@@ -41,28 +48,42 @@ interface Props {
 }
 
 export default function ClientSimulator({ serviceNames, className, onOpenTool }: Props) {
-  const [config, setConfig] = useState<SimConfig>({
+  // Load persisted state once
+  const persisted = (() => {
+    try { return JSON.parse(localStorage.getItem(SIM_STATE_KEY) || "null"); } catch { return null; }
+  })();
+
+  const [config, setConfig] = useState<SimConfig>(persisted?.config || {
     service: serviceNames[0] || "SEO-продвижение",
     clientType: "Директор малого бизнеса",
     mood: "Скептичный",
     budget: "Ограниченный",
     objectionLevel: "Средний",
   });
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(persisted?.messages || []);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfig, setShowConfig] = useState(true);
-  const [started, setStarted] = useState(false);
+  const [showConfig, setShowConfig] = useState(persisted?.started ? false : true);
+  const [started, setStarted] = useState<boolean>(persisted?.started || false);
   const [showSaved, setShowSaved] = useState(false);
-  const [simMode, setSimMode] = useState<SimMode>("free");
+  const [simMode, setSimMode] = useState<SimMode>(persisted?.simMode || "free");
   const [showHint, setShowHint] = useState(false);
   const [currentHint, setCurrentHint] = useState("");
-  const [sessionScore, setSessionScore] = useState(0);
-  const [scoreCount, setScoreCount] = useState(0);
+  const [sessionScore, setSessionScore] = useState<number>(persisted?.sessionScore || 0);
+  const [scoreCount, setScoreCount] = useState<number>(persisted?.scoreCount || 0);
   const [showTools, setShowTools] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const { dialogs, saveDialog, deleteDialog } = useSavedDialogs();
+
+  // Persist
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
+        config, messages, started, simMode, sessionScore, scoreCount,
+      }));
+    } catch {}
+  }, [config, messages, started, simMode, sessionScore, scoreCount]);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
@@ -91,6 +112,9 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
         mood: config.mood,
         budget: config.budget,
         objectionLevel: config.objectionLevel,
+        experience: config.experience,
+        companySize: config.companySize,
+        customNote: config.customNote,
         history: newMessages.map((m) => `${m.role === "user" ? "Менеджер" : "Клиент"}: ${m.content}`).join("\n"),
         ...(isTrainer && {
           trainerMode: true,
@@ -268,7 +292,10 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                     <BarChart3 className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={resetSimulation} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={() => { if (confirm("Очистить диалог?")) { setMessages([]); setSessionScore(0); setScoreCount(0); } }} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-destructive transition-colors" title="Очистить диалог">
+                  <Eraser className="w-4 h-4" />
+                </button>
+                <button onClick={resetSimulation} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Новая сессия">
                   <RotateCcw className="w-4 h-4" />
                 </button>
               </>
@@ -390,6 +417,25 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   ))}
                 </div>
               </Field>
+              <Field label="Опыт клиента в теме">
+                <div className="flex flex-wrap gap-1.5">
+                  {EXPERIENCE_LEVELS.map((e) => (
+                    <Chip key={e} active={config.experience === e} onClick={() => setConfig({ ...config, experience: e })}>{e}</Chip>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Размер компании">
+                <div className="flex flex-wrap gap-1.5">
+                  {COMPANY_SIZES.map((s) => (
+                    <Chip key={s} active={config.companySize === s} onClick={() => setConfig({ ...config, companySize: s })}>{s}</Chip>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Особое условие (опц.)">
+                <input value={config.customNote || ""} onChange={(e) => setConfig({ ...config, customNote: e.target.value })}
+                  placeholder="Например: уже отказался один раз, пришёл по рекомендации..."
+                  className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" />
+              </Field>
               {!started && (
                 <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 text-sm">
                   {simMode === "trainer" ? "🎓 Начать тренировку" : "🎭 Начать симуляцию"}
@@ -430,7 +476,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
       {/* Chat area */}
       {started && (
         <>
-          <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div ref={chatRef} className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3 pb-[max(2rem,env(safe-area-inset-bottom))]" style={{ WebkitOverflowScrolling: "touch" }}>
             {messages.map((msg, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className="max-w-[80%] space-y-1">

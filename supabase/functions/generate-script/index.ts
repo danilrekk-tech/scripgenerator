@@ -83,6 +83,12 @@ function getSystemPrompt(mode: string, managerVar: string, clientVar: string, to
     case "sales-style":
       return `${base}\n\nТы анализируешь стиль продаж менеджера на основе примеров его реальных диалогов. Определи тип продавца, сильные и слабые стороны, речевые паттерны и дай рекомендации по развитию.`;
 
+    case "persona-generator":
+      return `${base}\n\nТы генерируешь карточку ПЕРСОНЫ КЛИЕНТА на основе описания. Ответ строго в формате JSON без markdown:\n{"name":"...","role":"...","traits":"...","communication":"..."}\n- name: короткое название персоны (3-5 слов)\n- role: должность/роль одной строкой\n- traits: 1-2 предложения о характере и поведении\n- communication: как с ним правильно общаться (1-2 предложения)`;
+
+    case "service-generator":
+      return `${base}\n\nТы генерируешь карточку УСЛУГИ на основе описания, КП или вводных. Ответ строго в формате JSON без markdown:\n{"name":"...","description":"...","keyPoints":["...","...","..."]}\n- name: короткое название услуги\n- description: 1-2 предложения о сути\n- keyPoints: массив из 4-6 ключевых пунктов (что входит, фишки, цифры)`;
+
     case "manipulation-detector":
       return `${base}\n\nТы — эксперт по переговорным техникам. Проанализируй диалог и выяви манипулятивные тактики клиента:\n- Ложная срочность\n- Шантаж конкурентами\n- Обесценивание\n- Давление авторитетом\n- Эмоциональные манипуляции\n\nДля каждой тактики укажи:\n1. Что именно делает клиент\n2. Цель манипуляции\n3. Как правильно реагировать`;
 
@@ -178,6 +184,10 @@ function getUserPrompt(mode: string, service: string, situation: string, tone: s
       return `${context || `Подготовь бриф для звонка. Услуга: ${service}.`}`;
     case "objection-library":
       return `${context || `Сгенерируй возражения для "${service}".`}`;
+    case "persona-generator":
+      return `Описание клиента: ${context || service}`;
+    case "service-generator":
+      return `Описание услуги (или вводные/КП): ${context || service}`;
     case "sales-style":
       return `${context || "Проанализируй стиль продаж."}`;
     case "manipulation-detector":
