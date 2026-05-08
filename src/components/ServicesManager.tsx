@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, X, Check, RotateCcw, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, RotateCcw, Package, Sparkles, Loader2 } from "lucide-react";
 import type { ServiceItem } from "@/hooks/useServices";
+import { streamScript } from "@/lib/streamChat";
+import { toast } from "sonner";
 
 interface Props {
   services: ServiceItem[];
