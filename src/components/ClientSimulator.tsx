@@ -414,6 +414,25 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   ))}
                 </div>
               </Field>
+              <Field label="Опыт клиента в теме">
+                <div className="flex flex-wrap gap-1.5">
+                  {EXPERIENCE_LEVELS.map((e) => (
+                    <Chip key={e} active={config.experience === e} onClick={() => setConfig({ ...config, experience: e })}>{e}</Chip>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Размер компании">
+                <div className="flex flex-wrap gap-1.5">
+                  {COMPANY_SIZES.map((s) => (
+                    <Chip key={s} active={config.companySize === s} onClick={() => setConfig({ ...config, companySize: s })}>{s}</Chip>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Особое условие (опц.)">
+                <input value={config.customNote || ""} onChange={(e) => setConfig({ ...config, customNote: e.target.value })}
+                  placeholder="Например: уже отказался один раз, пришёл по рекомендации..."
+                  className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" />
+              </Field>
               {!started && (
                 <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 text-sm">
                   {simMode === "trainer" ? "🎓 Начать тренировку" : "🎭 Начать симуляцию"}
