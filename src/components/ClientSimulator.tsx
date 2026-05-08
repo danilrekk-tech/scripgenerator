@@ -112,6 +112,9 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
         mood: config.mood,
         budget: config.budget,
         objectionLevel: config.objectionLevel,
+        experience: config.experience,
+        companySize: config.companySize,
+        customNote: config.customNote,
         history: newMessages.map((m) => `${m.role === "user" ? "Менеджер" : "Клиент"}: ${m.content}`).join("\n"),
         ...(isTrainer && {
           trainerMode: true,
