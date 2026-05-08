@@ -42,8 +42,10 @@ import {
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
   Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
-  GitBranch, Headphones, FileSearch, Shield, Palette,
+  GitBranch, Headphones, FileSearch, Shield, Palette, Plus,
 } from "lucide-react";
+
+const SALES_STYLE_KEY = "scriptengine-sales-style";
 
 const defaultConfig: ScriptConfig = {
   managerName: "", clientName: "", service: "SEO-продвижение", situation: "Холодный звонок",
