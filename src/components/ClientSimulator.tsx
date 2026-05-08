@@ -43,28 +43,42 @@ interface Props {
 }
 
 export default function ClientSimulator({ serviceNames, className, onOpenTool }: Props) {
-  const [config, setConfig] = useState<SimConfig>({
+  // Load persisted state once
+  const persisted = (() => {
+    try { return JSON.parse(localStorage.getItem(SIM_STATE_KEY) || "null"); } catch { return null; }
+  })();
+
+  const [config, setConfig] = useState<SimConfig>(persisted?.config || {
     service: serviceNames[0] || "SEO-продвижение",
     clientType: "Директор малого бизнеса",
     mood: "Скептичный",
     budget: "Ограниченный",
     objectionLevel: "Средний",
   });
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(persisted?.messages || []);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfig, setShowConfig] = useState(true);
-  const [started, setStarted] = useState(false);
+  const [showConfig, setShowConfig] = useState(persisted?.started ? false : true);
+  const [started, setStarted] = useState<boolean>(persisted?.started || false);
   const [showSaved, setShowSaved] = useState(false);
-  const [simMode, setSimMode] = useState<SimMode>("free");
+  const [simMode, setSimMode] = useState<SimMode>(persisted?.simMode || "free");
   const [showHint, setShowHint] = useState(false);
   const [currentHint, setCurrentHint] = useState("");
-  const [sessionScore, setSessionScore] = useState(0);
-  const [scoreCount, setScoreCount] = useState(0);
+  const [sessionScore, setSessionScore] = useState<number>(persisted?.sessionScore || 0);
+  const [scoreCount, setScoreCount] = useState<number>(persisted?.scoreCount || 0);
   const [showTools, setShowTools] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const { dialogs, saveDialog, deleteDialog } = useSavedDialogs();
+
+  // Persist
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
+        config, messages, started, simMode, sessionScore, scoreCount,
+      }));
+    } catch {}
+  }, [config, messages, started, simMode, sessionScore, scoreCount]);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
