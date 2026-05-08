@@ -25,6 +25,9 @@ interface SimConfig {
   mood: string;
   budget: string;
   objectionLevel: string;
+  experience?: string;
+  companySize?: string;
+  customNote?: string;
 }
 
 type SimMode = "free" | "trainer";
