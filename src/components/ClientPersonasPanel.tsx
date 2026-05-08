@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { ClientPersona } from "@/hooks/useClientPersonas";
-import { Plus, Trash2, Edit3, Save, X, Users } from "lucide-react";
+import { Plus, Trash2, Edit3, Save, X, Users, Sparkles, Loader2 } from "lucide-react";
+import { streamScript } from "@/lib/streamChat";
+import { toast } from "sonner";
 
 interface Props {
   personas: ClientPersona[];
@@ -13,6 +15,9 @@ interface Props {
 export default function ClientPersonasPanel({ personas, onAdd, onUpdate, onRemove, className }: Props) {
   const [editId, setEditId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const [form, setForm] = useState({ name: "", role: "", traits: "", communication: "" });
 
   const handleAdd = () => {
@@ -20,6 +25,30 @@ export default function ClientPersonasPanel({ personas, onAdd, onUpdate, onRemov
     onAdd(form);
     setForm({ name: "", role: "", traits: "", communication: "" });
     setShowAdd(false);
+  };
+
+  const handleAiGenerate = () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    let buffer = "";
+    streamScript({
+      config: { mode: "persona-generator", service: "", situation: "", tone: "", context: aiPrompt, transcript: "", priceRub: "", currency: "RUB", emailSubtype: "", emailObjection: "", managerName: "", clientName: "" },
+      onDelta: (d) => { buffer += d; },
+      onDone: () => {
+        setAiLoading(false);
+        try {
+          const cleaned = buffer.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          if (parsed.name) {
+            onAdd({ name: parsed.name, role: parsed.role || "", traits: parsed.traits || "", communication: parsed.communication || "" });
+            toast.success("Персона создана");
+            setAiPrompt("");
+            setShowAi(false);
+          } else { toast.error("Не удалось разобрать ответ"); }
+        } catch { toast.error("Ошибка парсинга. Попробуйте уточнить описание."); }
+      },
+      onError: (m) => { setAiLoading(false); toast.error(m); },
+    });
   };
 
   return (
