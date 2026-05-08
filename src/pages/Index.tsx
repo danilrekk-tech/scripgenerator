@@ -118,7 +118,17 @@ export default function Index() {
     if (desktopPanel !== "main") setDesktopPanel("main");
     const svcContext = getServiceContext(config.service);
     const baseContext = overrideContext || config.context;
-    const enrichedContext = svcContext ? `${svcContext}\n\nКОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:\n${baseContext}` : baseContext;
+    let enrichedContext = svcContext ? `${svcContext}\n\nКОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:\n${baseContext}` : baseContext;
+    // Inject sales-style profile if exists
+    try {
+      const styleRaw = localStorage.getItem(SALES_STYLE_KEY);
+      if (styleRaw) {
+        const profile = JSON.parse(styleRaw);
+        if (profile?.recommendations) {
+          enrichedContext = `СТИЛЬ МЕНЕДЖЕРА (имитируй этот стиль речи и подачи):\n${profile.recommendations}\n\n---\n\n${enrichedContext}`;
+        }
+      }
+    } catch {}
     const payload: Record<string, string> = { ...config, context: enrichedContext };
     streamScript({
       config: payload,
