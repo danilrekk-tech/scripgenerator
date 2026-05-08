@@ -289,7 +289,10 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                     <BarChart3 className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={resetSimulation} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={() => { if (confirm("Очистить диалог?")) { setMessages([]); setSessionScore(0); setScoreCount(0); } }} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-destructive transition-colors" title="Очистить диалог">
+                  <Eraser className="w-4 h-4" />
+                </button>
+                <button onClick={resetSimulation} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Новая сессия">
                   <RotateCcw className="w-4 h-4" />
                 </button>
               </>
