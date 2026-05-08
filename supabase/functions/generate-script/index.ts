@@ -184,6 +184,10 @@ function getUserPrompt(mode: string, service: string, situation: string, tone: s
       return `${context || `Подготовь бриф для звонка. Услуга: ${service}.`}`;
     case "objection-library":
       return `${context || `Сгенерируй возражения для "${service}".`}`;
+    case "persona-generator":
+      return `Описание клиента: ${context || service}`;
+    case "service-generator":
+      return `Описание услуги (или вводные/КП): ${context || service}`;
     case "sales-style":
       return `${context || "Проанализируй стиль продаж."}`;
     case "manipulation-detector":
