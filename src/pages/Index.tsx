@@ -456,21 +456,7 @@ export default function Index() {
   }
 
   // Mobile
-  const toolItems = [
-    { tab: "armory" as MobileTab, label: "Арсенал", icon: <Zap className="w-5 h-5" />, desc: "Быстрая отработка возражений" },
-    { tab: "scenario-builder" as MobileTab, label: "Конструктор сценариев", icon: <GitBranch className="w-5 h-5" />, desc: "Дерево диалога с ветвлениями" },
-    { tab: "live-call" as MobileTab, label: "Суфлёр", icon: <Headphones className="w-5 h-5" />, desc: "Подсказки во время звонка" },
-    { tab: "pre-call-brief" as MobileTab, label: "Пре-сейл бриф", icon: <FileSearch className="w-5 h-5" />, desc: "Досье на клиента" },
-    { tab: "objection-library" as MobileTab, label: "Библиотека возражений", icon: <Shield className="w-5 h-5" />, desc: "База возражений с ответами" },
-    { tab: "sales-style" as MobileTab, label: "Лаборатория стиля", icon: <Palette className="w-5 h-5" />, desc: "Персональный профиль продаж" },
-    { tab: "audit" as MobileTab, label: "Аудит сайта", icon: <Globe className="w-5 h-5" />, desc: "SEO-аудит сайта" },
-    { tab: "objections" as MobileTab, label: "Тренажёр возражений", icon: <Zap className="w-5 h-5" />, desc: "Генерация возражений" },
-    { tab: "simulator" as MobileTab, label: "Симулятор клиента", icon: <MessageCircle className="w-5 h-5" />, desc: "Практика с AI-клиентом" },
-    { tab: "quiz" as MobileTab, label: "Квиз-тренажёр", icon: <Brain className="w-5 h-5" />, desc: "ИИ оценивает ваш ответ" },
-    { tab: "cases" as MobileTab, label: "Библиотека кейсов", icon: <BookOpen className="w-5 h-5" />, desc: "Эталонные сценарии" },
-    { tab: "phrases" as MobileTab, label: "Банк фраз", icon: <BookMarked className="w-5 h-5" />, desc: "Удачные формулировки" },
-    { tab: "personas" as MobileTab, label: "Персоны клиентов", icon: <Users className="w-5 h-5" />, desc: "Профили типичных клиентов" },
-  ];
+  // Mobile menu items below
 
   const menuItems = [
     { tab: "services" as MobileTab, label: "Услуги", icon: <Package className="w-5 h-5" /> },
