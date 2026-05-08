@@ -17,7 +17,33 @@ interface Props {
 export default function ServicesManager({ services, onAdd, onUpdate, onDelete, onReset, className }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const [draft, setDraft] = useState({ name: "", description: "", keyPoints: "" });
+
+  const handleAiGenerate = () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    let buffer = "";
+    streamScript({
+      config: { mode: "service-generator", service: "", situation: "", tone: "", context: aiPrompt, transcript: "", priceRub: "", currency: "RUB", emailSubtype: "", emailObjection: "", managerName: "", clientName: "" },
+      onDelta: (d) => { buffer += d; },
+      onDone: () => {
+        setAiLoading(false);
+        try {
+          const cleaned = buffer.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          if (parsed.name) {
+            onAdd({ name: parsed.name, description: parsed.description || "", keyPoints: Array.isArray(parsed.keyPoints) ? parsed.keyPoints : [] });
+            toast.success("Услуга создана");
+            setAiPrompt(""); setShowAi(false);
+          } else { toast.error("Не удалось разобрать ответ"); }
+        } catch { toast.error("Ошибка парсинга"); }
+      },
+      onError: (m) => { setAiLoading(false); toast.error(m); },
+    });
+  };
 
   const startEdit = (svc: ServiceItem) => {
     setEditingId(svc.id);
