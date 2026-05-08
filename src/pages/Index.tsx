@@ -423,7 +423,7 @@ export default function Index() {
               {desktopPanel === "pre-call-brief" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PreCallBrief serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "objection-library" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ObjectionLibrary serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "sales-style" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SalesStyleLab className="h-full" /></div>}
-              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} /></div>}
+              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
             </div>
           </div>
         </div>
