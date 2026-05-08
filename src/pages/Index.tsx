@@ -533,43 +533,104 @@ export default function Index() {
         </SheetContent>
       </Sheet>
 
+      {/* Floating Quick Generation Button */}
+      <button
+        onClick={() => setMobileTab("config")}
+        className="fixed z-30 right-4 rounded-2xl bg-primary text-primary-foreground shadow-glow flex items-center justify-center btn-tactile hover:opacity-90 transition-all"
+        style={{
+          bottom: "calc(70px + env(safe-area-inset-bottom, 8px))",
+          width: "56px", height: "56px",
+        }}
+        aria-label="Быстрая генерация"
+        title="Быстрая генерация"
+      >
+        <Plus className="w-7 h-7" />
+      </button>
+
       {/* Fixed bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 glass-panel border-t border-border/50 flex items-center justify-around py-1.5 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 6px)" }}>
         <MobileNavBtn active={mobileTab === "config"} onClick={() => setMobileTab("config")} icon={<Settings className="w-5 h-5" />} label="Генератор" />
         <MobileNavBtn active={mobileTab === "output"} onClick={() => setMobileTab("output")} icon={<FileText className="w-5 h-5" />} label="Результат" />
-        <MobileNavBtn active={["armory", "audit", "objections", "simulator", "quiz", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style"].includes(mobileTab)} onClick={() => setShowToolsSheet(true)} icon={<Wrench className="w-5 h-5" />} label="Инструменты" />
-        <MobileNavBtn active={["services", "history", "favorites", "display-settings"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Ещё" />
+        <MobileNavBtn active={mobileTab === "simulator"} onClick={() => setMobileTab("simulator")} icon={<MessageCircle className="w-5 h-5" />} label="Симулятор" />
+        <MobileNavBtn active={["armory", "audit", "objections", "quiz", "cases", "phrases", "personas", "scenario-builder", "live-call", "pre-call-brief", "objection-library", "sales-style", "services", "history", "favorites", "display-settings"].includes(mobileTab)} onClick={() => setShowMenuSheet(true)} icon={<Menu className="w-5 h-5" />} label="Меню" />
       </nav>
 
-      <Sheet open={showToolsSheet} onOpenChange={setShowToolsSheet}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto">
-          <SheetHeader><SheetTitle className="text-base">Инструменты</SheetTitle></SheetHeader>
-          <div className="flex flex-col gap-1.5 py-3">
-            {toolItems.map((item) => (
-              <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowToolsSheet(false); }} className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-accent/50 transition-colors text-left">
-                <div className="text-primary">{item.icon}</div>
-                <div className="flex-1 min-w-0"><div className="text-sm font-medium text-foreground">{item.label}</div><div className="text-[10px] text-muted-foreground truncate">{item.desc}</div></div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-              </button>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
-
       <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl">
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85vh] overflow-y-auto">
           <SheetHeader><SheetTitle className="text-base">Меню</SheetTitle></SheetHeader>
-          <div className="flex flex-col gap-1.5 py-3">
-            {menuItems.map((item) => (
-              <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-accent/50 transition-colors text-left">
-                <div className="text-primary">{item.icon}</div>
-                <div className="text-sm font-medium text-foreground">{item.label}</div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
-              </button>
-            ))}
-            <div className="border-t border-border/50 pt-3 mt-1 px-4">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Тема</p>
-              <ThemePicker current={theme} onChange={setTheme} />
+          <div className="flex flex-col gap-3 py-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">AI Studio</p>
+              <div className="flex flex-col gap-1">
+                {[
+                  { tab: "scenario-builder" as MobileTab, label: "Конструктор сценариев", icon: <GitBranch className="w-5 h-5" /> },
+                  { tab: "live-call" as MobileTab, label: "Суфлёр", icon: <Headphones className="w-5 h-5" /> },
+                  { tab: "pre-call-brief" as MobileTab, label: "Пре-сейл бриф", icon: <FileSearch className="w-5 h-5" /> },
+                  { tab: "objection-library" as MobileTab, label: "Библиотека возражений", icon: <Shield className="w-5 h-5" /> },
+                  { tab: "sales-style" as MobileTab, label: "Лаборатория стиля", icon: <Palette className="w-5 h-5" /> },
+                ].map((item) => (
+                  <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                    <div className="text-primary">{item.icon}</div>
+                    <div className="text-sm font-medium text-foreground">{item.label}</div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">Тренировка</p>
+              <div className="flex flex-col gap-1">
+                {[
+                  { tab: "armory" as MobileTab, label: "Арсенал возражений", icon: <Zap className="w-5 h-5" /> },
+                  { tab: "objections" as MobileTab, label: "Тренажёр возражений", icon: <Zap className="w-5 h-5" /> },
+                  { tab: "quiz" as MobileTab, label: "Квиз-тренажёр", icon: <Brain className="w-5 h-5" /> },
+                  { tab: "audit" as MobileTab, label: "Аудит сайта", icon: <Globe className="w-5 h-5" /> },
+                ].map((item) => (
+                  <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                    <div className="text-primary">{item.icon}</div>
+                    <div className="text-sm font-medium text-foreground">{item.label}</div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">Библиотека</p>
+              <div className="flex flex-col gap-1">
+                {[
+                  { tab: "cases" as MobileTab, label: "Кейсы", icon: <BookOpen className="w-5 h-5" /> },
+                  { tab: "phrases" as MobileTab, label: "Банк фраз", icon: <BookMarked className="w-5 h-5" /> },
+                  { tab: "personas" as MobileTab, label: "Персоны", icon: <Users className="w-5 h-5" /> },
+                  { tab: "services" as MobileTab, label: "Услуги", icon: <Package className="w-5 h-5" /> },
+                ].map((item) => (
+                  <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                    <div className="text-primary">{item.icon}</div>
+                    <div className="text-sm font-medium text-foreground">{item.label}</div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">Прочее</p>
+              <div className="flex flex-col gap-1">
+                {menuItems.filter(m => m.tab !== "services").map((item) => (
+                  <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                    <div className="text-primary">{item.icon}</div>
+                    <div className="text-sm font-medium text-foreground">{item.label}</div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                  </button>
+                ))}
+                <button onClick={() => { setMobileTab("display-settings"); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                  <div className="text-primary"><SlidersHorizontal className="w-5 h-5" /></div>
+                  <div className="text-sm font-medium text-foreground">Настройки отображения</div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                </button>
+              </div>
+              <div className="border-t border-border/50 pt-3 mt-3 px-4">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Тема</p>
+                <ThemePicker current={theme} onChange={setTheme} />
+              </div>
             </div>
           </div>
         </SheetContent>
