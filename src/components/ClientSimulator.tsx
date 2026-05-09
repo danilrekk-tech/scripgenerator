@@ -335,7 +335,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
       {/* Config panel */}
       <AnimatePresence>
         {showConfig && !showSaved && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border/50">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`${started ? "border-b border-border/50 max-h-[40vh] overflow-y-auto overscroll-contain" : "flex-1 min-h-0 overflow-y-auto overscroll-contain"}`} style={{ WebkitOverflowScrolling: "touch" }}>
             <div className="p-4 space-y-3">
               {!started && (
                 <div className="relative w-full max-w-[300px] mx-auto -mt-1 mb-1">
