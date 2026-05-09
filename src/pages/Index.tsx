@@ -44,7 +44,7 @@ import {
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
   Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
-  GitBranch, Headphones, FileSearch, Shield, Palette, Plus,
+  GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
 } from "lucide-react";
 
 const SALES_STYLE_KEY = "scriptengine-sales-style";
