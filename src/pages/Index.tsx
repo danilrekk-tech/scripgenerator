@@ -21,6 +21,8 @@ import LiveCallAssistant from "@/components/LiveCallAssistant";
 import PreCallBrief from "@/components/PreCallBrief";
 import ObjectionLibrary from "@/components/ObjectionLibrary";
 import SalesStyleLab from "@/components/SalesStyleLab";
+import CallAnalyzer from "@/components/CallAnalyzer";
+import KPConstructor from "@/components/KPConstructor";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useDisplaySettings } from "@/hooks/useDisplaySettings";
