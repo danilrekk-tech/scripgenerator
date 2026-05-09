@@ -336,7 +336,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
       <AnimatePresence>
         {showConfig && !showSaved && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`${started ? "border-b border-border/50 max-h-[40vh] overflow-y-auto overscroll-contain" : "flex-1 min-h-0 overflow-y-auto overscroll-contain"}`} style={{ WebkitOverflowScrolling: "touch" }}>
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 pb-[max(2rem,env(safe-area-inset-bottom))]">
               {!started && (
                 <div className="relative w-full max-w-[300px] mx-auto -mt-1 mb-1">
                   <img src={heroSimulator} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
