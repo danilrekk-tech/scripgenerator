@@ -564,6 +564,8 @@ export default function Index() {
                   { tab: "pre-call-brief" as MobileTab, label: "Пре-сейл бриф", icon: <FileSearch className="w-5 h-5" /> },
                   { tab: "objection-library" as MobileTab, label: "Библиотека возражений", icon: <Shield className="w-5 h-5" /> },
                   { tab: "sales-style" as MobileTab, label: "Лаборатория стиля", icon: <Palette className="w-5 h-5" /> },
+                  { tab: "call-analyzer" as MobileTab, label: "AI-Аналитик звонков", icon: <Mic className="w-5 h-5" /> },
+                  { tab: "kp-constructor" as MobileTab, label: "Конструктор КП", icon: <FileText className="w-5 h-5" /> },
                 ].map((item) => (
                   <button key={item.tab} onClick={() => { setMobileTab(item.tab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
                     <div className="text-primary">{item.icon}</div>
