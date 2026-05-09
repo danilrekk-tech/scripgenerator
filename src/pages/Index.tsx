@@ -505,6 +505,8 @@ export default function Index() {
         {mobileTab === "pre-call-brief" && <PreCallBrief serviceNames={serviceNames} className="h-full" />}
         {mobileTab === "objection-library" && <ObjectionLibrary serviceNames={serviceNames} className="h-full" />}
         {mobileTab === "sales-style" && <SalesStyleLab className="h-full" />}
+        {mobileTab === "call-analyzer" && <CallAnalyzer serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "kp-constructor" && <KPConstructor serviceNames={serviceNames} className="h-full" />}
       </div>
 
       {/* Mobile tool overlay for simulator */}
