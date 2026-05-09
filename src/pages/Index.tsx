@@ -198,6 +198,8 @@ export default function Index() {
     { id: "brief", label: "Пре-сейл бриф", icon: <FileSearch className="w-4 h-4" />, action: () => setDesktopPanel("pre-call-brief"), category: "AI Studio" },
     { id: "obj-lib", label: "Библиотека возражений", icon: <Shield className="w-4 h-4" />, action: () => setDesktopPanel("objection-library"), category: "AI Studio" },
     { id: "style", label: "Лаборатория стиля", icon: <Palette className="w-4 h-4" />, action: () => setDesktopPanel("sales-style"), category: "AI Studio" },
+    { id: "call-analyzer", label: "AI-Аналитик звонков", icon: <Mic className="w-4 h-4" />, action: () => setDesktopPanel("call-analyzer"), category: "AI Studio" },
+    { id: "kp-constructor", label: "Конструктор КП", icon: <FileText className="w-4 h-4" />, action: () => setDesktopPanel("kp-constructor"), category: "AI Studio" },
     { id: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" />, action: () => setDesktopPanel("settings"), category: "Навигация" },
   ], [generate, script]);
 
