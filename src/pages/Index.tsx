@@ -216,6 +216,8 @@ export default function Index() {
       { value: "pre-call-brief", label: "Бриф", icon: <FileSearch className="w-4 h-4" /> },
       { value: "objection-library", label: "Возражения", icon: <Shield className="w-4 h-4" /> },
       { value: "sales-style", label: "Стиль", icon: <Palette className="w-4 h-4" /> },
+      { value: "call-analyzer", label: "AI-Аналитик", icon: <Mic className="w-4 h-4" />, beta: true },
+      { value: "kp-constructor", label: "Конструктор КП", icon: <FileText className="w-4 h-4" />, beta: true },
     ]},
     { label: "Тренировка", items: [
       { value: "simulator", label: "Симулятор", icon: <MessageCircle className="w-4 h-4" /> },
