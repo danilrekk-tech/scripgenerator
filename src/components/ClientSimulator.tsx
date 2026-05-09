@@ -250,7 +250,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
   ];
 
   return (
-    <div className={`flex flex-col h-full ${className || ""}`}>
+    <div className={`flex flex-col h-full min-h-0 overflow-hidden ${className || ""}`}>
       {/* Header */}
       <div className="p-4 border-b border-border/50 shrink-0">
         <div className="flex items-center justify-between">
