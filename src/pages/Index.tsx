@@ -774,6 +774,10 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme
       <h2 className="text-lg font-semibold text-foreground mb-1">Настройки</h2>
       <p className="text-xs text-muted-foreground mb-8">Глобальные настройки ScriptEngine</p>
       <div className="space-y-8">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Модули и интерфейс</label>
+          <ModulesPanel />
+        </div>
         {displaySettings && onUpdateDisplay && onResetDisplay && (
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Отображение результата</label>
