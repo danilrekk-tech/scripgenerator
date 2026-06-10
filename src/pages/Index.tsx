@@ -59,6 +59,7 @@ import {
   Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
   Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
+  LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
 } from "lucide-react";
 
 const SALES_STYLE_KEY = "scriptengine-sales-style";
