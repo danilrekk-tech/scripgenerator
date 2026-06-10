@@ -224,7 +224,28 @@ export default function Index() {
 
   type NavGroup = { label: string; items: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] };
 
+  const MOD_ICON: Record<ModuleId, React.ReactNode> = {
+    pipeline: <Briefcase className="w-4 h-4" />,
+    contacts: <Users className="w-4 h-4" />,
+    discovery: <ListChecks className="w-4 h-4" />,
+    competitors: <GitCompare className="w-4 h-4" />,
+    "value-calc": <Calculator className="w-4 h-4" />,
+    "follow-up": <Send className="w-4 h-4" />,
+    wiki: <BookOpen className="w-4 h-4" />,
+    "voice-rec": <Mic className="w-4 h-4" />,
+    reframe: <Sparkles className="w-4 h-4" />,
+    "battle-cards": <ShieldCheck className="w-4 h-4" />,
+  };
+
+  const enabledModuleNavItems = MODULE_CATALOG
+    .filter((m) => isModuleEnabled(m.id))
+    .map((m) => ({ value: `mod-${m.id}` as DesktopPanel, label: m.label, icon: MOD_ICON[m.id] }));
+
   const navGroups: NavGroup[] = [
+    { label: "Начало", items: [
+      { value: "dashboard", label: "Дашборд", icon: <Home className="w-4 h-4" /> },
+      { value: "bento", label: "Все инструменты", icon: <LayoutGrid className="w-4 h-4" /> },
+    ]},
     { label: "Основное", items: [
       { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
       { value: "armory", label: "Арсенал", icon: <Zap className="w-4 h-4" /> },
@@ -245,6 +266,7 @@ export default function Index() {
       { value: "objections", label: "Тренажёр", icon: <Zap className="w-4 h-4" /> },
       { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
     ]},
+    ...(enabledModuleNavItems.length > 0 ? [{ label: "Модули", items: enabledModuleNavItems }] : []),
     { label: "Библиотека", items: [
       { value: "cases", label: "Кейсы", icon: <BookOpen className="w-4 h-4" /> },
       { value: "phrases", label: "Банк фраз", icon: <BookMarked className="w-4 h-4" /> },
