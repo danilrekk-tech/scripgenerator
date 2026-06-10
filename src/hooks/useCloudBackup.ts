@@ -10,6 +10,15 @@ const SYNC_KEYS = [
   "scriptengine-app-settings",
   "scriptengine-saved-dialogs",
   "scriptengine-favorites",
+  // Module Hub
+  "scriptengine-modules",
+  "scriptengine-layout",
+  "scriptengine-pipeline",
+  "scriptengine-contacts",
+  "scriptengine-discovery-checked",
+  "scriptengine-discovery-notes",
+  "scriptengine-competitor-matrix",
+  "scriptengine-wiki",
 ];
 
 export function useCloudBackup(userId: string | null) {

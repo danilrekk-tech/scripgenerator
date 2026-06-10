@@ -23,6 +23,20 @@ import ObjectionLibrary from "@/components/ObjectionLibrary";
 import SalesStyleLab from "@/components/SalesStyleLab";
 import CallAnalyzer from "@/components/CallAnalyzer";
 import KPConstructor from "@/components/KPConstructor";
+import CommandCenter from "@/components/CommandCenter";
+import BentoTools from "@/components/BentoTools";
+import ModulesPanel from "@/components/ModulesPanel";
+import PipelinePanel from "@/components/modules/PipelinePanel";
+import ContactCards from "@/components/modules/ContactCards";
+import DiscoveryChecklist from "@/components/modules/DiscoveryChecklist";
+import CompetitorMatrix from "@/components/modules/CompetitorMatrix";
+import ValueCalculator from "@/components/modules/ValueCalculator";
+import FollowUpComposer from "@/components/modules/FollowUpComposer";
+import WikiKnowledge from "@/components/modules/WikiKnowledge";
+import VoiceRecorder from "@/components/modules/VoiceRecorder";
+import ReframeHelper from "@/components/modules/ReframeHelper";
+import BattleCards from "@/components/modules/BattleCards";
+import { useModules, MODULE_CATALOG, type ModuleId } from "@/hooks/useModules";
 import { streamScript } from "@/lib/streamChat";
 import { useTheme } from "@/hooks/useTheme";
 import { useDisplaySettings } from "@/hooks/useDisplaySettings";
@@ -45,6 +59,7 @@ import {
   Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
   Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
+  LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
 } from "lucide-react";
 
 const SALES_STYLE_KEY = "scriptengine-sales-style";
@@ -56,8 +71,9 @@ const defaultConfig: ScriptConfig = {
   dozimSubtype: "thinking", transcriptSubmode: "analysis", personaId: "", quickTemplateId: "",
 };
 
-type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style" | "call-analyzer" | "kp-constructor";
-type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style" | "call-analyzer" | "kp-constructor";
+type ModulePanel = `mod-${ModuleId}`;
+type MobileTab = "config" | "output" | "armory" | "display-settings" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style" | "call-analyzer" | "kp-constructor" | "dashboard" | "bento" | ModulePanel;
+type DesktopPanel = "main" | "armory" | "audit" | "objections" | "simulator" | "services" | "history" | "favorites" | "settings" | "quiz" | "cases" | "phrases" | "personas" | "scenario-builder" | "live-call" | "pre-call-brief" | "objection-library" | "sales-style" | "call-analyzer" | "kp-constructor" | "dashboard" | "bento" | ModulePanel;
 
 export default function Index() {
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
@@ -76,10 +92,13 @@ export default function Index() {
   const { personas, addPersona, updatePersona, removePersona } = useClientPersonas();
   const { notes, addNote, removeNote, clearNotes } = useScriptNotes();
   const { syncNow } = useCloudBackup(user?.id ?? null);
+  const { enabled: modulesEnabled, isEnabled: isModuleEnabled, toggle: _toggleMod, setAll: _setAllMod, layout, updateLayout } = useModules();
+  void _toggleMod; void _setAllMod;
   const isMobile = useIsMobile();
 
-  const [mobileTab, setMobileTab] = useState<MobileTab>("config");
-  const [desktopPanel, setDesktopPanel] = useState<DesktopPanel>("main");
+  const initialPanel: DesktopPanel = layout.startScreen === "dashboard" ? "dashboard" : layout.startScreen === "bento" ? "bento" : "main";
+  const [mobileTab, setMobileTab] = useState<MobileTab>(layout.startScreen === "dashboard" ? "dashboard" : layout.startScreen === "bento" ? "bento" : "config");
+  const [desktopPanel, setDesktopPanel] = useState<DesktopPanel>(initialPanel);
   const [pendingHistorySave, setPendingHistorySave] = useState(false);
   const [showPresetSave, setShowPresetSave] = useState(false);
   const [presetName, setPresetName] = useState("");
@@ -205,7 +224,28 @@ export default function Index() {
 
   type NavGroup = { label: string; items: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] };
 
+  const MOD_ICON: Record<ModuleId, React.ReactNode> = {
+    pipeline: <Briefcase className="w-4 h-4" />,
+    contacts: <Users className="w-4 h-4" />,
+    discovery: <ListChecks className="w-4 h-4" />,
+    competitors: <GitCompare className="w-4 h-4" />,
+    "value-calc": <Calculator className="w-4 h-4" />,
+    "follow-up": <Send className="w-4 h-4" />,
+    wiki: <BookOpen className="w-4 h-4" />,
+    "voice-rec": <Mic className="w-4 h-4" />,
+    reframe: <Sparkles className="w-4 h-4" />,
+    "battle-cards": <ShieldCheck className="w-4 h-4" />,
+  };
+
+  const enabledModuleNavItems = MODULE_CATALOG
+    .filter((m) => isModuleEnabled(m.id))
+    .map((m) => ({ value: `mod-${m.id}` as DesktopPanel, label: m.label, icon: MOD_ICON[m.id] }));
+
   const navGroups: NavGroup[] = [
+    { label: "Начало", items: [
+      { value: "dashboard", label: "Дашборд", icon: <Home className="w-4 h-4" /> },
+      { value: "bento", label: "Все инструменты", icon: <LayoutGrid className="w-4 h-4" /> },
+    ]},
     { label: "Основное", items: [
       { value: "main", label: "Генератор", icon: <FileText className="w-4 h-4" /> },
       { value: "armory", label: "Арсенал", icon: <Zap className="w-4 h-4" /> },
@@ -226,6 +266,7 @@ export default function Index() {
       { value: "objections", label: "Тренажёр", icon: <Zap className="w-4 h-4" /> },
       { value: "quiz", label: "Квиз", icon: <Brain className="w-4 h-4" /> },
     ]},
+    ...(enabledModuleNavItems.length > 0 ? [{ label: "Модули", items: enabledModuleNavItems }] : []),
     { label: "Библиотека", items: [
       { value: "cases", label: "Кейсы", icon: <BookOpen className="w-4 h-4" /> },
       { value: "phrases", label: "Банк фраз", icon: <BookMarked className="w-4 h-4" /> },
@@ -431,6 +472,18 @@ export default function Index() {
               {desktopPanel === "sales-style" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SalesStyleLab className="h-full" /></div>}
               {desktopPanel === "call-analyzer" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CallAnalyzer serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "kp-constructor" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><KPConstructor serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CommandCenter historyCount={history.length} favoritesCount={favorites.length} recentItems={history as any} onQuickGenerate={() => setDesktopPanel("main")} onOpenPanel={(p) => setDesktopPanel(p as DesktopPanel)} onLoadHistory={handleHistoryLoad} modulesEnabled={modulesEnabled} userName={user?.email?.split("@")[0]} /></div>}
+              {desktopPanel === "bento" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><BentoTools onOpen={(id) => setDesktopPanel(id as DesktopPanel)} enabledModules={modulesEnabled} /></div>}
+              {desktopPanel === "mod-pipeline" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PipelinePanel className="h-full" /></div>}
+              {desktopPanel === "mod-contacts" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ContactCards className="h-full" /></div>}
+              {desktopPanel === "mod-discovery" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><DiscoveryChecklist className="h-full" /></div>}
+              {desktopPanel === "mod-competitors" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CompetitorMatrix serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "mod-value-calc" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ValueCalculator className="h-full" /></div>}
+              {desktopPanel === "mod-follow-up" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FollowUpComposer serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "mod-wiki" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><WikiKnowledge className="h-full" /></div>}
+              {desktopPanel === "mod-voice-rec" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><VoiceRecorder transcriberUrl={appSettings.transcriberUrl} className="h-full" /></div>}
+              {desktopPanel === "mod-reframe" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ReframeHelper className="h-full" /></div>}
+              {desktopPanel === "mod-battle-cards" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><BattleCards serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
             </div>
           </div>
@@ -507,6 +560,18 @@ export default function Index() {
         {mobileTab === "sales-style" && <SalesStyleLab className="h-full" />}
         {mobileTab === "call-analyzer" && <CallAnalyzer serviceNames={serviceNames} className="h-full" />}
         {mobileTab === "kp-constructor" && <KPConstructor serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "dashboard" && <CommandCenter historyCount={history.length} favoritesCount={favorites.length} recentItems={history as any} onQuickGenerate={() => setMobileTab("config")} onOpenPanel={(p) => setMobileTab(p as MobileTab)} onLoadHistory={handleHistoryLoad} modulesEnabled={modulesEnabled} userName={user?.email?.split("@")[0]} />}
+        {mobileTab === "bento" && <BentoTools onOpen={(id) => setMobileTab(id as MobileTab)} enabledModules={modulesEnabled} />}
+        {mobileTab === "mod-pipeline" && <PipelinePanel className="h-full" />}
+        {mobileTab === "mod-contacts" && <ContactCards className="h-full" />}
+        {mobileTab === "mod-discovery" && <DiscoveryChecklist className="h-full" />}
+        {mobileTab === "mod-competitors" && <CompetitorMatrix serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "mod-value-calc" && <ValueCalculator className="h-full" />}
+        {mobileTab === "mod-follow-up" && <FollowUpComposer serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "mod-wiki" && <WikiKnowledge className="h-full" />}
+        {mobileTab === "mod-voice-rec" && <VoiceRecorder transcriberUrl={appSettings.transcriberUrl} className="h-full" />}
+        {mobileTab === "mod-reframe" && <ReframeHelper className="h-full" />}
+        {mobileTab === "mod-battle-cards" && <BattleCards serviceNames={serviceNames} className="h-full" />}
       </div>
 
       {/* Mobile tool overlay for simulator */}
@@ -555,6 +620,29 @@ export default function Index() {
         <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85vh] overflow-y-auto">
           <SheetHeader><SheetTitle className="text-base">Меню</SheetTitle></SheetHeader>
           <div className="flex flex-col gap-3 py-3">
+            <div className="grid grid-cols-2 gap-2 px-4">
+              <button onClick={() => { setMobileTab("dashboard"); setShowMenuSheet(false); }} className="glass-card border border-border/50 rounded-xl p-3 flex items-center gap-2 hover:border-primary/40 transition">
+                <Home className="w-4 h-4 text-primary" /><span className="text-sm font-medium text-foreground">Дашборд</span>
+              </button>
+              <button onClick={() => { setMobileTab("bento"); setShowMenuSheet(false); }} className="glass-card border border-border/50 rounded-xl p-3 flex items-center gap-2 hover:border-primary/40 transition">
+                <LayoutGrid className="w-4 h-4 text-primary" /><span className="text-sm font-medium text-foreground">Все инструменты</span>
+              </button>
+            </div>
+
+            {MODULE_CATALOG.some((m) => isModuleEnabled(m.id)) && (
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">Модули</p>
+                <div className="flex flex-col gap-1">
+                  {MODULE_CATALOG.filter((m) => isModuleEnabled(m.id)).map((m) => (
+                    <button key={m.id} onClick={() => { setMobileTab(`mod-${m.id}` as MobileTab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                      <div className="text-primary"><Boxes className="w-5 h-5" /></div>
+                      <div className="text-sm font-medium text-foreground">{m.label}</div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">AI Studio</p>
               <div className="flex flex-col gap-1">
@@ -686,6 +774,10 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme
       <h2 className="text-lg font-semibold text-foreground mb-1">Настройки</h2>
       <p className="text-xs text-muted-foreground mb-8">Глобальные настройки ScriptEngine</p>
       <div className="space-y-8">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Модули и интерфейс</label>
+          <ModulesPanel />
+        </div>
         {displaySettings && onUpdateDisplay && onResetDisplay && (
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Отображение результата</label>
