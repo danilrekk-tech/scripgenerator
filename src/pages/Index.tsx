@@ -472,6 +472,18 @@ export default function Index() {
               {desktopPanel === "sales-style" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><SalesStyleLab className="h-full" /></div>}
               {desktopPanel === "call-analyzer" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CallAnalyzer serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "kp-constructor" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><KPConstructor serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "dashboard" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CommandCenter historyCount={history.length} favoritesCount={favorites.length} recentItems={history as any} onQuickGenerate={() => setDesktopPanel("main")} onOpenPanel={(p) => setDesktopPanel(p as DesktopPanel)} onLoadHistory={handleHistoryLoad} modulesEnabled={modulesEnabled} userName={user?.email?.split("@")[0]} /></div>}
+              {desktopPanel === "bento" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><BentoTools onOpen={(id) => setDesktopPanel(id as DesktopPanel)} enabledModules={modulesEnabled} /></div>}
+              {desktopPanel === "mod-pipeline" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><PipelinePanel className="h-full" /></div>}
+              {desktopPanel === "mod-contacts" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ContactCards className="h-full" /></div>}
+              {desktopPanel === "mod-discovery" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><DiscoveryChecklist className="h-full" /></div>}
+              {desktopPanel === "mod-competitors" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><CompetitorMatrix serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "mod-value-calc" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ValueCalculator className="h-full" /></div>}
+              {desktopPanel === "mod-follow-up" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><FollowUpComposer serviceNames={serviceNames} className="h-full" /></div>}
+              {desktopPanel === "mod-wiki" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><WikiKnowledge className="h-full" /></div>}
+              {desktopPanel === "mod-voice-rec" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><VoiceRecorder transcriberUrl={appSettings.transcriberUrl} className="h-full" /></div>}
+              {desktopPanel === "mod-reframe" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ReframeHelper className="h-full" /></div>}
+              {desktopPanel === "mod-battle-cards" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><BattleCards serviceNames={serviceNames} className="h-full" /></div>}
               {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
             </div>
           </div>
