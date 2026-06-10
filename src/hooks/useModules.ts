@@ -74,8 +74,16 @@ export function useModules() {
     } catch { return DEFAULT_LAYOUT; }
   });
 
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(enabled)); }, [enabled]);
-  useEffect(() => { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout)); }, [layout]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(enabled)); window.dispatchEvent(new CustomEvent("modules-changed")); }, [enabled]);
+  useEffect(() => { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout)); window.dispatchEvent(new CustomEvent("layout-changed")); }, [layout]);
+
+  useEffect(() => {
+    const sync = () => { try { const r = localStorage.getItem(STORAGE_KEY); if (r) setEnabled({ ...DEFAULT_ENABLED, ...JSON.parse(r) }); } catch {} };
+    const syncL = () => { try { const r = localStorage.getItem(LAYOUT_KEY); if (r) setLayout({ ...DEFAULT_LAYOUT, ...JSON.parse(r) }); } catch {} };
+    window.addEventListener("modules-changed", sync);
+    window.addEventListener("layout-changed", syncL);
+    return () => { window.removeEventListener("modules-changed", sync); window.removeEventListener("layout-changed", syncL); };
+  }, []);
 
   const toggle = useCallback((id: ModuleId) => setEnabled((p) => ({ ...p, [id]: !p[id] })), []);
   const setAll = useCallback((v: boolean) => {
