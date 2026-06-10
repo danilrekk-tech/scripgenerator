@@ -560,6 +560,18 @@ export default function Index() {
         {mobileTab === "sales-style" && <SalesStyleLab className="h-full" />}
         {mobileTab === "call-analyzer" && <CallAnalyzer serviceNames={serviceNames} className="h-full" />}
         {mobileTab === "kp-constructor" && <KPConstructor serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "dashboard" && <CommandCenter historyCount={history.length} favoritesCount={favorites.length} recentItems={history as any} onQuickGenerate={() => setMobileTab("config")} onOpenPanel={(p) => setMobileTab(p as MobileTab)} onLoadHistory={handleHistoryLoad} modulesEnabled={modulesEnabled} userName={user?.email?.split("@")[0]} />}
+        {mobileTab === "bento" && <BentoTools onOpen={(id) => setMobileTab(id as MobileTab)} enabledModules={modulesEnabled} />}
+        {mobileTab === "mod-pipeline" && <PipelinePanel className="h-full" />}
+        {mobileTab === "mod-contacts" && <ContactCards className="h-full" />}
+        {mobileTab === "mod-discovery" && <DiscoveryChecklist className="h-full" />}
+        {mobileTab === "mod-competitors" && <CompetitorMatrix serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "mod-value-calc" && <ValueCalculator className="h-full" />}
+        {mobileTab === "mod-follow-up" && <FollowUpComposer serviceNames={serviceNames} className="h-full" />}
+        {mobileTab === "mod-wiki" && <WikiKnowledge className="h-full" />}
+        {mobileTab === "mod-voice-rec" && <VoiceRecorder transcriberUrl={appSettings.transcriberUrl} className="h-full" />}
+        {mobileTab === "mod-reframe" && <ReframeHelper className="h-full" />}
+        {mobileTab === "mod-battle-cards" && <BattleCards serviceNames={serviceNames} className="h-full" />}
       </div>
 
       {/* Mobile tool overlay for simulator */}
