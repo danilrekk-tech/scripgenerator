@@ -92,10 +92,13 @@ export default function Index() {
   const { personas, addPersona, updatePersona, removePersona } = useClientPersonas();
   const { notes, addNote, removeNote, clearNotes } = useScriptNotes();
   const { syncNow } = useCloudBackup(user?.id ?? null);
+  const { enabled: modulesEnabled, isEnabled: isModuleEnabled, toggle: _toggleMod, setAll: _setAllMod, layout, updateLayout } = useModules();
+  void _toggleMod; void _setAllMod;
   const isMobile = useIsMobile();
 
-  const [mobileTab, setMobileTab] = useState<MobileTab>("config");
-  const [desktopPanel, setDesktopPanel] = useState<DesktopPanel>("main");
+  const initialPanel: DesktopPanel = layout.startScreen === "dashboard" ? "dashboard" : layout.startScreen === "bento" ? "bento" : "main";
+  const [mobileTab, setMobileTab] = useState<MobileTab>(layout.startScreen === "dashboard" ? "dashboard" : layout.startScreen === "bento" ? "bento" : "config");
+  const [desktopPanel, setDesktopPanel] = useState<DesktopPanel>(initialPanel);
   const [pendingHistorySave, setPendingHistorySave] = useState(false);
   const [showPresetSave, setShowPresetSave] = useState(false);
   const [presetName, setPresetName] = useState("");
