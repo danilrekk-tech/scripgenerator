@@ -620,6 +620,29 @@ export default function Index() {
         <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85vh] overflow-y-auto">
           <SheetHeader><SheetTitle className="text-base">Меню</SheetTitle></SheetHeader>
           <div className="flex flex-col gap-3 py-3">
+            <div className="grid grid-cols-2 gap-2 px-4">
+              <button onClick={() => { setMobileTab("dashboard"); setShowMenuSheet(false); }} className="glass-card border border-border/50 rounded-xl p-3 flex items-center gap-2 hover:border-primary/40 transition">
+                <Home className="w-4 h-4 text-primary" /><span className="text-sm font-medium text-foreground">Дашборд</span>
+              </button>
+              <button onClick={() => { setMobileTab("bento"); setShowMenuSheet(false); }} className="glass-card border border-border/50 rounded-xl p-3 flex items-center gap-2 hover:border-primary/40 transition">
+                <LayoutGrid className="w-4 h-4 text-primary" /><span className="text-sm font-medium text-foreground">Все инструменты</span>
+              </button>
+            </div>
+
+            {MODULE_CATALOG.some((m) => isModuleEnabled(m.id)) && (
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">Модули</p>
+                <div className="flex flex-col gap-1">
+                  {MODULE_CATALOG.filter((m) => isModuleEnabled(m.id)).map((m) => (
+                    <button key={m.id} onClick={() => { setMobileTab(`mod-${m.id}` as MobileTab); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                      <div className="text-primary"><Boxes className="w-5 h-5" /></div>
+                      <div className="text-sm font-medium text-foreground">{m.label}</div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-1.5">AI Studio</p>
               <div className="flex flex-col gap-1">
