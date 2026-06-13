@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocalStore, uid } from "@/lib/moduleStore";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Briefcase } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Briefcase, TrendingUp } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type Stage = "new" | "brief" | "kp" | "negotiation" | "won" | "lost";
 const STAGES: { id: Stage; label: string; color: string }[] = [
