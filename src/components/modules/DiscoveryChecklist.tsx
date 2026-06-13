@@ -46,6 +46,8 @@ export default function DiscoveryChecklist({ className = "" }: { className?: str
   const total = Object.values(data).reduce((a, b) => a + b.items.length, 0);
   const done = Object.keys(checked).filter((k) => k.startsWith(method) && checked[k]).length;
 
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
   return (
     <div className={`flex flex-col h-full overflow-hidden ${className}`}>
       <header className="px-5 py-4 border-b border-border/50 shrink-0">
@@ -53,16 +55,26 @@ export default function DiscoveryChecklist({ className = "" }: { className?: str
         <p className="text-xs text-muted-foreground">Структурированные вопросы для квалификации клиента</p>
       </header>
 
-      <div className="px-5 py-3 border-b border-border/30 shrink-0 flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex glass-card border border-border/50 rounded-lg p-0.5">
-          {(["SPIN", "BANT"] as const).map((m) => (
-            <button key={m} onClick={() => setMethod(m)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${method === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{m}</button>
-          ))}
+      <div className="px-5 py-3 border-b border-border/30 shrink-0 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="inline-flex glass-card border border-border/50 rounded-lg p-0.5">
+            {(["SPIN", "BANT"] as const).map((m) => (
+              <button key={m} onClick={() => setMethod(m)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${method === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{m}</button>
+            ))}
+          </div>
+          <div className="flex gap-1.5">
+            <button onClick={exportSummary} className="text-xs px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 btn-tactile flex items-center gap-1"><Copy className="w-3 h-3" />Сводка</button>
+            <button onClick={resetAll} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground btn-tactile flex items-center gap-1"><RotateCcw className="w-3 h-3" />Сброс</button>
+          </div>
         </div>
-        <div className="text-xs text-muted-foreground">{done}/{total} отвечено</div>
-        <div className="flex gap-1.5">
-          <button onClick={exportSummary} className="text-xs px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 btn-tactile flex items-center gap-1"><Copy className="w-3 h-3" />Сводка</button>
-          <button onClick={resetAll} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground btn-tactile flex items-center gap-1"><RotateCcw className="w-3 h-3" />Сброс</button>
+        <div>
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
+            <span>Прогресс квалификации</span>
+            <span className="tabular-nums font-medium text-foreground">{done}/{total} · {pct}%</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-primary/70 to-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
         </div>
       </div>
 
