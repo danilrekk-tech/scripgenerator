@@ -242,6 +242,39 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
   const avgScore = scoreCount > 0 ? (sessionScore / scoreCount).toFixed(1) : "—";
 
+  const moodColor = (() => {
+    const m = config.mood.toLowerCase();
+    if (m.includes("друж") || m.includes("заинт")) return "bg-emerald-500/15 text-emerald-500 border-emerald-500/20";
+    if (m.includes("раздр") || m.includes("агрес")) return "bg-rose-500/15 text-rose-500 border-rose-500/20";
+    if (m.includes("скепт") || m.includes("холод")) return "bg-amber-500/15 text-amber-500 border-amber-500/20";
+    return "bg-muted text-muted-foreground border-border/50";
+  })();
+
+  const clientInitials = config.clientType.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+
+  const exportDialog = () => {
+    if (messages.length === 0) return;
+    const lines: string[] = [
+      `Диалог: ${config.service}`,
+      `Клиент: ${config.clientType} · ${config.mood} · бюджет: ${config.budget}`,
+      `Дата: ${new Date().toLocaleString("ru-RU")}`,
+      simMode === "trainer" ? `Средний балл: ${avgScore}/10 (${scoreCount} оценок)` : "",
+      "",
+      "---",
+      "",
+    ];
+    messages.forEach((m) => {
+      lines.push(`${m.role === "user" ? "👤 Менеджер" : `🎭 Клиент (${config.clientType})`}: ${m.content}`);
+      if (m.score !== undefined) lines.push(`   📊 Оценка: ${m.score}/10${m.feedback ? ` — ${m.feedback}` : ""}`);
+      lines.push("");
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `dialog-${Date.now()}.txt`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const toolItems = [
     { id: "armory", label: "Арсенал возражений", icon: <Zap className="w-4 h-4" /> },
     { id: "objection-library", label: "Библиотека возражений", icon: <Shield className="w-4 h-4" /> },
@@ -253,38 +286,54 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     <div className={`flex flex-col h-full min-h-0 overflow-hidden ${className || ""}`}>
       {/* Header */}
       <div className="p-4 border-b border-border/50 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-primary" />
-            <div>
-              <h2 className="text-sm font-semibold">Симулятор клиента</h2>
-              {started && simMode === "trainer" && (
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                  <Trophy className="w-3 h-3 text-primary" />
-                  <span>Средний балл: {avgScore}/10</span>
-                  <span>·</span>
-                  <span>Раундов: {scoreCount}</span>
-                </div>
-              )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                {clientInitials || <User className="w-4 h-4" />}
+              </div>
+              {started && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-background" />}
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold truncate">{started ? config.clientType : "Симулятор клиента"}</h2>
+              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                {started ? (
+                  <>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${moodColor}`}>{config.mood}</span>
+                    {simMode === "trainer" && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Trophy className="w-2.5 h-2.5 text-primary" /> {avgScore}/10 · {scoreCount} р.
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground">Тренируйтесь без риска для реальных сделок</p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-0.5 shrink-0">
             {started && (
               <button onClick={() => setShowTools(true)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Инструменты">
                 <Wrench className="w-4 h-4" />
               </button>
             )}
             {started && messages.length >= 2 && (
-              <button onClick={handleSaveDialog} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Сохранить">
-                <Save className="w-4 h-4" />
-              </button>
+              <>
+                <button onClick={handleSaveDialog} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Сохранить">
+                  <Save className="w-4 h-4" />
+                </button>
+                <button onClick={exportDialog} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Экспорт диалога">
+                  <Download className="w-4 h-4" />
+                </button>
+              </>
             )}
-            <button onClick={() => setShowSaved(!showSaved)} className={`p-2 rounded-lg hover:bg-accent/50 transition-colors ${showSaved ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}>
+            <button onClick={() => setShowSaved(!showSaved)} className={`p-2 rounded-lg hover:bg-accent/50 transition-colors ${showSaved ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`} title="Сохранённые">
               <FolderOpen className="w-4 h-4" />
             </button>
             {started && (
               <>
-                <button onClick={() => setShowConfig(!showConfig)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={() => setShowConfig(!showConfig)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Настройки">
                   <Settings2 className="w-4 h-4" />
                 </button>
                 {simMode === "trainer" && scoreCount > 0 && (
