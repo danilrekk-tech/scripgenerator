@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocalStore, uid } from "@/lib/moduleStore";
-import { Plus, Trash2, Users, Phone, Mail, Building2 } from "lucide-react";
+import { Plus, Trash2, Users, Phone, Mail, Building2, Search } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Contact {
   id: string;
