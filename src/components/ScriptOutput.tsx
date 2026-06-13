@@ -377,6 +377,43 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Floating action bar — sticky while scrolling */}
+          {script && (
+            <div className="sticky bottom-4 mt-6 z-30 flex justify-center pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="pointer-events-auto flex items-center gap-1 px-2 py-1.5 rounded-full glass-card border border-border/60 shadow-lg backdrop-blur-xl"
+              >
+                <button onClick={() => copyText(script, "all")} className="px-3 py-1.5 rounded-full text-xs font-medium hover:bg-accent/60 text-foreground transition-colors flex items-center gap-1.5" title="Копировать всё">
+                  <Copy className="w-3.5 h-3.5" />{copiedId === "all" ? "✓" : "Копировать"}
+                </button>
+                <div className="w-px h-5 bg-border/50" />
+                <button onClick={() => exportToHtml(script, displaySettings)} className="p-2 rounded-full hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors" title="HTML">
+                  <Download className="w-3.5 h-3.5" />
+                </button>
+                {onToggleFavorite && (
+                  <button onClick={onToggleFavorite} className={`p-2 rounded-full hover:bg-accent/60 transition-colors ${isFavorite ? "text-primary" : "text-muted-foreground hover:text-foreground"}`} title="Избранное">
+                    <Star className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
+                  </button>
+                )}
+                {onScoreScript && (
+                  <button onClick={onScoreScript} disabled={isScoring} className="p-2 rounded-full hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50" title="Оценить">
+                    {isScoring ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+                {showScrollTop && (
+                  <>
+                    <div className="w-px h-5 bg-border/50" />
+                    <button onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })} className="p-2 rounded-full hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors" title="Наверх">
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            </div>
+          )}
         </div>
 
         {/* Minimap - desktop only */}
