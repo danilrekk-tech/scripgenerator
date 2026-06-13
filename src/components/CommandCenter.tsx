@@ -1,4 +1,5 @@
-import { Sparkles, History, Star, MessageCircle, FileText, Zap, BookOpen, Briefcase, ShieldCheck } from "lucide-react";
+import { Sparkles, History, Star, MessageCircle, FileText, Zap, BookOpen, Briefcase, ShieldCheck, Rocket } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Props {
   historyCount: number;
