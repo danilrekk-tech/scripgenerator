@@ -527,9 +527,14 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
         <>
           <div ref={chatRef} className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3 pb-[max(2rem,env(safe-area-inset-bottom))]" style={{ WebkitOverflowScrolling: "touch" }}>
             {messages.map((msg, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[80%] space-y-1">
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${
+              <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                {msg.role === "client" && (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">
+                    {clientInitials || "🎭"}
+                  </div>
+                )}
+                <div className="max-w-[78%] space-y-1">
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "glass-card border border-border/50 text-foreground rounded-bl-sm"
@@ -537,21 +542,25 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                     <p className="text-[10px] font-medium mb-1 opacity-60">
                       {msg.role === "user" ? "Вы (менеджер)" : `Клиент (${config.clientType})`}
                     </p>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     {msg.role === "client" && isLoading && i === messages.length - 1 && <span className="cursor-blink" />}
                   </div>
-                  {/* Trainer feedback */}
                   {msg.score !== undefined && (
                     <div className={`px-3 py-2 rounded-xl text-xs border ${
-                      msg.score >= 7 ? "border-green-500/20 bg-green-500/5 text-green-600" :
-                      msg.score >= 4 ? "border-yellow-500/20 bg-yellow-500/5 text-yellow-600" :
-                      "border-red-500/20 bg-red-500/5 text-red-600"
+                      msg.score >= 7 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600" :
+                      msg.score >= 4 ? "border-amber-500/20 bg-amber-500/5 text-amber-600" :
+                      "border-rose-500/20 bg-rose-500/5 text-rose-600"
                     }`}>
                       <span className="font-bold">{msg.score}/10</span>
                       {msg.feedback && <span className="ml-2 opacity-80">{msg.feedback}</span>}
                     </div>
                   )}
                 </div>
+                {msg.role === "user" && (
+                  <div className="w-7 h-7 rounded-full bg-accent border border-border/50 flex items-center justify-center text-muted-foreground shrink-0">
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                )}
               </motion.div>
             ))}
 
