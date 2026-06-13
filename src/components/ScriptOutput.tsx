@@ -4,7 +4,7 @@ import type { GenerationMode } from "./ConfigSidebar";
 import type { DisplaySettings } from "@/hooks/useDisplaySettings";
 import { FONT_FAMILIES } from "@/hooks/useDisplaySettings";
 import { parseStages, exportToHtml } from "@/lib/exportHtml";
-import { Download, Copy, ChevronRight, ChevronDown, Zap, Shield, Gift, Target, Star, FileText, Type, BarChart3, QrCode, Loader2, Edit3, Check, X, StickyNote, MessageSquarePlus } from "lucide-react";
+import { Download, Copy, ChevronRight, ChevronDown, Zap, Shield, Gift, Target, Star, FileText, Type, BarChart3, QrCode, Loader2, Edit3, Check, X, StickyNote, MessageSquarePlus, ArrowUp } from "lucide-react";
 
 interface Props {
   script: string;
