@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocalStore, uid } from "@/lib/moduleStore";
-import { Plus, Trash2, Users, Phone, Mail, Building2 } from "lucide-react";
+import { Plus, Trash2, Users, Phone, Mail, Building2, Search } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Contact {
   id: string;
@@ -64,7 +65,20 @@ export default function ContactCards({ className = "" }: { className?: string })
 
       <div className="flex-1 overflow-y-auto p-4">
         {filtered.length === 0 ? (
-          <div className="text-center py-12 text-sm text-muted-foreground">Нет контактов</div>
+          contacts.length === 0 ? (
+            <EmptyState
+              icon={<Users className="w-7 h-7" />}
+              title="Здесь будут ваши клиенты"
+              description="Добавляйте компании, ЛПР и заметки — всё в одной карточке. Теги помогут быстро находить нужных."
+            />
+          ) : (
+            <EmptyState
+              icon={<Search className="w-6 h-6" />}
+              title="Ничего не найдено"
+              description={`По запросу «${filter}» нет совпадений`}
+              size="sm"
+            />
+          )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map((c) => (

@@ -1,4 +1,5 @@
-import { Sparkles, History, Star, MessageCircle, FileText, Zap, BookOpen, Briefcase, ShieldCheck } from "lucide-react";
+import { Sparkles, History, Star, MessageCircle, FileText, Zap, BookOpen, Briefcase, ShieldCheck, Rocket } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Props {
   historyCount: number;
@@ -88,7 +89,14 @@ export default function CommandCenter({
             <button onClick={() => onOpenPanel("history")} className="text-xs text-primary hover:underline">Все →</button>
           </div>
           {recentItems.length === 0 ? (
-            <div className="glass-card border border-border/50 rounded-2xl p-8 text-center text-sm text-muted-foreground">Пока ничего нет — начните с быстрой генерации</div>
+            <div className="glass-card border border-border/50 rounded-2xl">
+              <EmptyState
+                icon={<Rocket className="w-6 h-6" />}
+                title="Время первой генерации"
+                description="Здесь появятся ваши последние скрипты, КП и аналитика. Начните с быстрого действия выше."
+                size="sm"
+              />
+            </div>
           ) : (
             <div className="space-y-2">
               {recentItems.slice(0, 5).map((r) => (
