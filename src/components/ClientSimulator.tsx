@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen,
   Trash2, Clock, GraduationCap, Lightbulb, Trophy, BarChart3,
-  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser
+  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser, Download, User
 } from "lucide-react";
 
 const SIM_STATE_KEY = "scriptengine-simulator-state";
