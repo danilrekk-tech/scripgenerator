@@ -135,6 +135,7 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
   const [noteStage, setNoteStage] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const copyText = (text: string, id: string) => { navigator.clipboard.writeText(text); setCopiedId(id); setTimeout(() => setCopiedId(null), 1500); };
 
