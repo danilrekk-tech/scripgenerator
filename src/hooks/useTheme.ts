@@ -14,7 +14,7 @@ export const THEMES: { value: Theme; label: string; emoji: string; colors: [stri
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem("script-engine-theme");
-    return (stored as Theme) || "light";
+    return (stored as Theme) || "ocean";
   });
 
   useEffect(() => {

@@ -283,9 +283,14 @@ export default function Index() {
         {/* Left sidebar navigation */}
         <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-48"}`}>
           <div className="px-3 py-3 border-b border-border/30 flex items-center gap-2">
-            <img src="/icon-192.png" alt="ScriptEngine" className="w-7 h-7 rounded-lg shrink-0 object-cover" />
+            <div className="relative shrink-0 group cursor-pointer">
+              <div className="absolute inset-0 rounded-xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" style={{ background: 'var(--accent-gradient)' }} />
+              <div className="relative w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center overflow-hidden" style={{ background: 'hsl(var(--background))' }}>
+                <span className="font-display font-extrabold text-transparent bg-clip-text text-[13px] tracking-tight" style={{ backgroundImage: 'var(--accent-gradient)' }}>SE</span>
+              </div>
+            </div>
             {!sidebarCollapsed && (
-              <h1 className="text-xs font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
+              <h1 className="font-display text-xs font-bold tracking-tight text-foreground truncate">ScriptEngine</h1>
             )}
           </div>
 
@@ -529,8 +534,13 @@ export default function Index() {
     <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
-          <img src="/icon-192.png" alt="ScriptEngine" className="w-7 h-7 rounded-lg object-cover" />
-          <h1 className="text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 rounded-xl blur-md opacity-60" style={{ background: 'var(--accent-gradient)' }} />
+            <div className="relative w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center overflow-hidden" style={{ background: 'hsl(var(--background))' }}>
+              <span className="font-display font-extrabold text-transparent bg-clip-text text-[13px]" style={{ backgroundImage: 'var(--accent-gradient)' }}>SE</span>
+            </div>
+          </div>
+          <h1 className="font-display text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
         </button>
         <div className="flex items-center gap-1">
           {user ? (<button onClick={signOut} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground"><LogOut className="w-4 h-4" /></button>)
