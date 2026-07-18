@@ -270,13 +270,13 @@
   body {
     @apply text-foreground antialiased;
     font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    background: var(--body-gradient);
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, .font-display {
     font-family: 'Sora', 'Manrope', system-ui, sans-serif;
     letter-spacing: -0.01em;
-    background: var(--body-gradient);
-    min-height: 100vh;
   }
 }
 
