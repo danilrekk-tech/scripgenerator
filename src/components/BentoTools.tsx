@@ -66,7 +66,7 @@ export default function BentoTools({ onOpen, enabledModules }: Props) {
               {items.map((t) => (
                 <button key={t.id} onClick={() => onOpen(t.id)}
                   className={`group relative overflow-hidden rounded-2xl border border-border/50 p-4 text-left bg-gradient-to-br ${t.tone} hover:border-primary/40 hover:scale-[1.02] hover:shadow-lg transition-all btn-tactile ${t.size === "lg" ? "col-span-2 row-span-2" : ""}`}>
-                  <div className="w-10 h-10 rounded-xl bg-background/40 backdrop-blur flex items-center justify-center text-primary mb-3">{t.icon}</div>
+                  <div className="tool-icon-animated w-10 h-10 rounded-xl bg-background/40 backdrop-blur flex items-center justify-center text-primary mb-3 transition-shadow">{t.icon}</div>
                   <p className="text-sm font-semibold text-foreground">{t.label}</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{t.desc}</p>
                   <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
