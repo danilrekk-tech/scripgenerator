@@ -70,8 +70,8 @@ export default function ModulesPanel() {
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground/70 mb-1.5 px-1">{GROUP_LABELS[group as keyof typeof GROUP_LABELS]}</p>
             <div className="glass-card border border-border/50 rounded-xl divide-y divide-border/30 overflow-hidden">
               {mods.map((m) => (
-                <div key={m.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${enabled[m.id] ? "bg-primary/15 text-primary" : "bg-muted/40 text-muted-foreground"}`}>{ICONS[m.id]}</div>
+                <div key={m.id} className="group flex items-center gap-3 px-4 py-3">
+                  <div className={`tool-icon-animated w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-shadow ${enabled[m.id] ? "bg-primary/15 text-primary" : "bg-muted/40 text-muted-foreground"}`}>{ICONS[m.id]}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{m.label}</p>
                     <p className="text-[11px] text-muted-foreground leading-snug">{m.description}</p>
