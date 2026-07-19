@@ -279,7 +279,7 @@ export default function Index() {
   if (!isMobile) {
     return (
       <TooltipProvider delayDuration={400}>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex overflow-hidden" style={{ height: "100dvh" }}>
         {/* Left sidebar navigation */}
         <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-48"}`}>
           <div className="px-3 py-3 border-b border-border/30 flex items-center gap-2">
