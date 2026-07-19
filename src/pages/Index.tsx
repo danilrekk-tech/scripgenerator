@@ -531,7 +531,13 @@ export default function Index() {
   ];
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <div
+      className="flex flex-col overflow-hidden"
+      style={{
+        height: "100dvh",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
+    >
       <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
           <div className="relative shrink-0">
@@ -548,7 +554,10 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden" style={{ paddingBottom: "calc(60px + env(safe-area-inset-bottom, 8px))" }}>
+      <div
+        className="flex-1 min-h-0 overflow-hidden"
+        style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom, 8px))" }}
+      >
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
         {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
