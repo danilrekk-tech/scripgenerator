@@ -489,7 +489,7 @@ export default function Index() {
               {desktopPanel === "mod-voice-rec" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><VoiceRecorder transcriberUrl={appSettings.transcriberUrl} className="h-full" /></div>}
               {desktopPanel === "mod-reframe" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ReframeHelper className="h-full" /></div>}
               {desktopPanel === "mod-battle-cards" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><BattleCards serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
+              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} appSettings={appSettings} onUpdateAppSetting={updateAppSetting} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
             </div>
           </div>
         </div>
