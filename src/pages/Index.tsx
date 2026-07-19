@@ -781,13 +781,24 @@ function FavoritesPanel({ favorites, onLoad, onRemove }: { favorites: any[]; onL
   );
 }
 
-function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow, displaySettings, onUpdateDisplay, onResetDisplay }: {
+function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings, onUpdateAppSetting, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow, displaySettings, onUpdateDisplay, onResetDisplay }: {
   transcriberUrl: string; onTranscriberUrlChange: (v: string) => void;
+  appSettings?: any; onUpdateAppSetting?: any;
   currentTheme: any; onThemeChange: (t: any) => void;
   user: any; onSignIn: () => void; onSignOut: () => void;
   onSyncNow?: () => void;
   displaySettings?: any; onUpdateDisplay?: any; onResetDisplay?: any;
 }) {
+  const { Switch } = require("@/components/ui/switch");
+  const ToggleRow = ({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) => (
+    <div className="flex items-center justify-between gap-4 py-2.5 px-3 rounded-xl hover:bg-accent/30 transition-colors">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm text-foreground font-medium truncate">{label}</p>
+        {hint && <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>}
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
   return (
     <div className="flex-1 p-8 max-w-2xl overflow-y-auto pb-24">
       <h2 className="text-lg font-semibold text-foreground mb-1">Настройки</h2>
