@@ -800,10 +800,51 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings,
     </div>
   );
   return (
-    <div className="flex-1 p-8 max-w-2xl overflow-y-auto pb-24">
+    <div className="flex-1 p-6 sm:p-8 max-w-2xl overflow-y-auto" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))", WebkitOverflowScrolling: "touch" }}>
       <h2 className="text-lg font-semibold text-foreground mb-1">Настройки</h2>
       <p className="text-xs text-muted-foreground mb-8">Глобальные настройки ScriptEngine</p>
       <div className="space-y-8">
+
+        {appSettings && onUpdateAppSetting && (
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Поведение генератора</label>
+            <div className="glass-card border border-border/50 rounded-xl p-2 divide-y divide-border/40">
+              <ToggleRow
+                label="Автозаполнение переменных"
+                hint="Подставлять [Имя менеджера] и [Имя клиента] автоматически"
+                checked={!!appSettings.autoFillVariables}
+                onChange={(v) => onUpdateAppSetting("autoFillVariables", v)}
+              />
+              <ToggleRow
+                label="Предупреждать перед генерацией"
+                hint="Проверять, что данных достаточно для качественного скрипта"
+                checked={!!appSettings.warnBeforeGenerate}
+                onChange={(v) => onUpdateAppSetting("warnBeforeGenerate", v)}
+              />
+            </div>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5">Имя менеджера по умолчанию</label>
+                <input
+                  className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder="Алексей"
+                  value={appSettings.defaultManagerName || ""}
+                  onChange={(e) => onUpdateAppSetting("defaultManagerName", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5">Имя клиента по умолчанию</label>
+                <input
+                  className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder="Иван"
+                  value={appSettings.defaultClientName || ""}
+                  onChange={(e) => onUpdateAppSetting("defaultClientName", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Модули и интерфейс</label>
           <ModulesPanel />
