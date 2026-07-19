@@ -1,0 +1,16 @@
+{
+  "name": "ScriptEngine — Генератор скриптов продаж",
+  "short_name": "ScriptEngine",
+  "description": "Генератор скриптов продаж, симулятор клиента и тренажёр возражений.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c2340",
+  "theme_color": "#0c2340",
+  "lang": "ru",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-192.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
