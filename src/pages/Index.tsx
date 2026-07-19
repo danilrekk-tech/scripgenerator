@@ -790,7 +790,6 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings,
   onSyncNow?: () => void;
   displaySettings?: any; onUpdateDisplay?: any; onResetDisplay?: any;
 }) {
-  const { Switch } = require("@/components/ui/switch");
   const ToggleRow = ({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) => (
     <div className="flex items-center justify-between gap-4 py-2.5 px-3 rounded-xl hover:bg-accent/30 transition-colors">
       <div className="min-w-0 flex-1">
