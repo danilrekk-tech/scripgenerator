@@ -52,6 +52,7 @@ import { useClientPersonas } from "@/hooks/useClientPersonas";
 import { useScriptNotes } from "@/hooks/useScriptNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
