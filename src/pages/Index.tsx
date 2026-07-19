@@ -52,6 +52,7 @@ import { useClientPersonas } from "@/hooks/useClientPersonas";
 import { useScriptNotes } from "@/hooks/useScriptNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
@@ -279,7 +280,7 @@ export default function Index() {
   if (!isMobile) {
     return (
       <TooltipProvider delayDuration={400}>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex overflow-hidden" style={{ height: "100dvh" }}>
         {/* Left sidebar navigation */}
         <aside className={`shrink-0 glass-panel border-r border-border/50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-48"}`}>
           <div className="px-3 py-3 border-b border-border/30 flex items-center gap-2">
@@ -489,7 +490,7 @@ export default function Index() {
               {desktopPanel === "mod-voice-rec" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><VoiceRecorder transcriberUrl={appSettings.transcriberUrl} className="h-full" /></div>}
               {desktopPanel === "mod-reframe" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><ReframeHelper className="h-full" /></div>}
               {desktopPanel === "mod-battle-cards" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><BattleCards serviceNames={serviceNames} className="h-full" /></div>}
-              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
+              {desktopPanel === "settings" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><AppSettingsPanel transcriberUrl={appSettings.transcriberUrl} onTranscriberUrlChange={(v) => updateAppSetting("transcriberUrl", v)} appSettings={appSettings} onUpdateAppSetting={updateAppSetting} currentTheme={theme} onThemeChange={setTheme} user={user} onSignIn={() => setShowAuthDialog(true)} onSignOut={signOut} onSyncNow={syncNow} displaySettings={displaySettings} onUpdateDisplay={updateDisplay} onResetDisplay={resetDisplay} /></div>}
             </div>
           </div>
         </div>
@@ -531,7 +532,13 @@ export default function Index() {
   ];
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <div
+      className="flex flex-col overflow-hidden"
+      style={{
+        height: "100dvh",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
+    >
       <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
         <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
           <div className="relative shrink-0">
@@ -548,7 +555,10 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden" style={{ paddingBottom: "calc(60px + env(safe-area-inset-bottom, 8px))" }}>
+      <div
+        className="flex-1 min-h-0 overflow-hidden"
+        style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom, 8px))" }}
+      >
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
         {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
@@ -772,18 +782,69 @@ function FavoritesPanel({ favorites, onLoad, onRemove }: { favorites: any[]; onL
   );
 }
 
-function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow, displaySettings, onUpdateDisplay, onResetDisplay }: {
+function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings, onUpdateAppSetting, currentTheme, onThemeChange, user, onSignIn, onSignOut, onSyncNow, displaySettings, onUpdateDisplay, onResetDisplay }: {
   transcriberUrl: string; onTranscriberUrlChange: (v: string) => void;
+  appSettings?: any; onUpdateAppSetting?: any;
   currentTheme: any; onThemeChange: (t: any) => void;
   user: any; onSignIn: () => void; onSignOut: () => void;
   onSyncNow?: () => void;
   displaySettings?: any; onUpdateDisplay?: any; onResetDisplay?: any;
 }) {
+  const ToggleRow = ({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) => (
+    <div className="flex items-center justify-between gap-4 py-2.5 px-3 rounded-xl hover:bg-accent/30 transition-colors">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm text-foreground font-medium truncate">{label}</p>
+        {hint && <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>}
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
   return (
-    <div className="flex-1 p-8 max-w-2xl overflow-y-auto pb-24">
+    <div className="flex-1 p-6 sm:p-8 max-w-2xl overflow-y-auto" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))", WebkitOverflowScrolling: "touch" }}>
       <h2 className="text-lg font-semibold text-foreground mb-1">Настройки</h2>
       <p className="text-xs text-muted-foreground mb-8">Глобальные настройки ScriptEngine</p>
       <div className="space-y-8">
+
+        {appSettings && onUpdateAppSetting && (
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Поведение генератора</label>
+            <div className="glass-card border border-border/50 rounded-xl p-2 divide-y divide-border/40">
+              <ToggleRow
+                label="Автозаполнение переменных"
+                hint="Подставлять [Имя менеджера] и [Имя клиента] автоматически"
+                checked={!!appSettings.autoFillVariables}
+                onChange={(v) => onUpdateAppSetting("autoFillVariables", v)}
+              />
+              <ToggleRow
+                label="Предупреждать перед генерацией"
+                hint="Проверять, что данных достаточно для качественного скрипта"
+                checked={!!appSettings.warnBeforeGenerate}
+                onChange={(v) => onUpdateAppSetting("warnBeforeGenerate", v)}
+              />
+            </div>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5">Имя менеджера по умолчанию</label>
+                <input
+                  className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder="Алексей"
+                  value={appSettings.defaultManagerName || ""}
+                  onChange={(e) => onUpdateAppSetting("defaultManagerName", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5">Имя клиента по умолчанию</label>
+                <input
+                  className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder="Иван"
+                  value={appSettings.defaultClientName || ""}
+                  onChange={(e) => onUpdateAppSetting("defaultClientName", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Модули и интерфейс</label>
           <ModulesPanel />
