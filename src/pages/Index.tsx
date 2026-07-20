@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import ConfigSidebar, { type ScriptConfig, type GenerationMode } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
@@ -553,8 +553,8 @@ export default function Index() {
 
       {/* Mobile tool overlay for simulator */}
       <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto p-0">
-          <SheetHeader className="px-4 py-3 border-b border-border/50">
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto overscroll-contain p-0" style={{ WebkitOverflowScrolling: "touch" }}>
+          <SheetHeader className="px-4 py-3 border-b border-border/50 sticky top-0 glass-panel z-10">
             <SheetTitle className="text-sm">
               {simulatorToolOverlay === "armory" && "Арсенал возражений"}
               {simulatorToolOverlay === "objection-library" && "Библиотека возражений"}
@@ -562,7 +562,7 @@ export default function Index() {
               {simulatorToolOverlay === "live-call" && "Суфлёр"}
             </SheetTitle>
           </SheetHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div className="pb-[env(safe-area-inset-bottom,0px)]">
             {simulatorToolOverlay === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0" />}
             {simulatorToolOverlay === "objection-library" && <ObjectionLibrary serviceNames={serviceNames} />}
             {simulatorToolOverlay === "phrases" && <PhraseBank phrases={phrases} onAdd={addPhrase} onRemove={removePhrase} onCopy={handleCopyPhrase} />}
