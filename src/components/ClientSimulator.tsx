@@ -10,7 +10,7 @@ const SIM_STATE_KEY = "scriptengine-simulator-state";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
-import heroSimulator from "@/assets/hero-simulator.jpg";
+
 
 interface Message {
   role: "user" | "client";
@@ -387,9 +387,36 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`${started ? "border-b border-border/50 max-h-[40vh] overflow-y-auto overscroll-contain" : "flex-1 min-h-0 overflow-y-auto overscroll-contain"}`} style={{ WebkitOverflowScrolling: "touch" }}>
             <div className="p-4 space-y-3 pb-[max(2rem,env(safe-area-inset-bottom))]">
               {!started && (
-                <div className="relative w-full max-w-[300px] mx-auto -mt-1 mb-1">
-                  <img src={heroSimulator} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent rounded-2xl" />
+                <div className="relative w-full max-w-[340px] mx-auto mb-2 select-none pointer-events-none">
+                  <svg viewBox="0 0 340 180" className="w-full h-auto" aria-hidden="true">
+                    <defs>
+                      <pattern id="sim-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+                        <path d="M 16 0 L 0 0 0 16" fill="none" stroke="hsl(var(--primary))" strokeOpacity="0.08" strokeWidth="0.5" />
+                      </pattern>
+                      <linearGradient id="sim-fade" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--background))" stopOpacity="0" />
+                        <stop offset="100%" stopColor="hsl(var(--background))" stopOpacity="1" />
+                      </linearGradient>
+                    </defs>
+                    <rect width="340" height="180" fill="url(#sim-grid)" />
+                    {/* Two silhouettes facing each other */}
+                    <g fill="none" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeOpacity="0.55" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="110" cy="70" r="18" />
+                      <path d="M78 160 C78 128 92 112 110 112 C128 112 142 128 142 160" />
+                      <circle cx="230" cy="70" r="18" />
+                      <path d="M198 160 C198 128 212 112 230 112 C248 112 262 128 262 160" />
+                      {/* Speech bubbles */}
+                      <path d="M150 40 h50 a6 6 0 0 1 6 6 v18 a6 6 0 0 1 -6 6 h-40 l-10 8 v-8 a6 6 0 0 1 -6 -6 v-18 a6 6 0 0 1 6 -6 z" />
+                      <line x1="160" y1="52" x2="196" y2="52" strokeOpacity="0.35" />
+                      <line x1="160" y1="60" x2="188" y2="60" strokeOpacity="0.25" />
+                      {/* Dashed connection line */}
+                      <path d="M110 92 C 140 100 200 100 230 92" strokeDasharray="3 4" strokeOpacity="0.4" />
+                      {/* Corner marks */}
+                      <path d="M8 8 h14 M8 8 v14 M332 8 h-14 M332 8 v14 M8 172 h14 M8 172 v-14 M332 172 h-14 M332 172 v-14" strokeOpacity="0.35" />
+                    </g>
+                    <text x="12" y="176" fontFamily="'IBM Plex Mono', monospace" fontSize="7" fill="hsl(var(--primary))" fillOpacity="0.4" letterSpacing="1.5">SIM · SCHEMA · 01</text>
+                    <rect width="340" height="180" fill="url(#sim-fade)" opacity="0.35" />
+                  </svg>
                 </div>
               )}
               {/* Mode selector */}
