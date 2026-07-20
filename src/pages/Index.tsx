@@ -13,7 +13,7 @@ import ThemePicker from "@/components/ThemePicker";
 import AuthDialog from "@/components/AuthDialog";
 import QuizMode from "@/components/QuizMode";
 import CaseLibrary from "@/components/CaseLibrary";
-import CommandPalette from "@/components/CommandPalette";
+
 import PhraseBank from "@/components/PhraseBank";
 import ClientPersonasPanel from "@/components/ClientPersonasPanel";
 import ScenarioBuilder from "@/components/ScenarioBuilder";
@@ -57,8 +57,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
-  Wrench, Menu, Star, Settings, ChevronRight, Brain, BookOpen,
-  Search, BookMarked, Users, PanelLeftClose, PanelLeftOpen,
+  Menu, Star, Settings, ChevronRight, Brain, BookOpen,
+  BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
   LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
 } from "lucide-react";
@@ -107,7 +107,6 @@ export default function Index() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [, setShowToolsSheet] = useState(false); void setShowToolsSheet;
   const [showMenuSheet, setShowMenuSheet] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   // For simulator tool overlay - preserve simulator state while viewing tools
   const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
@@ -117,7 +116,6 @@ export default function Index() {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
       const key = e.key.toLowerCase();
-      if (key === "k") { e.preventDefault(); setShowCommandPalette((p) => !p); }
       if (key === "g") { e.preventDefault(); generate(); }
       if (key === "s") { e.preventDefault(); if (script) { navigator.clipboard.writeText(script); toast.success("Скопировано"); } }
       if (key === "e") { e.preventDefault(); if (script) { const blob = new Blob([script], { type: "text/plain" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `script-${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url); } }
@@ -199,29 +197,6 @@ export default function Index() {
     setSimulatorToolOverlay(toolId);
   }, []);
 
-  const commandItems = useMemo(() => [
-    { id: "gen", label: "Сгенерировать скрипт", desc: "Ctrl+G", icon: <Zap className="w-4 h-4" />, action: () => generate(), category: "Действия" },
-    { id: "copy", label: "Копировать результат", desc: "Ctrl+S", icon: <FileText className="w-4 h-4" />, action: () => { if (script) { navigator.clipboard.writeText(script); toast.success("Скопировано"); } }, category: "Действия" },
-    { id: "main", label: "Генератор", icon: <FileText className="w-4 h-4" />, action: () => setDesktopPanel("main"), category: "Навигация" },
-    { id: "armory", label: "Арсенал", icon: <Zap className="w-4 h-4" />, action: () => setDesktopPanel("armory"), category: "Навигация" },
-    { id: "audit", label: "Аудит сайта", icon: <Globe className="w-4 h-4" />, action: () => setDesktopPanel("audit"), category: "Навигация" },
-    { id: "quiz", label: "Квиз-тренажёр", icon: <Brain className="w-4 h-4" />, action: () => setDesktopPanel("quiz"), category: "Навигация" },
-    { id: "sim", label: "Симулятор клиента", icon: <MessageCircle className="w-4 h-4" />, action: () => setDesktopPanel("simulator"), category: "Навигация" },
-    { id: "obj", label: "Тренажёр возражений", icon: <Zap className="w-4 h-4" />, action: () => setDesktopPanel("objections"), category: "Навигация" },
-    { id: "hist", label: "История генераций", icon: <History className="w-4 h-4" />, action: () => setDesktopPanel("history"), category: "Навигация" },
-    { id: "fav", label: "Избранное", icon: <Star className="w-4 h-4" />, action: () => setDesktopPanel("favorites"), category: "Навигация" },
-    { id: "svc", label: "Управление услугами", icon: <Package className="w-4 h-4" />, action: () => setDesktopPanel("services"), category: "Навигация" },
-    { id: "phrases", label: "Банк фраз", icon: <BookMarked className="w-4 h-4" />, action: () => setDesktopPanel("phrases"), category: "Навигация" },
-    { id: "personas", label: "Персоны клиентов", icon: <Users className="w-4 h-4" />, action: () => setDesktopPanel("personas"), category: "Навигация" },
-    { id: "scenario", label: "Конструктор сценариев", icon: <GitBranch className="w-4 h-4" />, action: () => setDesktopPanel("scenario-builder"), category: "AI Studio" },
-    { id: "live-call", label: "Суфлёр", icon: <Headphones className="w-4 h-4" />, action: () => setDesktopPanel("live-call"), category: "AI Studio" },
-    { id: "brief", label: "Пре-сейл бриф", icon: <FileSearch className="w-4 h-4" />, action: () => setDesktopPanel("pre-call-brief"), category: "AI Studio" },
-    { id: "obj-lib", label: "Библиотека возражений", icon: <Shield className="w-4 h-4" />, action: () => setDesktopPanel("objection-library"), category: "AI Studio" },
-    { id: "style", label: "Лаборатория стиля", icon: <Palette className="w-4 h-4" />, action: () => setDesktopPanel("sales-style"), category: "AI Studio" },
-    { id: "call-analyzer", label: "AI-Аналитик звонков", icon: <Mic className="w-4 h-4" />, action: () => setDesktopPanel("call-analyzer"), category: "AI Studio" },
-    { id: "kp-constructor", label: "Конструктор КП", icon: <FileText className="w-4 h-4" />, action: () => setDesktopPanel("kp-constructor"), category: "AI Studio" },
-    { id: "settings", label: "Настройки", icon: <Settings className="w-4 h-4" />, action: () => setDesktopPanel("settings"), category: "Навигация" },
-  ], [generate, script]);
 
   type NavGroup = { label: string; items: { value: DesktopPanel; label: string; icon: React.ReactNode; beta?: boolean }[] };
 
@@ -352,23 +327,6 @@ export default function Index() {
               {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Настройки</TooltipContent>}
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={() => setShowCommandPalette(true)}
-                  className={`w-full flex items-center gap-2 rounded-lg transition-all btn-tactile ${
-                    sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"
-                  } text-muted-foreground hover:text-foreground hover:bg-accent/50`}>
-                  <Search className="w-4 h-4 shrink-0" />
-                  {!sidebarCollapsed && (
-                    <>
-                      <span className="text-xs font-medium flex-1 text-left">Поиск</span>
-                      <kbd className="text-[9px] text-muted-foreground bg-muted/60 px-1 py-0.5 rounded">⌘K</kbd>
-                    </>
-                  )}
-                </button>
-              </TooltipTrigger>
-              {sidebarCollapsed && <TooltipContent side="right" className="text-xs">Поиск ⌘K</TooltipContent>}
-            </Tooltip>
 
             {user ? (
               <Tooltip>
@@ -516,7 +474,6 @@ export default function Index() {
         </Sheet>
 
         <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
-        <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} items={commandItems} />
       </div>
       </TooltipProvider>
     );
