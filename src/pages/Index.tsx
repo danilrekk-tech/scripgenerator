@@ -599,7 +599,7 @@ export default function Index() {
 
       {/* Mobile tool overlay for simulator */}
       <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto overscroll-contain p-0" style={{ WebkitOverflowScrolling: "touch" }}>
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85dvh] p-0">
           <SheetHeader className="px-4 py-3 border-b border-border/50 sticky top-0 glass-panel z-10">
             <SheetTitle className="text-sm">
               {simulatorToolOverlay === "armory" && "Арсенал возражений"}
@@ -640,7 +640,7 @@ export default function Index() {
       </nav>
 
       <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85dvh]">
           <SheetHeader><SheetTitle className="text-base">Меню</SheetTitle></SheetHeader>
           <div className="flex flex-col gap-3 py-3">
             <div className="grid grid-cols-2 gap-2 px-4">
