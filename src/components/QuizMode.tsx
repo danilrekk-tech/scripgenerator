@@ -1,9 +1,8 @@
 import { useState, useCallback } from "react";
+import BlueprintHero from "@/components/BlueprintHero";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, RefreshCw, Loader2, CheckCircle, XCircle, Send, Sparkles } from "lucide-react";
 import { QUIZ_SCENARIOS_EXTENDED } from "@/lib/toolPresets";
-import heroQuiz from "@/assets/hero-quiz.jpg";
-
 interface Props {
   serviceNames: string[];
   className?: string;
@@ -116,7 +115,7 @@ export default function QuizMode({ serviceNames, className }: Props) {
         {!scenario ? (
           <div className="space-y-4">
             <div className="relative w-full max-w-[320px] mx-auto">
-              <img src={heroQuiz} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <BlueprintHero variant="quiz" className="w-full rounded-2xl" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent rounded-2xl" />
             </div>
             <div className="text-center">

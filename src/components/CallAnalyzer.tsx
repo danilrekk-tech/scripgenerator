@@ -1,9 +1,8 @@
 import { useState } from "react";
+import BlueprintHero from "@/components/BlueprintHero";
 import { motion } from "framer-motion";
 import { Mic, Loader2, Copy, RotateCcw, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
-import heroImg from "@/assets/hero-call-analyzer.jpg";
-
 interface Props {
   serviceNames: string[];
   className?: string;
@@ -55,7 +54,7 @@ export default function CallAnalyzer({ serviceNames, className }: Props) {
 
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-4 pb-[max(2rem,env(safe-area-inset-bottom))]" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="relative rounded-2xl overflow-hidden border border-primary/20">
-          <img src={heroImg} alt="" loading="lazy" className="w-full h-32 object-cover" />
+          <BlueprintHero variant="call-analyzer" className="w-full h-32" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
           <div className="absolute bottom-2 left-3 right-3">
             <p className="text-xs font-medium text-foreground">Загрузите расшифровку звонка</p>

@@ -4,7 +4,10 @@ import type { GenerationMode } from "./ConfigSidebar";
 import type { DisplaySettings } from "@/hooks/useDisplaySettings";
 import { FONT_FAMILIES } from "@/hooks/useDisplaySettings";
 import { parseStages, exportToHtml } from "@/lib/exportHtml";
-import { Download, Copy, ChevronRight, ChevronDown, Zap, Shield, Gift, Target, Star, FileText, Type, BarChart3, QrCode, Loader2, Edit3, Check, X, StickyNote, MessageSquarePlus, ArrowUp } from "lucide-react";
+import { Download, Copy, ChevronRight, ChevronDown, Zap, Shield, Gift, Target, Star, FileText, Type, BarChart3, QrCode, Loader2, Edit3, Check, X, StickyNote, MessageSquarePlus, ArrowUp, ShoppingBag, Settings2 } from "lucide-react";
+import type { Upsell } from "@/hooks/useUpsells";
+
+export type CompanionType = "objections" | "arguments" | "benefits" | "dozim" | "upsell";
 
 interface Props {
   script: string;
@@ -12,7 +15,7 @@ interface Props {
   mode: GenerationMode;
   displaySettings: DisplaySettings;
   className?: string;
-  onCompanionGenerate?: (type: "objections" | "arguments" | "benefits" | "dozim") => void;
+  onCompanionGenerate?: (type: CompanionType, upsellIds?: string[]) => void;
   onScoreScript?: () => void;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -21,6 +24,8 @@ interface Props {
   notes?: { id: string; paragraphIndex: number; text: string }[];
   onAddNote?: (paragraphIndex: number, text: string) => void;
   onRemoveNote?: (id: string) => void;
+  upsells?: Upsell[];
+  onOpenUpsellManager?: () => void;
 }
 
 const MODE_EMPTY: Record<string, { title: string; subtitle: string }> = {
@@ -57,10 +62,10 @@ function isInternalSection(title: string): boolean {
 }
 
 const COMPANION_BUTTONS = [
-  { type: "objections" as const, label: "Возражения", icon: Shield, desc: "Возражения клиента" },
-  { type: "arguments" as const, label: "Аргументы", icon: Zap, desc: "Аргументы в пользу" },
-  { type: "benefits" as const, label: "Выгоды", icon: Gift, desc: "Выгоды для клиента" },
-  { type: "dozim" as const, label: "Дожим", icon: Target, desc: "Закрытие сделки" },
+  { type: "objections" as const, label: "Возражения", icon: Shield, desc: "Ответы на 5 возражений" },
+  { type: "arguments" as const, label: "Аргументы", icon: Zap, desc: "Факты и доказательства" },
+  { type: "benefits" as const, label: "Выгоды", icon: Gift, desc: "Что получит клиент" },
+  { type: "dozim" as const, label: "Дожим", icon: Target, desc: "Фразы закрытия" },
 ];
 
 function highlightKeywords(text: string): boolean {
@@ -120,7 +125,7 @@ function showQr(script: string) {
   window.open(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${text}`, "_blank");
 }
 
-export default function ScriptOutput({ script, isGenerating, mode, displaySettings, className, onCompanionGenerate, onScoreScript, isFavorite, onToggleFavorite, isScoring, onScriptEdit, notes, onAddNote, onRemoveNote }: Props) {
+export default function ScriptOutput({ script, isGenerating, mode, displaySettings, className, onCompanionGenerate, onScoreScript, isFavorite, onToggleFavorite, isScoring, onScriptEdit, notes, onAddNote, onRemoveNote, upsells = [], onOpenUpsellManager }: Props) {
   const stages = useMemo(() => {
     if (!script) return [];
     const parsed = parseStages(script);
@@ -136,6 +141,8 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
   const [noteText, setNoteText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showUpsellPicker, setShowUpsellPicker] = useState(false);
+  const [selectedUpsells, setSelectedUpsells] = useState<Set<string>>(new Set());
 
   const copyText = (text: string, id: string) => { navigator.clipboard.writeText(text); setCopiedId(id); setTimeout(() => setCopiedId(null), 1500); };
 

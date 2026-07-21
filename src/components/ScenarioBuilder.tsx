@@ -1,11 +1,10 @@
 import { useState, useCallback } from "react";
+import BlueprintHero from "@/components/BlueprintHero";
 import { motion, AnimatePresence } from "framer-motion";
 import { GitBranch, ChevronRight, ChevronDown, Copy, Loader2, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { SCENARIO_PRESETS } from "@/lib/toolPresets";
-import heroScenario from "@/assets/hero-scenario.jpg";
-
 interface ScenarioNode {
   id: string;
   label: string;
@@ -162,7 +161,7 @@ export default function ScenarioBuilder({ serviceNames, className }: Props) {
         {tree.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="relative w-full max-w-[340px] mb-4">
-              <img src={heroScenario} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <BlueprintHero variant="scenario" className="w-full rounded-2xl" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
             <p className="text-sm font-medium text-foreground">Постройте дерево разговора</p>
