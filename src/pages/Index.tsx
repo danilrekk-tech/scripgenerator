@@ -533,6 +533,8 @@ export default function Index() {
   ];
 
   return (
+    <>
+    {showUpsellManager && <UpsellManager onClose={() => setShowUpsellManager(false)} serviceNames={serviceNames} />}
     <div
       className="flex flex-col overflow-hidden"
       style={{
