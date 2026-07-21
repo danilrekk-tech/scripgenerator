@@ -747,6 +747,7 @@ export default function Index() {
 
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
     </div>
+    </>
   );
 }
 
