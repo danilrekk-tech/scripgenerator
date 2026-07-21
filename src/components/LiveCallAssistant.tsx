@@ -1,11 +1,10 @@
 import { useState, useCallback, useRef } from "react";
+import BlueprintHero from "@/components/BlueprintHero";
 import { motion, AnimatePresence } from "framer-motion";
 import { Headphones, Send, Loader2, RotateCcw, Volume2, Zap } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { QUICK_CLIENT_LINES } from "@/lib/toolPresets";
-import heroSuflyor from "@/assets/hero-suflyor.jpg";
-
 interface Props {
   serviceNames: string[];
   className?: string;
@@ -112,7 +111,7 @@ export default function LiveCallAssistant({ serviceNames, className }: Props) {
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="relative w-full max-w-[280px] mb-4">
-              <img src={heroSuflyor} alt="" loading="lazy" className="w-full rounded-2xl opacity-80 mix-blend-screen" />
+              <BlueprintHero variant="suflyor" className="w-full rounded-2xl opacity-80 mix-blend-screen" />
               <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent rounded-2xl" />
             </div>
             <p className="text-sm font-medium text-foreground mb-1">Подскажу что ответить</p>

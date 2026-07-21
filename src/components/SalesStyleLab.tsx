@@ -1,11 +1,10 @@
 import { useState, useCallback } from "react";
+import BlueprintHero from "@/components/BlueprintHero";
 import { motion } from "framer-motion";
 import { Palette, Loader2, Copy, Save, RotateCcw, CheckCircle, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { STYLE_SAMPLE_DIALOGS } from "@/lib/toolPresets";
-import heroStyle from "@/assets/hero-style.jpg";
-
 const STORAGE_KEY = "scriptengine-sales-style";
 
 interface SalesProfile {
@@ -148,7 +147,7 @@ export default function SalesStyleLab({ className }: Props) {
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="relative w-full max-w-[320px] mb-4">
-              <img src={heroStyle} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <BlueprintHero variant="style" className="w-full rounded-2xl" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
             <p className="text-sm font-medium text-foreground">Найдём ваш почерк продаж</p>

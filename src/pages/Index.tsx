@@ -50,6 +50,8 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { usePhraseBank } from "@/hooks/usePhraseBank";
 import { useClientPersonas } from "@/hooks/useClientPersonas";
 import { useScriptNotes } from "@/hooks/useScriptNotes";
+import { useUpsells } from "@/hooks/useUpsells";
+import UpsellManager from "@/components/UpsellManager";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
@@ -94,6 +96,8 @@ export default function Index() {
   const { notes, addNote, removeNote, clearNotes } = useScriptNotes();
   const { syncNow } = useCloudBackup(user?.id ?? null);
   const { enabled: modulesEnabled, isEnabled: isModuleEnabled, toggle: _toggleMod, setAll: _setAllMod, layout, updateLayout } = useModules();
+  const { items: upsells } = useUpsells();
+  const [showUpsellManager, setShowUpsellManager] = useState(false);
   void _toggleMod; void _setAllMod;
   const isMobile = useIsMobile();
 
@@ -158,16 +162,55 @@ export default function Index() {
     });
   }, [config, isGenerating, isMobile, desktopPanel, getServiceContext, clearNotes]);
 
-  const handleCompanionGenerate = useCallback((type: "objections" | "arguments" | "benefits" | "dozim") => {
+  const handleCompanionGenerate = useCallback((type: "objections" | "arguments" | "benefits" | "dozim" | "upsell", upsellIds?: string[]) => {
     if (isGenerating || !script) return;
-    const typeLabels = { objections: "возможные возражения клиента и ответы", arguments: "дополнительные аргументы", benefits: "конкретные выгоды клиента", dozim: "фразы для дожима" };
-    const companionContext = `ОСНОВНОЙ СКРИПТ:\n${script}\n\nЗАДАЧА: Сгенерируй ${typeLabels[type]}. Дополнение к основному скрипту для ОДНОГО разговора.`;
+    const typeLabels = { objections: "возможные возражения клиента и ответы", arguments: "дополнительные аргументы", benefits: "конкретные выгоды клиента", dozim: "фразы для дожима", upsell: "логичные предложения допродаж" };
+    // Enforce structured markdown output
+    const structureHint = type === "upsell"
+      ? `Верни СТРОГО структуру в markdown:
+## 💼 Что предлагаем сверху
+- список выбранных допов, каждый одной строкой (название — 1 предложение ценности)
+
+## 🎯 Мостик из основного скрипта
+- 2-3 варианта фраз для естественного перехода от основной услуги к допам (используй имена [Имя менеджера], [Имя клиента])
+
+## 🗣️ Готовые формулировки предложения
+- по одной "речёвке" на каждый доп: контекст → выгода → цена → мягкий вопрос-закрытие
+
+## 🛡️ Ответы на "нам это не нужно"
+- 2 короткие реплики на каждое возражение против допов
+
+Пиши без воды, каждый пункт максимум 2 предложения.`
+      : `Верни СТРОГО структуру в markdown с разделами и списками:
+## 🎯 Суть
+- 1-2 предложения контекста
+## 📋 ${type === "objections" ? "Возражения и ответы" : type === "arguments" ? "Аргументы" : type === "benefits" ? "Выгоды" : "Приёмы дожима"}
+- 5 нумерованных пунктов, каждый: **заголовок** — ответ/формулировка 1-2 предложения
+## 💬 Готовые фразы менеджера
+- 3-5 коротких реплик с [Имя менеджера] и [Имя клиента]
+## ➡️ Следующий шаг
+- одна фраза-мост к продолжению разговора
+
+Продолжай логику основного скрипта, не повторяй уже сказанное.`;
+
+    let extra = "";
+    if (type === "upsell") {
+      const chosen = (upsells || []).filter((u) => (upsellIds && upsellIds.length ? upsellIds.includes(u.id) : true));
+      if (chosen.length > 0) {
+        extra = `\n\nКАТАЛОГ ДОПРОДАЖ (используй ИМЕННО их, не выдумывай):\n` + chosen.map((u, i) => `${i + 1}. ${u.name}${u.price ? ` — ${u.price}` : ""}\n   ${u.description}${u.bestFor ? `\n   Когда: ${u.bestFor}` : ""}`).join("\n");
+      } else {
+        extra = `\n\nКлиент не задал каталог — предложи 2-3 логичных допродажи под услугу "${config.service}".`;
+      }
+    }
+
+    const companionContext = `ОСНОВНОЙ СКРИПТ:\n${script}\n\nЗАДАЧА: Сгенерируй ${typeLabels[type]}. Это ЛОГИЧЕСКОЕ ПРОДОЛЖЕНИЕ ОДНОГО разговора, а не новый скрипт.${extra}\n\n${structureHint}`;
     setIsGenerating(true); setScript((prev) => prev + "\n\n---\n\n"); setPendingHistorySave(true);
     const svcContext = getServiceContext(config.service);
     const enrichedContext = svcContext ? `${svcContext}\n\n${companionContext}` : companionContext;
-    const payload: Record<string, string> = { ...config, mode: type === "dozim" ? "dozim" : "arguments", context: enrichedContext };
+    const mode = type === "dozim" ? "dozim" : type === "upsell" ? "arguments" : "arguments";
+    const payload: Record<string, string> = { ...config, mode, context: enrichedContext };
     streamScript({ config: payload, onDelta: (chunk) => setScript((prev) => prev + chunk), onDone: () => setIsGenerating(false), onError: (msg) => { toast.error(msg); setIsGenerating(false); setPendingHistorySave(false); } });
-  }, [config, isGenerating, script, getServiceContext]);
+  }, [config, isGenerating, script, getServiceContext, upsells]);
 
   const handleScoreScript = useCallback(() => {
     if (!script || isScoring) return;
@@ -409,7 +452,8 @@ export default function Index() {
                   <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings}
                     onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring}
                     isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite}
-                    onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />
+                    onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote}
+                    upsells={upsells} onOpenUpsellManager={() => setShowUpsellManager(true)} />
                   <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
                     serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-l border-border/50" />
                 </>
@@ -489,6 +533,8 @@ export default function Index() {
   ];
 
   return (
+    <>
+    {showUpsellManager && <UpsellManager onClose={() => setShowUpsellManager(false)} serviceNames={serviceNames} />}
     <div
       className="flex flex-col overflow-hidden"
       style={{
@@ -517,7 +563,7 @@ export default function Index() {
         style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom, 8px))" }}
       >
         {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
-        {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} />}
+        {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} upsells={upsells} onOpenUpsellManager={() => setShowUpsellManager(true)} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
         {mobileTab === "display-settings" && <div className="h-full overflow-y-auto p-6"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>}
         {mobileTab === "audit" && <SiteAudit onGenerateScript={handleAuditGenerate} isGenerating={isGenerating} serviceNames={serviceNames} className="h-full" />}
@@ -553,7 +599,7 @@ export default function Index() {
 
       {/* Mobile tool overlay for simulator */}
       <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[80vh] overflow-y-auto overscroll-contain p-0" style={{ WebkitOverflowScrolling: "touch" }}>
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85dvh] p-0">
           <SheetHeader className="px-4 py-3 border-b border-border/50 sticky top-0 glass-panel z-10">
             <SheetTitle className="text-sm">
               {simulatorToolOverlay === "armory" && "Арсенал возражений"}
@@ -594,7 +640,7 @@ export default function Index() {
       </nav>
 
       <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
-        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="glass-panel border-border/50 rounded-t-2xl max-h-[85dvh]">
           <SheetHeader><SheetTitle className="text-base">Меню</SheetTitle></SheetHeader>
           <div className="flex flex-col gap-3 py-3">
             <div className="grid grid-cols-2 gap-2 px-4">
@@ -701,6 +747,7 @@ export default function Index() {
 
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
     </div>
+    </>
   );
 }
 

@@ -1,11 +1,10 @@
 import { useState, useCallback } from "react";
+import BlueprintHero from "@/components/BlueprintHero";
 import { motion } from "framer-motion";
 import { FileSearch, Loader2, Globe, Building2, Copy, Sparkles } from "lucide-react";
 import { streamScript } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { PRECALL_PRESETS } from "@/lib/toolPresets";
-import heroBrief from "@/assets/hero-brief.jpg";
-
 interface Props {
   serviceNames: string[];
   className?: string;
@@ -116,7 +115,7 @@ export default function PreCallBrief({ serviceNames, className }: Props) {
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="relative w-full max-w-[320px] mb-4">
-              <img src={heroBrief} alt="" loading="lazy" className="w-full rounded-2xl opacity-90" />
+              <BlueprintHero variant="brief" className="w-full rounded-2xl" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent rounded-2xl" />
             </div>
             <p className="text-sm font-medium text-foreground">Введите данные о компании</p>

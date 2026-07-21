@@ -431,8 +431,14 @@
 }
 
 /* Script output rich text */
+.script-content {
+  /* Улучшение читаемости на стеклянных/градиентных фонах */
+  text-shadow: 0 1px 0 hsl(var(--background) / 0.4);
+  color: hsl(var(--foreground));
+}
 .script-content strong {
   @apply text-foreground font-semibold;
+  text-shadow: 0 1px 2px hsl(var(--background) / 0.6);
 }
 
 .script-content em {
@@ -445,6 +451,11 @@
 
 .script-content .numbered-item-number {
   @apply text-muted-foreground font-mono text-xs mr-2;
+}
+
+/* Auto-contrast helper: any .glass-card containing text gets subtle base */
+.glass-card .text-muted-foreground {
+  color: hsl(var(--muted-foreground) / 0.95);
 }
 
 /* Fade in animation */
