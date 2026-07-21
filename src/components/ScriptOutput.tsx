@@ -350,7 +350,10 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
 
                 {showCompanionButtons && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-8 pt-6 border-t border-border/30">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Дополнить скрипт</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Дополнить скрипт</p>
+                      <p className="text-[10px] text-muted-foreground/70">Продолжает логику диалога</p>
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       {COMPANION_BUTTONS.map((btn) => (
                         <button key={btn.type} onClick={() => onCompanionGenerate!(btn.type)}
@@ -359,6 +362,62 @@ export default function ScriptOutput({ script, isGenerating, mode, displaySettin
                           <div><span className="text-xs font-medium block">{btn.label}</span><span className="text-[10px] text-muted-foreground">{btn.desc}</span></div>
                         </button>
                       ))}
+                    </div>
+
+                    {/* Upsell block */}
+                    <div className="mt-3 glass-card border border-primary/30 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <ShoppingBag className="w-4 h-4 text-primary" />
+                          <span className="text-xs font-semibold">Допродажи</span>
+                        </div>
+                        {onOpenUpsellManager && (
+                          <button onClick={onOpenUpsellManager} className="text-[10px] px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 flex items-center gap-1" title="Управлять допами">
+                            <Settings2 className="w-3 h-3" /> Управлять
+                          </button>
+                        )}
+                      </div>
+                      {upsells.length === 0 ? (
+                        <p className="text-[11px] text-muted-foreground">Добавьте свои допы через «Управлять», и AI встроит их в скрипт логично.</p>
+                      ) : (
+                        <>
+                          {!showUpsellPicker ? (
+                            <button onClick={() => setShowUpsellPicker(true)} className="w-full text-left text-[11px] text-muted-foreground hover:text-foreground p-2 rounded-lg hover:bg-accent/30">
+                              Выбрать, что предложить сверху ({upsells.length} доступно) →
+                            </button>
+                          ) : (
+                            <div className="space-y-1.5">
+                              <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                                {upsells.map((u) => {
+                                  const on = selectedUpsells.has(u.id);
+                                  return (
+                                    <label key={u.id} className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition ${on ? "bg-primary/10 border border-primary/30" : "border border-border/30 hover:bg-accent/30"}`}>
+                                      <input type="checkbox" checked={on} onChange={() => {
+                                        setSelectedUpsells((prev) => { const n = new Set(prev); n.has(u.id) ? n.delete(u.id) : n.add(u.id); return n; });
+                                      }} className="mt-0.5" />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-baseline gap-2">
+                                          <span className="text-xs font-medium text-foreground">{u.name}</span>
+                                          {u.price && <span className="text-[10px] text-primary">{u.price}</span>}
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground line-clamp-2">{u.description}</p>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => { onCompanionGenerate!("upsell", Array.from(selectedUpsells.size ? selectedUpsells : new Set(upsells.map(u => u.id)))); setShowUpsellPicker(false); }}
+                                  className="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-medium btn-tactile flex items-center justify-center gap-1.5">
+                                  <ShoppingBag className="w-3.5 h-3.5" /> Встроить {selectedUpsells.size || "все"} в скрипт
+                                </button>
+                                <button onClick={() => setShowUpsellPicker(false)} className="px-3 py-2 border border-border/50 rounded-lg text-xs text-muted-foreground">Отмена</button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}
