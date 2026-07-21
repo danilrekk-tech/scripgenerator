@@ -50,6 +50,8 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { usePhraseBank } from "@/hooks/usePhraseBank";
 import { useClientPersonas } from "@/hooks/useClientPersonas";
 import { useScriptNotes } from "@/hooks/useScriptNotes";
+import { useUpsells } from "@/hooks/useUpsells";
+import UpsellManager from "@/components/UpsellManager";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
@@ -94,6 +96,8 @@ export default function Index() {
   const { notes, addNote, removeNote, clearNotes } = useScriptNotes();
   const { syncNow } = useCloudBackup(user?.id ?? null);
   const { enabled: modulesEnabled, isEnabled: isModuleEnabled, toggle: _toggleMod, setAll: _setAllMod, layout, updateLayout } = useModules();
+  const { items: upsells } = useUpsells();
+  const [showUpsellManager, setShowUpsellManager] = useState(false);
   void _toggleMod; void _setAllMod;
   const isMobile = useIsMobile();
 
@@ -158,16 +162,55 @@ export default function Index() {
     });
   }, [config, isGenerating, isMobile, desktopPanel, getServiceContext, clearNotes]);
 
-  const handleCompanionGenerate = useCallback((type: "objections" | "arguments" | "benefits" | "dozim") => {
+  const handleCompanionGenerate = useCallback((type: "objections" | "arguments" | "benefits" | "dozim" | "upsell", upsellIds?: string[]) => {
     if (isGenerating || !script) return;
-    const typeLabels = { objections: "возможные возражения клиента и ответы", arguments: "дополнительные аргументы", benefits: "конкретные выгоды клиента", dozim: "фразы для дожима" };
-    const companionContext = `ОСНОВНОЙ СКРИПТ:\n${script}\n\nЗАДАЧА: Сгенерируй ${typeLabels[type]}. Дополнение к основному скрипту для ОДНОГО разговора.`;
+    const typeLabels = { objections: "возможные возражения клиента и ответы", arguments: "дополнительные аргументы", benefits: "конкретные выгоды клиента", dozim: "фразы для дожима", upsell: "логичные предложения допродаж" };
+    // Enforce structured markdown output
+    const structureHint = type === "upsell"
+      ? `Верни СТРОГО структуру в markdown:
+## 💼 Что предлагаем сверху
+- список выбранных допов, каждый одной строкой (название — 1 предложение ценности)
+
+## 🎯 Мостик из основного скрипта
+- 2-3 варианта фраз для естественного перехода от основной услуги к допам (используй имена [Имя менеджера], [Имя клиента])
+
+## 🗣️ Готовые формулировки предложения
+- по одной "речёвке" на каждый доп: контекст → выгода → цена → мягкий вопрос-закрытие
+
+## 🛡️ Ответы на "нам это не нужно"
+- 2 короткие реплики на каждое возражение против допов
+
+Пиши без воды, каждый пункт максимум 2 предложения.`
+      : `Верни СТРОГО структуру в markdown с разделами и списками:
+## 🎯 Суть
+- 1-2 предложения контекста
+## 📋 ${type === "objections" ? "Возражения и ответы" : type === "arguments" ? "Аргументы" : type === "benefits" ? "Выгоды" : "Приёмы дожима"}
+- 5 нумерованных пунктов, каждый: **заголовок** — ответ/формулировка 1-2 предложения
+## 💬 Готовые фразы менеджера
+- 3-5 коротких реплик с [Имя менеджера] и [Имя клиента]
+## ➡️ Следующий шаг
+- одна фраза-мост к продолжению разговора
+
+Продолжай логику основного скрипта, не повторяй уже сказанное.`;
+
+    let extra = "";
+    if (type === "upsell") {
+      const chosen = (upsells || []).filter((u) => (upsellIds && upsellIds.length ? upsellIds.includes(u.id) : true));
+      if (chosen.length > 0) {
+        extra = `\n\nКАТАЛОГ ДОПРОДАЖ (используй ИМЕННО их, не выдумывай):\n` + chosen.map((u, i) => `${i + 1}. ${u.name}${u.price ? ` — ${u.price}` : ""}\n   ${u.description}${u.bestFor ? `\n   Когда: ${u.bestFor}` : ""}`).join("\n");
+      } else {
+        extra = `\n\nКлиент не задал каталог — предложи 2-3 логичных допродажи под услугу "${config.service}".`;
+      }
+    }
+
+    const companionContext = `ОСНОВНОЙ СКРИПТ:\n${script}\n\nЗАДАЧА: Сгенерируй ${typeLabels[type]}. Это ЛОГИЧЕСКОЕ ПРОДОЛЖЕНИЕ ОДНОГО разговора, а не новый скрипт.${extra}\n\n${structureHint}`;
     setIsGenerating(true); setScript((prev) => prev + "\n\n---\n\n"); setPendingHistorySave(true);
     const svcContext = getServiceContext(config.service);
     const enrichedContext = svcContext ? `${svcContext}\n\n${companionContext}` : companionContext;
-    const payload: Record<string, string> = { ...config, mode: type === "dozim" ? "dozim" : "arguments", context: enrichedContext };
+    const mode = type === "dozim" ? "dozim" : type === "upsell" ? "arguments" : "arguments";
+    const payload: Record<string, string> = { ...config, mode, context: enrichedContext };
     streamScript({ config: payload, onDelta: (chunk) => setScript((prev) => prev + chunk), onDone: () => setIsGenerating(false), onError: (msg) => { toast.error(msg); setIsGenerating(false); setPendingHistorySave(false); } });
-  }, [config, isGenerating, script, getServiceContext]);
+  }, [config, isGenerating, script, getServiceContext, upsells]);
 
   const handleScoreScript = useCallback(() => {
     if (!script || isScoring) return;
