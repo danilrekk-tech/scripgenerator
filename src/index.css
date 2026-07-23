@@ -338,6 +338,28 @@
     box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 16px hsl(var(--primary) / 0.12);
   }
 
+  /* Global icon contrast safeguard: prevent low-visibility SVG icons on glass surfaces.
+     Any icon rendered inside .glass-card / .glass-panel that uses accent/muted tones
+     gets a minimum opacity floor and a subtle text-shadow-like drop-shadow so it stays
+     readable across all themes (light, dark, ocean, forest, sunset, midnight). */
+  .glass-card svg,
+  .glass-panel svg {
+    filter: drop-shadow(0 0 0.5px hsl(var(--background) / 0.4));
+  }
+  .glass-card svg[class*="text-accent"],
+  .glass-panel svg[class*="text-accent"],
+  .glass-card svg[class*="text-muted-foreground"],
+  .glass-panel svg[class*="text-muted-foreground"] {
+    opacity: 0.95;
+  }
+  /* Ensure any opacity utility below 0.7 on icons is clamped to at least 0.7 for a11y */
+  .glass-card svg[class*="opacity-5"],
+  .glass-card svg[class*="opacity-6"],
+  .glass-panel svg[class*="opacity-5"],
+  .glass-panel svg[class*="opacity-6"] {
+    opacity: 0.75 !important;
+  }
+
   /* Animated tool icon: subtle idle float + gentle hover pop, works via .group */
   .tool-icon-animated > svg {
     transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.35s ease;

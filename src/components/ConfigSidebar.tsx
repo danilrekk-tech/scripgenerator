@@ -34,6 +34,8 @@ export type ScriptConfig = {
   transcriptSubmode: TranscriptSubmode;
   personaId: string;
   quickTemplateId: string;
+  backstory: string;
+  clientSiteUrl: string;
 };
 
 export type Currency = "RUB" | "UZS" | "BYN" | "KZT";
@@ -462,6 +464,20 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         <Field label="Дополнительный контекст">
           <textarea className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none h-20"
             placeholder="Возражение, детали бизнеса..." value={config.context} onChange={(e) => update("context", e.target.value)} />
+        </Field>
+
+        <Field label="Предыстория взаимодействия">
+          <textarea className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none h-20"
+            placeholder="Например: уже общались 2 недели назад, клиент запросил КП, но пропал. Ранее работал с конкурентом..."
+            value={config.backstory || ""} onChange={(e) => update("backstory", e.target.value)} />
+          <p className="text-[10px] text-muted-foreground">Скрипт адаптируется под контекст предыдущих касаний</p>
+        </Field>
+
+        <Field label="Сайт клиента (для анализа тематики)">
+          <input type="url" className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            placeholder="https://client-site.ru"
+            value={config.clientSiteUrl || ""} onChange={(e) => update("clientSiteUrl", e.target.value)} />
+          <p className="text-[10px] text-muted-foreground">Если указан — перед генерацией AI проанализирует сайт и адаптирует скрипт под тематику клиента. Пусто — обычная генерация.</p>
         </Field>
       </Section>
 
