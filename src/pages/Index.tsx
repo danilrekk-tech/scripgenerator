@@ -72,6 +72,7 @@ const defaultConfig: ScriptConfig = {
   tone: "Уверенный эксперт", context: "", mode: "script", transcript: "", priceRub: "",
   currency: "RUB", emailSubtype: "follow-up", emailObjection: "", scriptLength: "medium",
   dozimSubtype: "thinking", transcriptSubmode: "analysis", personaId: "", quickTemplateId: "",
+  backstory: "", clientSiteUrl: "",
 };
 
 type ModulePanel = `mod-${ModuleId}`;
@@ -135,7 +136,7 @@ export default function Index() {
     }
   }, [pendingHistorySave, isGenerating, script]);
 
-  const generate = useCallback((overrideContext?: string) => {
+  const generate = useCallback(async (overrideContext?: string) => {
     if (isGenerating) return;
     setIsGenerating(true); setScript(""); setPendingHistorySave(true); clearNotes();
     if (isMobile) setMobileTab("output");
@@ -143,6 +144,42 @@ export default function Index() {
     const svcContext = getServiceContext(config.service);
     const baseContext = overrideContext || config.context;
     let enrichedContext = svcContext ? `${svcContext}\n\nКОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:\n${baseContext}` : baseContext;
+
+    // Inject backstory
+    if (config.backstory?.trim()) {
+      enrichedContext = `ПРЕДЫСТОРИЯ ВЗАИМОДЕЙСТВИЯ С КЛИЕНТОМ (учти это в подаче):\n${config.backstory.trim()}\n\n---\n\n${enrichedContext}`;
+    }
+
+    // Analyze client website if provided
+    if (config.clientSiteUrl?.trim()) {
+      try {
+        toast.loading("Анализируем сайт клиента...", { id: "site-analysis" });
+        const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/site-audit`;
+        const resp = await fetch(CHAT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+          body: JSON.stringify({ url: config.clientSiteUrl.trim() }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const findDetail = (name: string) => data.checks?.find((c: any) => c.name === name)?.detail || "";
+          const siteInfo = [
+            `URL: ${data.url}`,
+            `Title: ${findDetail("Title тег")}`,
+            `H1: ${findDetail("Тег H1")}`,
+            `Description: ${findDetail("Meta Description")}`,
+            `Резюме: ${data.summary}`,
+          ].filter(Boolean).join("\n");
+          enrichedContext = `АНАЛИЗ САЙТА КЛИЕНТА (адаптируй скрипт под его нишу и говори на его языке):\n${siteInfo}\n\n---\n\n${enrichedContext}`;
+          toast.success("Сайт проанализирован", { id: "site-analysis" });
+        } else {
+          toast.error("Не удалось проанализировать сайт — генерируем без него", { id: "site-analysis" });
+        }
+      } catch {
+        toast.dismiss("site-analysis");
+      }
+    }
+
     // Inject sales-style profile if exists
     try {
       const styleRaw = localStorage.getItem(SALES_STYLE_KEY);

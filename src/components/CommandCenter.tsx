@@ -104,7 +104,7 @@ export default function CommandCenter({
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Генераций</p>
             <div className="flex items-end justify-between">
               <span className="font-display text-3xl font-bold text-foreground tabular-nums">{historyCount}</span>
-              <History className="w-5 h-5 text-accent/70" />
+              <History className="w-5 h-5 text-primary" />
             </div>
           </div>
 
@@ -113,14 +113,16 @@ export default function CommandCenter({
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Избранное</p>
             <div className="flex items-end justify-between">
               <span className="font-display text-3xl font-bold text-foreground tabular-nums">{favoritesCount}</span>
-              <Star className="w-5 h-5 text-accent/70" />
+              <Star className="w-5 h-5 text-primary" />
             </div>
           </div>
 
           {/* Quick actions row */}
           <button onClick={() => onOpenPanel("pre-call-brief")}
-            className="col-span-2 lg:col-span-1 glass-card border border-border/50 rounded-[2rem] p-5 hover:border-accent/40 transition-all btn-tactile text-left min-h-[130px] flex flex-col justify-between">
-            <FileText className="w-5 h-5 text-accent" />
+            className="col-span-2 lg:col-span-1 glass-card border border-border/50 rounded-[2rem] p-5 hover:border-primary/40 transition-all btn-tactile text-left min-h-[130px] flex flex-col justify-between">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'hsl(var(--primary)/0.15)' }}>
+              <FileText className="w-5 h-5 text-primary" />
+            </div>
             <div>
               <p className="font-semibold text-foreground text-sm">Пре-сейл бриф</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Готовься к звонку</p>
@@ -128,8 +130,10 @@ export default function CommandCenter({
           </button>
 
           <button onClick={() => onOpenPanel("kp-constructor")}
-            className="col-span-2 lg:col-span-1 glass-card border border-border/50 rounded-[2rem] p-5 hover:border-accent/40 transition-all btn-tactile text-left min-h-[130px] flex flex-col justify-between">
-            <Layers className="w-5 h-5 text-accent" />
+            className="col-span-2 lg:col-span-1 glass-card border border-border/50 rounded-[2rem] p-5 hover:border-primary/40 transition-all btn-tactile text-left min-h-[130px] flex flex-col justify-between">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'hsl(var(--primary)/0.15)' }}>
+              <Layers className="w-5 h-5 text-primary" />
+            </div>
             <div>
               <p className="font-semibold text-foreground text-sm">Конструктор КП</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Собери предложение</p>
@@ -140,7 +144,7 @@ export default function CommandCenter({
           <div className="col-span-4 lg:col-span-2 glass-card border border-border/50 rounded-[2rem] p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'hsl(var(--primary)/0.2)' }}>
-                <TrendingUp className="w-5 h-5 text-accent" />
+                <TrendingUp className="w-5 h-5 text-primary" />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground">Сегодня: {todayCount} генераций</p>
