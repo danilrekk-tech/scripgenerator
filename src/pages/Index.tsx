@@ -1,8 +1,12 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import ConfigSidebar, { type ScriptConfig, type GenerationMode } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
+import ContextPreview from "@/components/ContextPreview";
+import { buildContextSections, sectionsToPrompt } from "@/lib/contextBuilder";
+import { useArmoryItems } from "@/hooks/useArmoryItems";
 import Armory from "@/components/Armory";
+
 import DisplaySettingsPanel from "@/components/DisplaySettingsPanel";
 import SiteAudit from "@/components/SiteAudit";
 import ObjectionTrainer from "@/components/ObjectionTrainer";
@@ -72,7 +76,7 @@ const defaultConfig: ScriptConfig = {
   tone: "Уверенный эксперт", context: "", mode: "script", transcript: "", priceRub: "",
   currency: "RUB", emailSubtype: "follow-up", emailObjection: "", scriptLength: "medium",
   dozimSubtype: "thinking", transcriptSubmode: "analysis", personaId: "", quickTemplateId: "",
-  backstory: "", clientSiteUrl: "",
+  backstory: "", clientSiteUrl: "", scenarioType: "", templateIds: "",
 };
 
 type ModulePanel = `mod-${ModuleId}`;
@@ -115,6 +119,50 @@ export default function Index() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   // For simulator tool overlay - preserve simulator state while viewing tools
   const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
+  const [showContextPreview, setShowContextPreview] = useState(false);
+  const { items: armoryItems } = useArmoryItems();
+
+  const personaSummary = useMemo(() => {
+    const p = personas.find((x) => x.id === config.personaId);
+    if (!p) return "";
+    return `${p.name} — ${p.role}. Стиль общения: ${p.communication}`;
+  }, [personas, config.personaId]);
+
+  const contextSections = useMemo(() => buildContextSections({
+    service: config.service,
+    serviceContext: getServiceContext(config.service),
+    scenarioType: config.scenarioType,
+    templateIds: config.templateIds,
+    backstory: config.backstory,
+    clientSiteUrl: config.clientSiteUrl,
+    userContext: config.context,
+    personaSummary,
+    salesStyle: (() => {
+      try {
+        const raw = localStorage.getItem(SALES_STYLE_KEY);
+        return raw ? (JSON.parse(raw)?.recommendations || "") : "";
+      } catch { return ""; }
+    })(),
+    armory: armoryItems,
+  }), [config, getServiceContext, personaSummary, armoryItems]);
+
+  // Deep-link из Chrome-расширения: ?service=&situation=&tone=&site=&context=&autostart=1
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (![...p.keys()].length) return;
+    const patch: Partial<ScriptConfig> = {};
+    if (p.get("service")) patch.service = p.get("service")!;
+    if (p.get("situation")) patch.situation = p.get("situation")!;
+    if (p.get("tone")) patch.tone = p.get("tone")!;
+    if (p.get("site")) patch.clientSiteUrl = p.get("site")!;
+    if (p.get("context")) patch.context = p.get("context")!;
+    if (Object.keys(patch).length) {
+      setConfig((prev) => ({ ...prev, ...patch }));
+      toast.success("Параметры получены из расширения");
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
+
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -141,21 +189,13 @@ export default function Index() {
     setIsGenerating(true); setScript(""); setPendingHistorySave(true); clearNotes();
     if (isMobile) setMobileTab("output");
     if (desktopPanel !== "main") setDesktopPanel("main");
-    const svcContext = getServiceContext(config.service);
-    const baseContext = overrideContext || config.context;
-    let enrichedContext = svcContext ? `${svcContext}\n\nКОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:\n${baseContext}` : baseContext;
 
-    // Inject backstory
-    if (config.backstory?.trim()) {
-      enrichedContext = `ПРЕДЫСТОРИЯ ВЗАИМОДЕЙСТВИЯ С КЛИЕНТОМ (учти это в подаче):\n${config.backstory.trim()}\n\n---\n\n${enrichedContext}`;
-    }
-
-    // Analyze client website if provided
+    let siteSummary = "";
     if (config.clientSiteUrl?.trim()) {
       try {
         toast.loading("Анализируем сайт клиента...", { id: "site-analysis" });
-        const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/site-audit`;
-        const resp = await fetch(CHAT_URL, {
+        const AUDIT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/site-audit`;
+        const resp = await fetch(AUDIT_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
           body: JSON.stringify({ url: config.clientSiteUrl.trim() }),
@@ -163,14 +203,13 @@ export default function Index() {
         if (resp.ok) {
           const data = await resp.json();
           const findDetail = (name: string) => data.checks?.find((c: any) => c.name === name)?.detail || "";
-          const siteInfo = [
+          siteSummary = [
             `URL: ${data.url}`,
             `Title: ${findDetail("Title тег")}`,
             `H1: ${findDetail("Тег H1")}`,
             `Description: ${findDetail("Meta Description")}`,
             `Резюме: ${data.summary}`,
           ].filter(Boolean).join("\n");
-          enrichedContext = `АНАЛИЗ САЙТА КЛИЕНТА (адаптируй скрипт под его нишу и говори на его языке):\n${siteInfo}\n\n---\n\n${enrichedContext}`;
           toast.success("Сайт проанализирован", { id: "site-analysis" });
         } else {
           toast.error("Не удалось проанализировать сайт — генерируем без него", { id: "site-analysis" });
@@ -180,24 +219,35 @@ export default function Index() {
       }
     }
 
-    // Inject sales-style profile if exists
+    let salesStyle = "";
     try {
       const styleRaw = localStorage.getItem(SALES_STYLE_KEY);
-      if (styleRaw) {
-        const profile = JSON.parse(styleRaw);
-        if (profile?.recommendations) {
-          enrichedContext = `СТИЛЬ МЕНЕДЖЕРА (имитируй этот стиль речи и подачи):\n${profile.recommendations}\n\n---\n\n${enrichedContext}`;
-        }
-      }
+      if (styleRaw) salesStyle = JSON.parse(styleRaw)?.recommendations || "";
     } catch {}
-    const payload: Record<string, string> = { ...config, context: enrichedContext };
+
+    const sections = buildContextSections({
+      service: config.service,
+      serviceContext: getServiceContext(config.service),
+      scenarioType: config.scenarioType,
+      templateIds: config.templateIds,
+      backstory: config.backstory,
+      clientSiteUrl: config.clientSiteUrl,
+      siteSummary,
+      userContext: overrideContext || config.context,
+      personaSummary,
+      salesStyle,
+      armory: armoryItems,
+    });
+
+    const payload: Record<string, string> = { ...config, context: sectionsToPrompt(sections) };
     streamScript({
       config: payload,
       onDelta: (chunk) => setScript((prev) => prev + chunk),
       onDone: () => setIsGenerating(false),
       onError: (msg) => { toast.error(msg); setIsGenerating(false); setPendingHistorySave(false); },
     });
-  }, [config, isGenerating, isMobile, desktopPanel, getServiceContext, clearNotes]);
+  }, [config, isGenerating, isMobile, desktopPanel, getServiceContext, clearNotes, personaSummary, armoryItems]);
+
 
   const handleCompanionGenerate = useCallback((type: "objections" | "arguments" | "benefits" | "dozim" | "upsell", upsellIds?: string[]) => {
     if (isGenerating || !script) return;
@@ -492,7 +542,9 @@ export default function Index() {
                     onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote}
                     upsells={upsells} onOpenUpsellManager={() => setShowUpsellManager(true)} />
                   <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
+                    personas={personas} onPreviewContext={() => setShowContextPreview(true)}
                     serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-l border-border/50" />
+
                 </>
               )}
               {desktopPanel === "armory" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" /></div>}
@@ -572,6 +624,11 @@ export default function Index() {
   return (
     <>
     {showUpsellManager && <UpsellManager onClose={() => setShowUpsellManager(false)} serviceNames={serviceNames} />}
+    {showContextPreview && (
+      <ContextPreview sections={contextSections} isGenerating={isGenerating}
+        onClose={() => setShowContextPreview(false)} onGenerate={() => generate()} />
+    )}
+
     <div
       className="flex flex-col overflow-hidden"
       style={{
@@ -599,7 +656,7 @@ export default function Index() {
         className="flex-1 min-h-0 overflow-hidden"
         style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom, 8px))" }}
       >
-        {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
+        {mobileTab === "config" && <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating} serviceNames={serviceNames} personas={personas} onPreviewContext={() => setShowContextPreview(true)} className="!w-full !border-r-0 h-full glass-panel" transcriberUrl={appSettings.transcriberUrl} />}
         {mobileTab === "output" && <ScriptOutput script={script} isGenerating={isGenerating} mode={config.mode} displaySettings={displaySettings} className="h-full" onCompanionGenerate={handleCompanionGenerate} onScoreScript={handleScoreScript} isScoring={isScoring} isFavorite={isFavorite(script)} onToggleFavorite={handleToggleFavorite} onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote} upsells={upsells} onOpenUpsellManager={() => setShowUpsellManager(true)} />}
         {mobileTab === "armory" && <Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" />}
         {mobileTab === "display-settings" && <div className="h-full overflow-y-auto p-6"><DisplaySettingsPanel settings={displaySettings} onUpdate={updateDisplay} onReset={resetDisplay} currentTheme={theme} onThemeChange={setTheme} /></div>}

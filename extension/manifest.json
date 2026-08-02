@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "ScriptEngine — скрипты продаж",
+  "version": "1.0.0",
+  "description": "Быстрая генерация скриптов продаж, отработка возражений и анализ сайта клиента прямо в браузере.",
+  "permissions": ["activeTab", "storage", "tabs", "contextMenus"],
+  "host_permissions": ["https://scripgenerator.lovable.app/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ScriptEngine",
+    "default_icon": { "48": "icon.png", "128": "icon.png" }
+  },
+  "background": { "service_worker": "background.js" },
+  "icons": { "48": "icon.png", "128": "icon.png" }
+}

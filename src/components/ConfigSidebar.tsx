@@ -6,10 +6,13 @@ import {
   Mic, Ban,
   Package, Lightbulb, HelpCircle, BookOpen, Gem, CheckSquare, BookMarked, FolderKanban,
   Zap, ChevronDown, Search, AlertTriangle, Info, Sparkles, Users,
-  Crosshair, type LucideIcon,
+  Crosshair, Eye, type LucideIcon,
 } from "lucide-react";
 import { validateConfig, QUICK_OBJECTION_TEMPLATES } from "@/lib/scriptHelpers";
+import { SCENARIO_TYPES, TEMPLATE_CATEGORIES, templatesFor, fillService, type TemplateCategory } from "@/lib/scenarioTemplates";
 import type { ClientPersona } from "@/hooks/useClientPersonas";
+
+
 
 export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base" | "dozim" | "messenger" | "touch-chain" | "funnel" | "anti-script" | "utp" | "sms" | "voicemail" | "social-posts" | "crm-template" | "checklist" | "glossary" | "objection-quick";
 export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
@@ -36,7 +39,10 @@ export type ScriptConfig = {
   quickTemplateId: string;
   backstory: string;
   clientSiteUrl: string;
+  scenarioType: string;
+  templateIds: string;
 };
+
 
 export type Currency = "RUB" | "UZS" | "BYN" | "KZT";
 
@@ -131,14 +137,24 @@ interface Props {
   defaultManagerName?: string;
   defaultClientName?: string;
   personas?: ClientPersona[];
+  onPreviewContext?: () => void;
 }
+
 
 type SectionKey = "what" | "who" | "how" | "details";
 
-export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl, defaultManagerName = "", defaultClientName = "", personas = [] }: Props) {
+export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl, defaultManagerName = "", defaultClientName = "", personas = [], onPreviewContext }: Props) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [modeSearch, setModeSearch] = useState("");
+  const [tplCategory, setTplCategory] = useState<TemplateCategory>("objections");
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(["what", "who", "how"]));
+
+  const selectedTplIds = (config.templateIds || "").split(",").map(s => s.trim()).filter(Boolean);
+  const toggleTemplate = (id: string) => {
+    const next = selectedTplIds.includes(id) ? selectedTplIds.filter(t => t !== id) : [...selectedTplIds, id];
+    onChange({ ...config, templateIds: next.join(",") });
+  };
+
 
   const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
   const toggleSection = (k: SectionKey) => setOpenSections(prev => {
@@ -409,6 +425,48 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
           </div>
         </Field>
 
+        <Field label="Тип сценария">
+          <div className="grid grid-cols-2 gap-1.5">
+            <button onClick={() => update("scenarioType", "")}
+              className={`text-[11px] px-2 py-1.5 rounded-lg border transition-all btn-tactile ${!config.scenarioType ? "chip-active" : "chip-inactive"}`}>
+              Не задан
+            </button>
+            {SCENARIO_TYPES.map((s) => (
+              <button key={s.id} onClick={() => update("scenarioType", s.id)} title={s.guidance}
+                className={`text-left text-[11px] px-2 py-1.5 rounded-lg border transition-all btn-tactile ${config.scenarioType === s.id ? "chip-active" : "chip-inactive"}`}>
+                <span className="block font-medium truncate">{s.label}</span>
+                <span className="block text-[9px] text-muted-foreground truncate">{s.desc}</span>
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label={`Шаблоны формулировок${selectedTplIds.length ? ` · выбрано ${selectedTplIds.length}` : ""}`}>
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            {TEMPLATE_CATEGORIES.map((c) => (
+              <button key={c.id} onClick={() => setTplCategory(c.id)}
+                className={`text-[10px] px-2 py-1 rounded-lg border transition-all btn-tactile ${tplCategory === c.id ? "chip-active" : "chip-inactive"}`}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-1 max-h-56 overflow-y-auto overscroll-contain pr-1">
+            {templatesFor(tplCategory).map((t) => {
+              const active = selectedTplIds.includes(t.id);
+              return (
+                <button key={t.id} onClick={() => toggleTemplate(t.id)}
+                  className={`w-full text-left px-2.5 py-2 rounded-lg border transition-all btn-tactile ${active ? "border-primary/50 bg-primary/10" : "border-border/50 bg-card/40 hover:border-primary/30"}`}>
+                  <span className={`block text-[11px] font-medium ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
+                  <span className="block text-[10px] text-muted-foreground leading-snug mt-0.5">{fillService(t.text, config.service)}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground">Формулировки автоматически подставляются под выбранную услугу</p>
+        </Field>
+
+
+
         {showSituation && (
           <Field label="Ситуация">
             <div className="flex flex-wrap gap-1.5">
@@ -502,10 +560,18 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </div>
       )}
 
+        {onPreviewContext && (
+          <button onClick={onPreviewContext}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-xl border border-border/50 text-foreground hover:bg-accent/40 transition-all btn-tactile">
+            <Eye className="w-3.5 h-3.5 text-primary" /> Предпросмотр контекста
+          </button>
+        )}
+
         <button onClick={onGenerate} disabled={isGenerating || hasError}
           className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide">
           {isGenerating ? "Генерация..." : MODE_LABELS[config.mode]}
         </button>
+
       </div>
     </aside>
   );
