@@ -36,7 +36,10 @@ export type ScriptConfig = {
   quickTemplateId: string;
   backstory: string;
   clientSiteUrl: string;
+  scenarioType: string;
+  templateIds: string;
 };
+
 
 export type Currency = "RUB" | "UZS" | "BYN" | "KZT";
 
