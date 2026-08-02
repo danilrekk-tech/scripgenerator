@@ -425,6 +425,48 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
           </div>
         </Field>
 
+        <Field label="Тип сценария">
+          <div className="grid grid-cols-2 gap-1.5">
+            <button onClick={() => update("scenarioType", "")}
+              className={`text-[11px] px-2 py-1.5 rounded-lg border transition-all btn-tactile ${!config.scenarioType ? "chip-active" : "chip-inactive"}`}>
+              Не задан
+            </button>
+            {SCENARIO_TYPES.map((s) => (
+              <button key={s.id} onClick={() => update("scenarioType", s.id)} title={s.guidance}
+                className={`text-left text-[11px] px-2 py-1.5 rounded-lg border transition-all btn-tactile ${config.scenarioType === s.id ? "chip-active" : "chip-inactive"}`}>
+                <span className="block font-medium truncate">{s.label}</span>
+                <span className="block text-[9px] text-muted-foreground truncate">{s.desc}</span>
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label={`Шаблоны формулировок${selectedTplIds.length ? ` · выбрано ${selectedTplIds.length}` : ""}`}>
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            {TEMPLATE_CATEGORIES.map((c) => (
+              <button key={c.id} onClick={() => setTplCategory(c.id)}
+                className={`text-[10px] px-2 py-1 rounded-lg border transition-all btn-tactile ${tplCategory === c.id ? "chip-active" : "chip-inactive"}`}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-1 max-h-56 overflow-y-auto overscroll-contain pr-1">
+            {templatesFor(tplCategory).map((t) => {
+              const active = selectedTplIds.includes(t.id);
+              return (
+                <button key={t.id} onClick={() => toggleTemplate(t.id)}
+                  className={`w-full text-left px-2.5 py-2 rounded-lg border transition-all btn-tactile ${active ? "border-primary/50 bg-primary/10" : "border-border/50 bg-card/40 hover:border-primary/30"}`}>
+                  <span className={`block text-[11px] font-medium ${active ? "text-primary" : "text-foreground"}`}>{t.label}</span>
+                  <span className="block text-[10px] text-muted-foreground leading-snug mt-0.5">{fillService(t.text, config.service)}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground">Формулировки автоматически подставляются под выбранную услугу</p>
+        </Field>
+
+
+
         {showSituation && (
           <Field label="Ситуация">
             <div className="flex flex-wrap gap-1.5">
