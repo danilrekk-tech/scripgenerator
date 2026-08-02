@@ -137,7 +137,9 @@ interface Props {
   defaultManagerName?: string;
   defaultClientName?: string;
   personas?: ClientPersona[];
+  onPreviewContext?: () => void;
 }
+
 
 type SectionKey = "what" | "who" | "how" | "details";
 
