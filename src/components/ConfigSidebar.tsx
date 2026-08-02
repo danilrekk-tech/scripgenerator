@@ -9,7 +9,10 @@ import {
   Crosshair, type LucideIcon,
 } from "lucide-react";
 import { validateConfig, QUICK_OBJECTION_TEMPLATES } from "@/lib/scriptHelpers";
+import { SCENARIO_TYPES, TEMPLATE_CATEGORIES, templatesFor, fillService, type TemplateCategory } from "@/lib/scenarioTemplates";
 import type { ClientPersona } from "@/hooks/useClientPersonas";
+
+
 
 export type GenerationMode = "script" | "service-info" | "arguments" | "buffer-questions" | "transcript-analysis" | "email" | "knowledge-base" | "dozim" | "messenger" | "touch-chain" | "funnel" | "anti-script" | "utp" | "sms" | "voicemail" | "social-posts" | "crm-template" | "checklist" | "glossary" | "objection-quick";
 export type EmailSubtype = "follow-up" | "kp-with-price" | "kp-no-price" | "objection" | "not-relevant" | "custom";
