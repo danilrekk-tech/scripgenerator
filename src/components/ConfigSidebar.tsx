@@ -143,10 +143,18 @@ interface Props {
 
 type SectionKey = "what" | "who" | "how" | "details";
 
-export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl, defaultManagerName = "", defaultClientName = "", personas = [] }: Props) {
+export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl, defaultManagerName = "", defaultClientName = "", personas = [], onPreviewContext }: Props) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [modeSearch, setModeSearch] = useState("");
+  const [tplCategory, setTplCategory] = useState<TemplateCategory>("objections");
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(["what", "who", "how"]));
+
+  const selectedTplIds = (config.templateIds || "").split(",").map(s => s.trim()).filter(Boolean);
+  const toggleTemplate = (id: string) => {
+    const next = selectedTplIds.includes(id) ? selectedTplIds.filter(t => t !== id) : [...selectedTplIds, id];
+    onChange({ ...config, templateIds: next.join(",") });
+  };
+
 
   const update = (key: keyof ScriptConfig, value: string) => onChange({ ...config, [key]: value });
   const toggleSection = (k: SectionKey) => setOpenSections(prev => {
