@@ -492,7 +492,9 @@ export default function Index() {
                     onScriptEdit={handleScriptEdit} notes={notes} onAddNote={addNote} onRemoveNote={removeNote}
                     upsells={upsells} onOpenUpsellManager={() => setShowUpsellManager(true)} />
                   <ConfigSidebar config={config} onChange={setConfig} onGenerate={() => generate()} isGenerating={isGenerating}
+                    personas={personas} onPreviewContext={() => setShowContextPreview(true)}
                     serviceNames={serviceNames} transcriberUrl={appSettings.transcriberUrl} className="glass-panel border-l border-border/50" />
+
                 </>
               )}
               {desktopPanel === "armory" && <div className="flex-1 glass-panel m-2 rounded-xl overflow-hidden"><Armory onSelect={handleArmorySelect} isGenerating={isGenerating} className="!w-full !border-l-0 h-full" /></div>}
