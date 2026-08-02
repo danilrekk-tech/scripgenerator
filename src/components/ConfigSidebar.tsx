@@ -6,7 +6,7 @@ import {
   Mic, Ban,
   Package, Lightbulb, HelpCircle, BookOpen, Gem, CheckSquare, BookMarked, FolderKanban,
   Zap, ChevronDown, Search, AlertTriangle, Info, Sparkles, Users,
-  Crosshair, type LucideIcon,
+  Crosshair, Eye, type LucideIcon,
 } from "lucide-react";
 import { validateConfig, QUICK_OBJECTION_TEMPLATES } from "@/lib/scriptHelpers";
 import { SCENARIO_TYPES, TEMPLATE_CATEGORIES, templatesFor, fillService, type TemplateCategory } from "@/lib/scenarioTemplates";
