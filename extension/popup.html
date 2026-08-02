@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>ScriptEngine</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="hdr">
+    <div class="logo">SE</div>
+    <div class="hdr-txt">
+      <h1>ScriptEngine</h1>
+      <p id="site-line">Скрипты продаж под рукой</p>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="gen">Скрипт</button>
+    <button class="tab" data-tab="obj">Возражения</button>
+    <button class="tab" data-tab="notes">Заметки</button>
+  </nav>
+
+  <main>
+    <section id="tab-gen" class="pane active">
+      <label>Услуга</label>
+      <select id="service"></select>
+
+      <label>Ситуация</label>
+      <div class="chips" id="situations"></div>
+
+      <label>Тон</label>
+      <div class="chips" id="tones"></div>
+
+      <label>Сайт клиента</label>
+      <input id="site" type="text" placeholder="https://client.ru" />
+
+      <label>Контекст / предыстория</label>
+      <textarea id="context" rows="3" placeholder="Что уже обсуждали, кто ЛПР, что важно..."></textarea>
+
+      <button id="generate" class="primary">Открыть генерацию →</button>
+      <p class="hint">Параметры откроются в ScriptEngine уже заполненными.</p>
+    </section>
+
+    <section id="tab-obj" class="pane">
+      <input id="obj-search" type="text" placeholder="Поиск возражения..." />
+      <div id="obj-list" class="list"></div>
+    </section>
+
+    <section id="tab-notes" class="pane">
+      <textarea id="notes" rows="10" placeholder="Заметки по звонку — сохраняются автоматически"></textarea>
+      <div class="row">
+        <button id="copy-notes" class="ghost">Копировать</button>
+        <button id="clear-notes" class="ghost danger">Очистить</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a id="open-app" href="#">Открыть полный сервис</a>
+  </footer>
+  <script src="popup.js"></script>
+</body>
+</html>
