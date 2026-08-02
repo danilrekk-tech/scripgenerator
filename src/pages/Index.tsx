@@ -1,8 +1,12 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import ConfigSidebar, { type ScriptConfig, type GenerationMode } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
+import ContextPreview from "@/components/ContextPreview";
+import { buildContextSections, sectionsToPrompt } from "@/lib/contextBuilder";
+import { useArmoryItems } from "@/hooks/useArmoryItems";
 import Armory from "@/components/Armory";
+
 import DisplaySettingsPanel from "@/components/DisplaySettingsPanel";
 import SiteAudit from "@/components/SiteAudit";
 import ObjectionTrainer from "@/components/ObjectionTrainer";
