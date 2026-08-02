@@ -560,10 +560,18 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
         </div>
       )}
 
+        {onPreviewContext && (
+          <button onClick={onPreviewContext}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-xl border border-border/50 text-foreground hover:bg-accent/40 transition-all btn-tactile">
+            <Eye className="w-3.5 h-3.5 text-primary" /> Предпросмотр контекста
+          </button>
+        )}
+
         <button onClick={onGenerate} disabled={isGenerating || hasError}
           className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide">
           {isGenerating ? "Генерация..." : MODE_LABELS[config.mode]}
         </button>
+
       </div>
     </aside>
   );
