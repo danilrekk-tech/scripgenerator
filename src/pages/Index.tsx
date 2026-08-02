@@ -115,6 +115,33 @@ export default function Index() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   // For simulator tool overlay - preserve simulator state while viewing tools
   const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
+  const [showContextPreview, setShowContextPreview] = useState(false);
+  const { items: armoryItems } = useArmoryItems();
+
+  const personaSummary = useMemo(() => {
+    const p = personas.find((x) => x.id === config.personaId);
+    if (!p) return "";
+    return `${p.name} — ${p.role}. Стиль общения: ${p.communication}`;
+  }, [personas, config.personaId]);
+
+  const contextSections = useMemo(() => buildContextSections({
+    service: config.service,
+    serviceContext: getServiceContext(config.service),
+    scenarioType: config.scenarioType,
+    templateIds: config.templateIds,
+    backstory: config.backstory,
+    clientSiteUrl: config.clientSiteUrl,
+    userContext: config.context,
+    personaSummary,
+    salesStyle: (() => {
+      try {
+        const raw = localStorage.getItem(SALES_STYLE_KEY);
+        return raw ? (JSON.parse(raw)?.recommendations || "") : "";
+      } catch { return ""; }
+    })(),
+    armory: armoryItems,
+  }), [config, getServiceContext, personaSummary, armoryItems]);
+
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
