@@ -607,6 +607,11 @@ export default function Index() {
   return (
     <>
     {showUpsellManager && <UpsellManager onClose={() => setShowUpsellManager(false)} serviceNames={serviceNames} />}
+    {showContextPreview && (
+      <ContextPreview sections={contextSections} isGenerating={isGenerating}
+        onClose={() => setShowContextPreview(false)} onGenerate={() => generate()} />
+    )}
+
     <div
       className="flex flex-col overflow-hidden"
       style={{
