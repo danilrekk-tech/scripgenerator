@@ -72,7 +72,7 @@ const defaultConfig: ScriptConfig = {
   tone: "Уверенный эксперт", context: "", mode: "script", transcript: "", priceRub: "",
   currency: "RUB", emailSubtype: "follow-up", emailObjection: "", scriptLength: "medium",
   dozimSubtype: "thinking", transcriptSubmode: "analysis", personaId: "", quickTemplateId: "",
-  backstory: "", clientSiteUrl: "",
+  backstory: "", clientSiteUrl: "", scenarioType: "", templateIds: "",
 };
 
 type ModulePanel = `mod-${ModuleId}`;
