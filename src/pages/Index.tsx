@@ -146,6 +146,23 @@ export default function Index() {
     armory: armoryItems,
   }), [config, getServiceContext, personaSummary, armoryItems]);
 
+  // Deep-link из Chrome-расширения: ?service=&situation=&tone=&site=&context=&autostart=1
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (![...p.keys()].length) return;
+    const patch: Partial<ScriptConfig> = {};
+    if (p.get("service")) patch.service = p.get("service")!;
+    if (p.get("situation")) patch.situation = p.get("situation")!;
+    if (p.get("tone")) patch.tone = p.get("tone")!;
+    if (p.get("site")) patch.clientSiteUrl = p.get("site")!;
+    if (p.get("context")) patch.context = p.get("context")!;
+    if (Object.keys(patch).length) {
+      setConfig((prev) => ({ ...prev, ...patch }));
+      toast.success("Параметры получены из расширения");
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
+
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
