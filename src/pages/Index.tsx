@@ -416,11 +416,12 @@ export default function Index() {
                 )}
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
-                    const isActive = desktopPanel === item.value;
+                    const training = appMode === "training";
+                    const isActive = training ? ciView === (item.value as CallIntelView) : desktopPanel === item.value;
                     const btn = (
                       <button
                         key={item.value}
-                        onClick={() => setDesktopPanel(item.value)}
+                        onClick={() => training ? setCiView(item.value as CallIntelView) : setDesktopPanel(item.value as DesktopPanel)}
                         className={`w-full flex items-center gap-2 rounded-lg transition-all duration-200 btn-tactile ${
                           sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"
                         } ${
