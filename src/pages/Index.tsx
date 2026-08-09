@@ -29,6 +29,7 @@ import CallAnalyzer from "@/components/CallAnalyzer";
 import KPConstructor from "@/components/KPConstructor";
 import CommandCenter from "@/components/CommandCenter";
 import BentoTools from "@/components/BentoTools";
+import CallIntelligence, { type CallIntelView } from "@/components/CallIntelligence";
 import ModulesPanel from "@/components/ModulesPanel";
 import PipelinePanel from "@/components/modules/PipelinePanel";
 import ContactCards from "@/components/modules/ContactCards";
