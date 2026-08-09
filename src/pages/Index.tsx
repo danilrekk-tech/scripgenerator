@@ -68,6 +68,7 @@ import {
   BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
   LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
+  UploadCloud, BarChart3,
 } from "lucide-react";
 
 const SALES_STYLE_KEY = "scriptengine-sales-style";
