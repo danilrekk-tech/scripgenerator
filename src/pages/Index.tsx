@@ -1020,6 +1020,17 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings,
 
 /* ---------- Режимы: «Продажи» (текущий сервис) / «Обучение» (разбор звонков) ---------- */
 
+const TRAINING_NAV_GROUPS = [
+  {
+    label: "Разбор звонков",
+    items: [
+      { value: "upload", label: "Загрузка", icon: <UploadCloud className="w-4 h-4" /> },
+      { value: "report", label: "Карточка разбора", icon: <FileSearch className="w-4 h-4" /> },
+      { value: "analytics", label: "История и аналитика", icon: <BarChart3 className="w-4 h-4" /> },
+    ],
+  },
+];
+
 const CI_VIEWS: { value: CallIntelView; label: string }[] = [
   { value: "upload", label: "Загрузка" },
   { value: "report", label: "Разбор" },
