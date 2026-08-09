@@ -404,8 +404,12 @@ export default function Index() {
             )}
           </div>
 
+          <div className={`border-b border-border/30 ${sidebarCollapsed ? "px-1.5 py-2" : "px-2 py-2"}`}>
+            <ModeSwitch mode={appMode} onChange={setAppMode} compact={sidebarCollapsed} />
+          </div>
+
           <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-3">
-            {navGroups.map((group) => (
+            {(appMode === "training" ? TRAINING_NAV_GROUPS : navGroups).map((group) => (
               <div key={group.label}>
                 {!sidebarCollapsed && (
                   <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1">{group.label}</p>
