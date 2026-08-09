@@ -1012,3 +1012,45 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings,
     </div>
   );
 }
+
+/* ---------- Режимы: «Продажи» (текущий сервис) / «Обучение» (разбор звонков) ---------- */
+
+const CI_VIEWS: { value: CallIntelView; label: string }[] = [
+  { value: "upload", label: "Загрузка" },
+  { value: "report", label: "Разбор" },
+  { value: "analytics", label: "Аналитика" },
+];
+
+function ModeSwitch({ mode, onChange, compact = false }: { mode: "sales" | "training"; onChange: (m: "sales" | "training") => void; compact?: boolean }) {
+  const opts: { value: "sales" | "training"; label: string; icon: JSX.Element }[] = [
+    { value: "sales", label: "Продажи", icon: <Briefcase className="w-3.5 h-3.5" /> },
+    { value: "training", label: "Обучение", icon: <Headphones className="w-3.5 h-3.5" /> },
+  ];
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-1">
+        {opts.map((o) => (
+          <button key={o.value} onClick={() => onChange(o.value)} title={o.label}
+            className={`p-2 rounded-lg flex items-center justify-center transition-all btn-tactile ${mode === o.value ? "text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}
+            style={mode === o.value ? { background: "var(--accent-gradient)" } : undefined}>
+            {o.icon}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="w-full inline-flex glass-card border border-border/50 rounded-xl p-0.5">
+      {opts.map((o) => (
+        <button key={o.value} onClick={() => onChange(o.value)}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all btn-tactile ${
+            mode === o.value ? "text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
+          }`}
+          style={mode === o.value ? { background: "var(--accent-gradient)" } : undefined}>
+          {o.icon}{o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
