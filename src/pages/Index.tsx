@@ -29,6 +29,7 @@ import CallAnalyzer from "@/components/CallAnalyzer";
 import KPConstructor from "@/components/KPConstructor";
 import CommandCenter from "@/components/CommandCenter";
 import BentoTools from "@/components/BentoTools";
+import CallIntelligence, { type CallIntelView } from "@/components/CallIntelligence";
 import ModulesPanel from "@/components/ModulesPanel";
 import PipelinePanel from "@/components/modules/PipelinePanel";
 import ContactCards from "@/components/modules/ContactCards";
@@ -67,6 +68,7 @@ import {
   BookMarked, Users, PanelLeftClose, PanelLeftOpen,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
   LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
+  UploadCloud, BarChart3,
 } from "lucide-react";
 
 const SALES_STYLE_KEY = "scriptengine-sales-style";
@@ -121,6 +123,9 @@ export default function Index() {
   const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
   const [showContextPreview, setShowContextPreview] = useState(false);
   const { items: armoryItems } = useArmoryItems();
+  // AI Call Intelligence («Разбор звонков») — отдельный режим, по умолчанию выключен
+  const [appMode, setAppMode] = useState<"sales" | "training">("sales");
+  const [ciView, setCiView] = useState<CallIntelView>("upload");
 
   const personaSummary = useMemo(() => {
     const p = personas.find((x) => x.id === config.personaId);
@@ -400,19 +405,24 @@ export default function Index() {
             )}
           </div>
 
+          <div className={`border-b border-border/30 ${sidebarCollapsed ? "px-1.5 py-2" : "px-2 py-2"}`}>
+            <ModeSwitch mode={appMode} onChange={setAppMode} compact={sidebarCollapsed} />
+          </div>
+
           <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-3">
-            {navGroups.map((group) => (
+            {((appMode === "training" ? TRAINING_NAV_GROUPS : navGroups) as { label: string; items: { value: string; label: string; icon: React.ReactNode }[] }[]).map((group) => (
               <div key={group.label}>
                 {!sidebarCollapsed && (
                   <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1">{group.label}</p>
                 )}
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
-                    const isActive = desktopPanel === item.value;
+                    const training = appMode === "training";
+                    const isActive = training ? ciView === (item.value as CallIntelView) : desktopPanel === item.value;
                     const btn = (
                       <button
                         key={item.value}
-                        onClick={() => setDesktopPanel(item.value)}
+                        onClick={() => training ? setCiView(item.value as CallIntelView) : setDesktopPanel(item.value as DesktopPanel)}
                         className={`w-full flex items-center gap-2 rounded-lg transition-all duration-200 btn-tactile ${
                           sidebarCollapsed ? "justify-center p-2" : "px-2 py-1.5"
                         } ${
@@ -494,6 +504,11 @@ export default function Index() {
         </aside>
 
         {/* Main content area */}
+        {appMode === "training" ? (
+          <div className="flex-1 min-w-0 glass-panel m-2 rounded-xl overflow-hidden">
+            <CallIntelligence view={ciView} onViewChange={setCiView} serviceNames={serviceNames} className="h-full" />
+          </div>
+        ) : (
         <div className="flex-1 flex min-w-0">
           {/* Generator config sidebar moved to RIGHT side — see below */}
 
@@ -585,6 +600,7 @@ export default function Index() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Simulator tool overlay - shows tools without losing simulator progress */}
         <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
@@ -620,6 +636,28 @@ export default function Index() {
     { tab: "history" as MobileTab, label: "История", icon: <History className="w-5 h-5" /> },
     { tab: "favorites" as MobileTab, label: "Избранное", icon: <Star className="w-5 h-5" /> },
   ];
+
+  // Mobile: режим «Обучение» (Разбор звонков) — отдельный экран, обычный режим не затрагивается
+  if (appMode === "training") {
+    return (
+      <div className="flex flex-col overflow-hidden" style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <header className="glass-panel border-b border-border/50 px-3 py-2.5 shrink-0 space-y-2">
+          <ModeSwitch mode={appMode} onChange={setAppMode} />
+          <div className="inline-flex w-full glass-card border border-border/50 rounded-xl p-0.5">
+            {CI_VIEWS.map((v) => (
+              <button key={v.value} onClick={() => setCiView(v.value)}
+                className={`flex-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${ciView === v.value ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </header>
+        <div className="flex-1 min-h-0">
+          <CallIntelligence view={ciView} onViewChange={setCiView} serviceNames={serviceNames} className="h-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -986,3 +1024,56 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings,
     </div>
   );
 }
+
+/* ---------- Режимы: «Продажи» (текущий сервис) / «Обучение» (разбор звонков) ---------- */
+
+const TRAINING_NAV_GROUPS = [
+  {
+    label: "Разбор звонков",
+    items: [
+      { value: "upload", label: "Загрузка", icon: <UploadCloud className="w-4 h-4" /> },
+      { value: "report", label: "Карточка разбора", icon: <FileSearch className="w-4 h-4" /> },
+      { value: "analytics", label: "История и аналитика", icon: <BarChart3 className="w-4 h-4" /> },
+    ],
+  },
+];
+
+const CI_VIEWS: { value: CallIntelView; label: string }[] = [
+  { value: "upload", label: "Загрузка" },
+  { value: "report", label: "Разбор" },
+  { value: "analytics", label: "Аналитика" },
+];
+
+function ModeSwitch({ mode, onChange, compact = false }: { mode: "sales" | "training"; onChange: (m: "sales" | "training") => void; compact?: boolean }) {
+  const opts: { value: "sales" | "training"; label: string; icon: JSX.Element }[] = [
+    { value: "sales", label: "Продажи", icon: <Briefcase className="w-3.5 h-3.5" /> },
+    { value: "training", label: "Обучение", icon: <Headphones className="w-3.5 h-3.5" /> },
+  ];
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-1">
+        {opts.map((o) => (
+          <button key={o.value} onClick={() => onChange(o.value)} title={o.label}
+            className={`p-2 rounded-lg flex items-center justify-center transition-all btn-tactile ${mode === o.value ? "text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"}`}
+            style={mode === o.value ? { background: "var(--accent-gradient)" } : undefined}>
+            {o.icon}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="w-full inline-flex glass-card border border-border/50 rounded-xl p-0.5">
+      {opts.map((o) => (
+        <button key={o.value} onClick={() => onChange(o.value)}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all btn-tactile ${
+            mode === o.value ? "text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
+          }`}
+          style={mode === o.value ? { background: "var(--accent-gradient)" } : undefined}>
+          {o.icon}{o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
