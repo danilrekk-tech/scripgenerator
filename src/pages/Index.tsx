@@ -409,7 +409,7 @@ export default function Index() {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-3">
-            {(appMode === "training" ? TRAINING_NAV_GROUPS : navGroups).map((group) => (
+            {((appMode === "training" ? TRAINING_NAV_GROUPS : navGroups) as { label: string; items: { value: string; label: string; icon: React.ReactNode }[] }[]).map((group) => (
               <div key={group.label}>
                 {!sidebarCollapsed && (
                   <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1">{group.label}</p>
