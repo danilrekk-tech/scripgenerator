@@ -121,6 +121,9 @@ export default function Index() {
   const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
   const [showContextPreview, setShowContextPreview] = useState(false);
   const { items: armoryItems } = useArmoryItems();
+  // AI Call Intelligence («Разбор звонков») — отдельный режим, по умолчанию выключен
+  const [appMode, setAppMode] = useState<"sales" | "training">("sales");
+  const [ciView, setCiView] = useState<CallIntelView>("upload");
 
   const personaSummary = useMemo(() => {
     const p = personas.find((x) => x.id === config.personaId);
