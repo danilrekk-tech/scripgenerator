@@ -504,6 +504,11 @@ export default function Index() {
         </aside>
 
         {/* Main content area */}
+        {appMode === "training" ? (
+          <div className="flex-1 min-w-0 glass-panel m-2 rounded-xl overflow-hidden">
+            <CallIntelligence view={ciView} onViewChange={setCiView} serviceNames={serviceNames} className="h-full" />
+          </div>
+        ) : (
         <div className="flex-1 flex min-w-0">
           {/* Generator config sidebar moved to RIGHT side — see below */}
 
