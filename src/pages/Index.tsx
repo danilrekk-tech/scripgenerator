@@ -625,6 +625,28 @@ export default function Index() {
     { tab: "favorites" as MobileTab, label: "Избранное", icon: <Star className="w-5 h-5" /> },
   ];
 
+  // Mobile: режим «Обучение» (Разбор звонков) — отдельный экран, обычный режим не затрагивается
+  if (appMode === "training") {
+    return (
+      <div className="flex flex-col overflow-hidden" style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <header className="glass-panel border-b border-border/50 px-3 py-2.5 shrink-0 space-y-2">
+          <ModeSwitch mode={appMode} onChange={setAppMode} />
+          <div className="inline-flex w-full glass-card border border-border/50 rounded-xl p-0.5">
+            {CI_VIEWS.map((v) => (
+              <button key={v.value} onClick={() => setCiView(v.value)}
+                className={`flex-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${ciView === v.value ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </header>
+        <div className="flex-1 min-h-0">
+          <CallIntelligence view={ciView} onViewChange={setCiView} serviceNames={serviceNames} className="h-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
     {showUpsellManager && <UpsellManager onClose={() => setShowUpsellManager(false)} serviceNames={serviceNames} />}
