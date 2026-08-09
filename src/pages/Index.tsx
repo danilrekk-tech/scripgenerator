@@ -600,6 +600,7 @@ export default function Index() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Simulator tool overlay - shows tools without losing simulator progress */}
         <Sheet open={!!simulatorToolOverlay} onOpenChange={(open) => !open && setSimulatorToolOverlay(null)}>
