@@ -1,4 +1,5 @@
 import { useLocalStore, uid } from "@/lib/moduleStore";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ============================================================
    AI Call Intelligence — типы данных «Разбора звонков».
