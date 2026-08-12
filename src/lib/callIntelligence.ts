@@ -1,4 +1,5 @@
 import { useLocalStore, uid } from "@/lib/moduleStore";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ============================================================
    AI Call Intelligence — типы данных «Разбора звонков».
@@ -97,14 +98,97 @@ export async function analyzeCall(
   input: { file?: File; fileName: string; manager: string; service?: string },
   opts: { signal?: AbortSignal } = {},
 ): Promise<CallAnalysis> {
-  // TODO(real API):
-  // const form = new FormData(); form.append("file", input.file!);
-  // const { data } = await supabase.functions.invoke("analyze-call", { body: form });
-  // return data as CallAnalysis;
-  await new Promise((r) => setTimeout(r, 1600));
+  // Реальный разбор через edge function `analyze-call` (speech-to-text + LLM).
+  if (input.file && input.file.size > 0 && input.file.size < 18 * 1024 * 1024) {
+    try {
+      const audioBase64 = await fileToBase64(input.file);
+      const { data, error } = await supabase.functions.invoke("analyze-call", {
+        body: {
+          audioBase64,
+          audioFormat: guessFormat(input.file),
+          manager: input.manager,
+          service: input.service,
+          fileName: input.fileName,
+        },
+      });
+      if (opts.signal?.aborted) throw new Error("aborted");
+      if (!error && data?.analysis) return normalizeAnalysis(data.analysis, input.fileName, input.service);
+    } catch {
+      /* падаем в демо-разбор ниже */
+    }
+  }
+  await new Promise((r) => setTimeout(r, 1200));
   if (opts.signal?.aborted) throw new Error("aborted");
   return buildMockAnalysis(input.fileName, input.service);
 }
+
+function guessFormat(file: File): string {
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  if (["wav", "mp3", "m4a", "webm", "ogg", "aac", "flac"].includes(ext)) return ext;
+  if (file.type.includes("wav")) return "wav";
+  if (file.type.includes("webm")) return "webm";
+  if (file.type.includes("mp4")) return "m4a";
+  return "mp3";
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = String(reader.result || "");
+      resolve(res.slice(res.indexOf(",") + 1));
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Приводит ответ модели к строгому типу CallAnalysis. */
+function normalizeAnalysis(a: any, fileName: string, service?: string): CallAnalysis {
+  const score = Math.max(0, Math.min(100, Math.round(Number(a?.score) || 0)));
+  const transcript: TranscriptLine[] = Array.isArray(a?.transcript)
+    ? a.transcript.map((l: any) => ({
+        t: Math.max(0, Math.round(Number(l?.t) || 0)),
+        speaker: l?.speaker === "client" ? "client" : "manager",
+        text: String(l?.text || ""),
+      }))
+    : [];
+  if (!transcript.length) return buildMockAnalysis(fileName, service);
+
+  return {
+    transcript,
+    discovery: (Array.isArray(a?.discovery) ? a.discovery : []).map((d: any, i: number) => ({
+      key: String(d?.key || `SPIN-S-${i}`),
+      method: d?.method === "BANT" ? "BANT" : "SPIN",
+      label: String(d?.label || ""),
+      closed: Boolean(d?.closed),
+      t: d?.t == null ? undefined : Math.round(Number(d.t) || 0),
+      note: d?.note ? String(d.note) : undefined,
+    })),
+    objections: (Array.isArray(a?.objections) ? a.objections : []).map((o: any) => ({
+      id: uid(),
+      objection: String(o?.objection || ""),
+      category: String(o?.category || "Прочее"),
+      t: Math.round(Number(o?.t) || 0),
+      quality: o?.quality === "good" || o?.quality === "failed" ? o.quality : "medium",
+      recommendation: String(o?.recommendation || ""),
+      battleCardRef: o?.battleCardRef ? String(o.battleCardRef) : undefined,
+    })),
+    moments: (Array.isArray(a?.moments) ? a.moments : []).map((m: any) => ({
+      id: uid(),
+      t: Math.round(Number(m?.t) || 0),
+      quote: String(m?.quote || ""),
+      insight: String(m?.insight || ""),
+      type: ["signal", "risk", "win", "miss"].includes(m?.type) ? m.type : "signal",
+    })),
+    score,
+    grade: gradeOf(score),
+    summary: String(a?.summary || `Разбор звонка ${fileName}`),
+    pipelineStageSuggestion: a?.pipelineStageSuggestion ? String(a.pipelineStageSuggestion) : undefined,
+    nextSteps: (Array.isArray(a?.nextSteps) ? a.nextSteps : []).map((s: any) => String(s)),
+  };
+}
+
 
 /* ---------------------------- MOCK ---------------------------- */
 
