@@ -3,14 +3,21 @@ import { motion } from "framer-motion";
 import {
   UploadCloud, FileAudio, Loader2, Clock, Trash2, ChevronRight, ListChecks,
   ShieldAlert, Sparkles, TrendingUp, Target, ArrowLeft, CheckCircle2, XCircle,
-  AlertTriangle, Trophy, Radio, PlayCircle,
+  AlertTriangle, Trophy, Radio, PlayCircle, FileDown, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   analyzeCall, fmtTime, useCallRecords,
   type CallRecord, type CallGrade, type HandlingQuality, type CallMoment,
 } from "@/lib/callIntelligence";
+import { exportCallReportPdf } from "@/lib/callReportPdf";
 import { useElevenLabsQuota, type ElevenLabsQuota } from "@/hooks/useElevenLabsQuota";
+
+const downloadPdf = (call: CallRecord) => {
+  const ok = exportCallReportPdf(call);
+  if (ok) toast.success("Отчёт готов — выберите «Сохранить как PDF»");
+  else toast.error("Разрешите всплывающие окна, чтобы сохранить PDF");
+};
 
 function QuotaBar({ quota, loading, error, onRefresh }: {
   quota: ElevenLabsQuota | null; loading: boolean; error: string | null; onRefresh: () => void;
