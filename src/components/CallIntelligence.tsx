@@ -99,11 +99,12 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
       const analysis = await analyzeCall({ file: rec.file, fileName: rec.fileName, manager, service });
       patchCall(rec.id, { status: "ready", analysis });
       toast.success("Звонок разобран");
+      void refreshQuota();
     } catch {
       patchCall(rec.id, { status: "failed" });
       toast.error("Не удалось разобрать звонок");
     }
-  }, [manager, service, patchCall]);
+  }, [manager, service, patchCall, refreshQuota]);
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files).filter((f) => /audio|video|\.(mp3|wav|m4a|mp4)$/i.test(f.type + f.name));
