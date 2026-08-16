@@ -3,14 +3,21 @@ import { motion } from "framer-motion";
 import {
   UploadCloud, FileAudio, Loader2, Clock, Trash2, ChevronRight, ListChecks,
   ShieldAlert, Sparkles, TrendingUp, Target, ArrowLeft, CheckCircle2, XCircle,
-  AlertTriangle, Trophy, Radio, PlayCircle,
+  AlertTriangle, Trophy, Radio, PlayCircle, FileDown, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   analyzeCall, fmtTime, useCallRecords,
   type CallRecord, type CallGrade, type HandlingQuality, type CallMoment,
 } from "@/lib/callIntelligence";
+import { exportCallReportPdf } from "@/lib/callReportPdf";
 import { useElevenLabsQuota, type ElevenLabsQuota } from "@/hooks/useElevenLabsQuota";
+
+const downloadPdf = (call: CallRecord) => {
+  const ok = exportCallReportPdf(call);
+  if (ok) toast.success("Отчёт готов — выберите «Сохранить как PDF»");
+  else toast.error("Разрешите всплывающие окна, чтобы сохранить PDF");
+};
 
 function QuotaBar({ quota, loading, error, onRefresh }: {
   quota: ElevenLabsQuota | null; loading: boolean; error: string | null; onRefresh: () => void;
@@ -87,6 +94,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
   const [manager, setManager] = useState("[Имя менеджера]");
   const [service, setService] = useState(serviceNames[0] || "SEO-продвижение");
   const [activeTime, setActiveTime] = useState<number | null>(null);
+  const [speakerFilter, setSpeakerFilter] = useState<"all" | "manager" | "client">("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const lineRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
@@ -229,6 +237,10 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
             <h2 className="font-display text-sm font-semibold text-foreground truncate">{selected.fileName}</h2>
             <p className="text-[11px] text-muted-foreground">{selected.manager} · {selected.service} · {fmtTime(selected.duration)}</p>
           </div>
+          <button onClick={() => downloadPdf(selected)}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border border-border/50 text-muted-foreground hover:text-foreground btn-tactile">
+            <FileDown className="w-3.5 h-3.5" /> <span className="hidden sm:inline">PDF-отчёт</span>
+          </button>
           <ScoreBadge score={a.score} grade={a.grade} />
         </div>
 
