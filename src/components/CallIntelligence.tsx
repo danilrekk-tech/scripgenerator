@@ -10,6 +10,45 @@ import {
   analyzeCall, fmtTime, useCallRecords,
   type CallRecord, type CallGrade, type HandlingQuality, type CallMoment,
 } from "@/lib/callIntelligence";
+import { useElevenLabsQuota, type ElevenLabsQuota } from "@/hooks/useElevenLabsQuota";
+
+function QuotaBar({ quota, loading, error, onRefresh }: {
+  quota: ElevenLabsQuota | null; loading: boolean; error: string | null; onRefresh: () => void;
+}) {
+  const limit = quota?.limit || 0;
+  const pct = limit > 0 ? Math.min(100, Math.round((quota!.used / limit) * 100)) : 0;
+  const fmt = (n: number) => n.toLocaleString("ru-RU");
+  return (
+    <div className="glass-card border border-border/50 rounded-2xl p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Sparkles className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-xs font-medium text-foreground truncate">Баланс ElevenLabs (символы)</span>
+        </div>
+        <button onClick={onRefresh} disabled={loading}
+          className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground disabled:opacity-50">
+          {loading ? "Обновляю…" : "Обновить"}
+        </button>
+      </div>
+      {error ? (
+        <p className="mt-2 text-xs text-rose-400">Не удалось получить квоту: {error}</p>
+      ) : quota ? (
+        <>
+          <div className="mt-3 h-2 rounded-full bg-border/40 overflow-hidden">
+            <div className="h-full rounded-full transition-all"
+              style={{ width: `${pct}%`, background: "var(--accent-gradient)" }} />
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Осталось: <span className="text-foreground font-medium">{fmt(quota.remaining)}</span> из {fmt(limit)}</span>
+            {quota.resetsAt ? <span>Обновление {new Date(quota.resetsAt).toLocaleDateString("ru-RU")}</span> : null}
+          </div>
+        </>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">{loading ? "Загружаю данные…" : "Нет данных о квоте"}</p>
+      )}
+    </div>
+  );
+}
 
 export type CallIntelView = "upload" | "report" | "analytics";
 
@@ -42,6 +81,7 @@ const MOMENT_META: Record<CallMoment["type"], { icon: JSX.Element; label: string
 
 export default function CallIntelligence({ view, onViewChange, serviceNames = [], className = "" }: Props) {
   const { calls, addCall, patchCall, removeCall } = useCallRecords();
+  const { quota, loading: quotaLoading, error: quotaError, refresh: refreshQuota } = useElevenLabsQuota();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [manager, setManager] = useState("[Имя менеджера]");
@@ -59,11 +99,12 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
       const analysis = await analyzeCall({ file: rec.file, fileName: rec.fileName, manager, service });
       patchCall(rec.id, { status: "ready", analysis });
       toast.success("Звонок разобран");
+      void refreshQuota();
     } catch {
       patchCall(rec.id, { status: "failed" });
       toast.error("Не удалось разобрать звонок");
     }
-  }, [manager, service, patchCall]);
+  }, [manager, service, patchCall, refreshQuota]);
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files).filter((f) => /audio|video|\.(mp3|wav|m4a|mp4)$/i.test(f.type + f.name));
@@ -93,6 +134,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
       <div className={`flex flex-col h-full min-h-0 overflow-hidden ${className}`}>
         <Header title="Загрузка записей" subtitle="Разбор звонков · AI Call Intelligence" />
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 space-y-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <QuotaBar quota={quota} loading={quotaLoading} error={quotaError} onRefresh={refreshQuota} />
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="block">
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Менеджер</span>
