@@ -93,6 +93,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
       <div className={`flex flex-col h-full min-h-0 overflow-hidden ${className}`}>
         <Header title="Загрузка записей" subtitle="Разбор звонков · AI Call Intelligence" />
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 space-y-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <QuotaBar quota={quota} loading={quotaLoading} error={quotaError} onRefresh={refreshQuota} />
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="block">
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Менеджер</span>
