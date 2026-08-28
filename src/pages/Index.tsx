@@ -682,7 +682,7 @@ export default function Index() {
               <span className="font-display font-extrabold text-transparent bg-clip-text text-[13px]" style={{ backgroundImage: 'var(--accent-gradient)' }}>SE</span>
             </div>
           </div>
-          <h1 className="font-display text-sm font-semibold tracking-tight text-foreground hidden xs:inline">ScriptEngine</h1>
+          <h1 className="font-display text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
         </button>
         <div className="flex-1 flex justify-center min-w-0">
           <ModeSwitch mode={appMode} onChange={setAppMode} size="sm" />
