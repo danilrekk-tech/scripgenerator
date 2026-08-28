@@ -198,7 +198,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
               </div>
             ) : (
               <div className="space-y-2">
-                {calls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} />)}
+                {calls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} onPdf={c.status === "ready" ? () => downloadPdf(c) : undefined} />)}
               </div>
             )}
           </div>
@@ -318,11 +318,26 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
 
           {/* Transcript */}
           <Section icon={<FileAudio className="w-4 h-4 text-primary" />} title="Транскрипт" meta={`${a.transcript.length} реплик`}>
+            <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+              {([["all", "Все"], ["manager", "Менеджер"], ["client", "Клиент"]] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setSpeakerFilter(k)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-medium border transition-colors ${
+                    speakerFilter === k
+                      ? "border-primary/50 bg-primary/15 text-foreground"
+                      : "border-border/50 text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="space-y-1.5 max-h-[420px] overflow-y-auto overscroll-contain pr-1">
-              {a.transcript.map((l, i) => (
+              {a.transcript
+                .filter((l) => speakerFilter === "all" || l.speaker === speakerFilter)
+                .map((l, i) => (
                 <div key={i} ref={(el) => { lineRefs.current[l.t] = el; }}
                   className={`flex gap-3 rounded-xl px-3 py-2 transition-colors ${activeTime === l.t ? "bg-primary/15 ring-1 ring-primary/40" : "hover:bg-background/30"}`}>
-                  <span className="text-[11px] tabular-nums text-muted-foreground shrink-0 pt-0.5">{fmtTime(l.t)}</span>
+                  <button onClick={() => jumpTo(l.t)}
+                    className="text-[11px] tabular-nums text-primary hover:underline shrink-0 pt-0.5">{fmtTime(l.t)}</button>
                   <span className={`text-[11px] font-semibold shrink-0 pt-0.5 w-16 ${l.speaker === "manager" ? "text-primary" : "text-muted-foreground"}`}>
                     {l.speaker === "manager" ? "Менеджер" : "Клиент"}
                   </span>
@@ -331,6 +346,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
               ))}
             </div>
           </Section>
+
         </div>
       </div>
     );
@@ -363,7 +379,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
         </div>
 
         <div className="space-y-2">
-          {readyCalls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} />)}
+          {readyCalls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} onPdf={() => downloadPdf(c)} />)}
         </div>
       </div>
     </div>
@@ -409,7 +425,7 @@ function ScoreBadge({ score, grade }: { score: number; grade: CallGrade }) {
   );
 }
 
-function CallRow({ call, onOpen, onRemove }: { call: CallRecord; onOpen: () => void; onRemove: () => void }) {
+function CallRow({ call, onOpen, onRemove, onPdf }: { call: CallRecord; onOpen: () => void; onRemove: () => void; onPdf?: () => void }) {
   const status = call.status;
   return (
     <div className="glass-card border border-border/50 rounded-2xl px-4 py-3 flex items-center gap-3 hover:border-primary/40 transition-all">
@@ -429,6 +445,9 @@ function CallRow({ call, onOpen, onRemove }: { call: CallRecord; onOpen: () => v
         {status === "queued" ? "в очереди" : status === "processing" ? "обработка" : status === "failed" ? "ошибка" : "готово"}
       </span>
       {call.analysis && <ScoreBadge score={call.analysis.score} grade={call.analysis.grade} />}
+      {status === "ready" && onPdf && (
+        <button onClick={onPdf} title="PDF-отчёт" className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground shrink-0"><FileDown className="w-3.5 h-3.5" /></button>
+      )}
       {status === "ready" && (
         <button onClick={onOpen} className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground shrink-0"><ChevronRight className="w-4 h-4" /></button>
       )}
