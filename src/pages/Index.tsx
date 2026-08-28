@@ -642,7 +642,7 @@ export default function Index() {
     return (
       <div className="flex flex-col overflow-hidden" style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <header className="glass-panel border-b border-border/50 px-3 py-2.5 shrink-0 space-y-2">
-          <ModeSwitch mode={appMode} onChange={setAppMode} />
+          <ModeSwitch mode={appMode} onChange={setAppMode} size="sm" />
           <div className="inline-flex w-full glass-card border border-border/50 rounded-xl p-0.5">
             {CI_VIEWS.map((v) => (
               <button key={v.value} onClick={() => setCiView(v.value)}
