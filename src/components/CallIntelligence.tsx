@@ -318,11 +318,26 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
 
           {/* Transcript */}
           <Section icon={<FileAudio className="w-4 h-4 text-primary" />} title="Транскрипт" meta={`${a.transcript.length} реплик`}>
+            <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+              {([["all", "Все"], ["manager", "Менеджер"], ["client", "Клиент"]] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setSpeakerFilter(k)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-medium border transition-colors ${
+                    speakerFilter === k
+                      ? "border-primary/50 bg-primary/15 text-foreground"
+                      : "border-border/50 text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="space-y-1.5 max-h-[420px] overflow-y-auto overscroll-contain pr-1">
-              {a.transcript.map((l, i) => (
+              {a.transcript
+                .filter((l) => speakerFilter === "all" || l.speaker === speakerFilter)
+                .map((l, i) => (
                 <div key={i} ref={(el) => { lineRefs.current[l.t] = el; }}
                   className={`flex gap-3 rounded-xl px-3 py-2 transition-colors ${activeTime === l.t ? "bg-primary/15 ring-1 ring-primary/40" : "hover:bg-background/30"}`}>
-                  <span className="text-[11px] tabular-nums text-muted-foreground shrink-0 pt-0.5">{fmtTime(l.t)}</span>
+                  <button onClick={() => jumpTo(l.t)}
+                    className="text-[11px] tabular-nums text-primary hover:underline shrink-0 pt-0.5">{fmtTime(l.t)}</button>
                   <span className={`text-[11px] font-semibold shrink-0 pt-0.5 w-16 ${l.speaker === "manager" ? "text-primary" : "text-muted-foreground"}`}>
                     {l.speaker === "manager" ? "Менеджер" : "Клиент"}
                   </span>
@@ -331,6 +346,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
               ))}
             </div>
           </Section>
+
         </div>
       </div>
     );
