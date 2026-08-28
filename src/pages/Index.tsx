@@ -642,7 +642,7 @@ export default function Index() {
     return (
       <div className="flex flex-col overflow-hidden" style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <header className="glass-panel border-b border-border/50 px-3 py-2.5 shrink-0 space-y-2">
-          <ModeSwitch mode={appMode} onChange={setAppMode} />
+          <ModeSwitch mode={appMode} onChange={setAppMode} size="sm" />
           <div className="inline-flex w-full glass-card border border-border/50 rounded-xl p-0.5">
             {CI_VIEWS.map((v) => (
               <button key={v.value} onClick={() => setCiView(v.value)}
@@ -674,8 +674,8 @@ export default function Index() {
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
-      <header className="glass-panel border-b border-border/50 flex items-center justify-between px-4 py-2.5 shrink-0 z-10">
-        <button onClick={() => setMobileTab("config")} className="flex items-center gap-2">
+      <header className="glass-panel border-b border-border/50 flex items-center justify-between px-3 py-2.5 shrink-0 z-10 gap-2">
+        <button onClick={() => setMobileTab("config")} className="flex items-center gap-2 shrink-0">
           <div className="relative shrink-0">
             <div className="absolute inset-0 rounded-xl blur-md opacity-60" style={{ background: 'var(--accent-gradient)' }} />
             <div className="relative w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center overflow-hidden" style={{ background: 'hsl(var(--background))' }}>
@@ -684,7 +684,10 @@ export default function Index() {
           </div>
           <h1 className="font-display text-sm font-semibold tracking-tight text-foreground">ScriptEngine</h1>
         </button>
-        <div className="flex items-center gap-1">
+        <div className="flex-1 flex justify-center min-w-0">
+          <ModeSwitch mode={appMode} onChange={setAppMode} size="sm" />
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
           {user ? (<button onClick={signOut} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground"><LogOut className="w-4 h-4" /></button>)
             : (<button onClick={() => setShowAuthDialog(true)} className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground"><User className="w-4 h-4" /></button>)}
         </div>
@@ -1044,10 +1047,10 @@ const CI_VIEWS: { value: CallIntelView; label: string }[] = [
   { value: "analytics", label: "Аналитика" },
 ];
 
-function ModeSwitch({ mode, onChange, compact = false }: { mode: "sales" | "training"; onChange: (m: "sales" | "training") => void; compact?: boolean }) {
+function ModeSwitch({ mode, onChange, compact = false, size = "default" }: { mode: "sales" | "training"; onChange: (m: "sales" | "training") => void; compact?: boolean; size?: "default" | "sm" }) {
   const opts: { value: "sales" | "training"; label: string; icon: JSX.Element }[] = [
-    { value: "sales", label: "Продажи", icon: <Briefcase className="w-3.5 h-3.5" /> },
-    { value: "training", label: "Обучение", icon: <Headphones className="w-3.5 h-3.5" /> },
+    { value: "sales", label: "Продажи", icon: <Briefcase className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} /> },
+    { value: "training", label: "Обучение", icon: <Headphones className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} /> },
   ];
   if (compact) {
     return (
@@ -1062,13 +1065,14 @@ function ModeSwitch({ mode, onChange, compact = false }: { mode: "sales" | "trai
       </div>
     );
   }
+  const isSm = size === "sm";
   return (
-    <div className="w-full inline-flex glass-card border border-border/50 rounded-xl p-0.5">
+    <div className={`inline-flex glass-card border border-border/50 rounded-xl p-0.5 ${isSm ? "" : "w-full"}`}>
       {opts.map((o) => (
         <button key={o.value} onClick={() => onChange(o.value)}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all btn-tactile ${
+          className={`flex items-center justify-center gap-1 rounded-lg font-medium transition-all btn-tactile ${
             mode === o.value ? "text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
-          }`}
+          } ${isSm ? "px-2 py-1 text-[10px]" : "flex-1 px-2 py-1.5 text-[11px]"}`}
           style={mode === o.value ? { background: "var(--accent-gradient)" } : undefined}>
           {o.icon}{o.label}
         </button>
