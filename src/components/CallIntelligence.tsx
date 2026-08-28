@@ -198,7 +198,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
               </div>
             ) : (
               <div className="space-y-2">
-                {calls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} />)}
+                {calls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} onPdf={c.status === "ready" ? () => downloadPdf(c) : undefined} />)}
               </div>
             )}
           </div>
@@ -379,7 +379,7 @@ export default function CallIntelligence({ view, onViewChange, serviceNames = []
         </div>
 
         <div className="space-y-2">
-          {readyCalls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} />)}
+          {readyCalls.map((c) => <CallRow key={c.id} call={c} onOpen={() => openReport(c.id)} onRemove={() => removeCall(c.id)} onPdf={() => downloadPdf(c)} />)}
         </div>
       </div>
     </div>
@@ -425,7 +425,7 @@ function ScoreBadge({ score, grade }: { score: number; grade: CallGrade }) {
   );
 }
 
-function CallRow({ call, onOpen, onRemove }: { call: CallRecord; onOpen: () => void; onRemove: () => void }) {
+function CallRow({ call, onOpen, onRemove, onPdf }: { call: CallRecord; onOpen: () => void; onRemove: () => void; onPdf?: () => void }) {
   const status = call.status;
   return (
     <div className="glass-card border border-border/50 rounded-2xl px-4 py-3 flex items-center gap-3 hover:border-primary/40 transition-all">
@@ -445,6 +445,9 @@ function CallRow({ call, onOpen, onRemove }: { call: CallRecord; onOpen: () => v
         {status === "queued" ? "в очереди" : status === "processing" ? "обработка" : status === "failed" ? "ошибка" : "готово"}
       </span>
       {call.analysis && <ScoreBadge score={call.analysis.score} grade={call.analysis.grade} />}
+      {status === "ready" && onPdf && (
+        <button onClick={onPdf} title="PDF-отчёт" className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground shrink-0"><FileDown className="w-3.5 h-3.5" /></button>
+      )}
       {status === "ready" && (
         <button onClick={onOpen} className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground shrink-0"><ChevronRight className="w-4 h-4" /></button>
       )}
