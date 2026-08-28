@@ -1044,10 +1044,10 @@ const CI_VIEWS: { value: CallIntelView; label: string }[] = [
   { value: "analytics", label: "Аналитика" },
 ];
 
-function ModeSwitch({ mode, onChange, compact = false }: { mode: "sales" | "training"; onChange: (m: "sales" | "training") => void; compact?: boolean }) {
+function ModeSwitch({ mode, onChange, compact = false, size = "default" }: { mode: "sales" | "training"; onChange: (m: "sales" | "training") => void; compact?: boolean; size?: "default" | "sm" }) {
   const opts: { value: "sales" | "training"; label: string; icon: JSX.Element }[] = [
-    { value: "sales", label: "Продажи", icon: <Briefcase className="w-3.5 h-3.5" /> },
-    { value: "training", label: "Обучение", icon: <Headphones className="w-3.5 h-3.5" /> },
+    { value: "sales", label: "Продажи", icon: <Briefcase className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} /> },
+    { value: "training", label: "Обучение", icon: <Headphones className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} /> },
   ];
   if (compact) {
     return (
@@ -1062,13 +1062,14 @@ function ModeSwitch({ mode, onChange, compact = false }: { mode: "sales" | "trai
       </div>
     );
   }
+  const isSm = size === "sm";
   return (
-    <div className="w-full inline-flex glass-card border border-border/50 rounded-xl p-0.5">
+    <div className={`inline-flex glass-card border border-border/50 rounded-xl p-0.5 ${isSm ? "" : "w-full"}`}>
       {opts.map((o) => (
         <button key={o.value} onClick={() => onChange(o.value)}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all btn-tactile ${
+          className={`flex items-center justify-center gap-1 rounded-lg font-medium transition-all btn-tactile ${
             mode === o.value ? "text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
-          }`}
+          } ${isSm ? "px-2 py-1 text-[10px]" : "flex-1 px-2 py-1.5 text-[11px]"}`}
           style={mode === o.value ? { background: "var(--accent-gradient)" } : undefined}>
           {o.icon}{o.label}
         </button>
