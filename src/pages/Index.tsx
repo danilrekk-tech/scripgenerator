@@ -985,6 +985,10 @@ function AppSettingsPanel({ transcriberUrl, onTranscriberUrlChange, appSettings,
         )}
 
         <div>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Режим интерфейса</label>
+          <UiModeSwitcher />
+        </div>
+        <div>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-3">Модули и интерфейс</label>
           <ModulesPanel />
         </div>
