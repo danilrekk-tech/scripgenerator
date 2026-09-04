@@ -18,6 +18,8 @@ const SYNC_KEYS = [
   "scriptengine-discovery-notes",
   "scriptengine-competitor-matrix",
   "scriptengine-wiki",
+  "scriptengine-lite-modules",
+  "scriptengine-ui-mode",
 ];
 
 const META_KEY = "scriptengine-sync-meta";
