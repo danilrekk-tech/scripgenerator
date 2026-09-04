@@ -58,6 +58,7 @@ import { useScriptNotes } from "@/hooks/useScriptNotes";
 import { useUpsells } from "@/hooks/useUpsells";
 import UpsellManager from "@/components/UpsellManager";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUiMode } from "@/hooks/useUiMode";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -107,6 +108,7 @@ export default function Index() {
   const [showUpsellManager, setShowUpsellManager] = useState(false);
   void _toggleMod; void _setAllMod;
   const isMobile = useIsMobile();
+  const { setMode: setUiMode } = useUiMode();
 
   const initialPanel: DesktopPanel = layout.startScreen === "dashboard" ? "dashboard" : layout.startScreen === "bento" ? "bento" : "main";
   const [mobileTab, setMobileTab] = useState<MobileTab>(layout.startScreen === "dashboard" ? "dashboard" : layout.startScreen === "bento" ? "bento" : "config");
@@ -865,6 +867,11 @@ export default function Index() {
                     <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
                   </button>
                 ))}
+                <button onClick={() => { setShowMenuSheet(false); setUiMode("lite"); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
+                  <div className="text-primary"><LayoutGrid className="w-5 h-5" /></div>
+                  <div className="text-sm font-medium text-foreground">Облегчённый режим</div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                </button>
                 <button onClick={() => { setMobileTab("display-settings"); setShowMenuSheet(false); }} className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-accent/50 transition-colors text-left">
                   <div className="text-primary"><SlidersHorizontal className="w-5 h-5" /></div>
                   <div className="text-sm font-medium text-foreground">Настройки отображения</div>
@@ -883,6 +890,30 @@ export default function Index() {
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} onSignIn={signIn} onSignUp={signUp} />
     </div>
     </>
+  );
+}
+
+function UiModeSwitcher() {
+  const { mode, setMode } = useUiMode();
+  const options: { value: "advanced" | "lite"; label: string; desc: string }[] = [
+    { value: "advanced", label: "Расширенный", desc: "Все инструменты и панели" },
+    { value: "lite", label: "Облегчённый", desc: "Только выбранные модули" },
+  ];
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => setMode(o.value)}
+          className={`rounded-xl border p-3 text-left transition-colors ${
+            mode === o.value ? "border-primary/40 bg-primary/[0.06]" : "border-border/50 hover:border-primary/30"
+          }`}
+        >
+          <p className="text-sm font-medium text-foreground">{o.label}</p>
+          <p className="text-[11px] text-muted-foreground">{o.desc}</p>
+        </button>
+      ))}
+    </div>
   );
 }
 
