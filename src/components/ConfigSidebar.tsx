@@ -6,8 +6,7 @@ import {
   Mic, Ban,
   Package, Lightbulb, HelpCircle, BookOpen, Gem, CheckSquare, BookMarked, FolderKanban,
   Zap, ChevronDown, Search, AlertTriangle, Info, Sparkles, Users,
-  Crosshair, Eye, type LucideIcon,
-} from "lucide-react";
+  Crosshair, Eye, type LucideIcon,, SlidersHorizontal } from "lucide-react";
 import { validateConfig, QUICK_OBJECTION_TEMPLATES } from "@/lib/scriptHelpers";
 import { SCENARIO_TYPES, TEMPLATE_CATEGORIES, templatesFor, fillService, type TemplateCategory } from "@/lib/scenarioTemplates";
 import type { ClientPersona } from "@/hooks/useClientPersonas";
@@ -143,11 +142,26 @@ interface Props {
 
 type SectionKey = "what" | "who" | "how" | "details";
 
+const SIMPLE_KEY = "scriptengine-config-simple";
+
+/** Режимы, доступные в упрощённой конфигурации (остальные — в расширенных параметрах) */
+const SIMPLE_MODES: GenerationMode[] = ["script", "objection-quick", "email", "dozim"];
+
 export default function ConfigSidebar({ config, onChange, onGenerate, isGenerating, serviceNames, className, transcriberUrl, defaultManagerName = "", defaultClientName = "", personas = [], onPreviewContext }: Props) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [modeSearch, setModeSearch] = useState("");
   const [tplCategory, setTplCategory] = useState<TemplateCategory>("objections");
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(["what", "who", "how"]));
+  const [simple, setSimple] = useState<boolean>(() => {
+    try { return localStorage.getItem(SIMPLE_KEY) === "1"; } catch { return false; }
+  });
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const setSimpleMode = (value: boolean) => {
+    setSimple(value);
+    setShowAdvanced(false);
+    try { localStorage.setItem(SIMPLE_KEY, value ? "1" : "0"); } catch { /* ignore */ }
+  };
 
   const selectedTplIds = (config.templateIds || "").split(",").map(s => s.trim()).filter(Boolean);
   const toggleTemplate = (id: string) => {
@@ -219,12 +233,24 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
       <div className="flex items-center justify-between p-4 pb-2 shrink-0">
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-foreground mb-0.5">Конфигурация</h2>
-          <p className="text-[10px] text-muted-foreground">Параметры генерации</p>
+          <p className="text-[10px] text-muted-foreground">{simple ? "Упрощённый режим" : "Параметры генерации"}</p>
         </div>
-        <button onClick={() => setShowTemplates(!showTemplates)}
-          className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all btn-tactile inline-flex items-center gap-1 ${showTemplates ? "chip-active" : "chip-inactive"}`}>
-          <Sparkles className="w-3 h-3" /> Шаблоны
-        </button>
+        <div className="flex items-center gap-1.5">
+          <div className="flex rounded-lg border border-border/50 p-0.5" role="group" aria-label="Режим конфигурации">
+            <button onClick={() => setSimpleMode(true)} title="Только главные параметры"
+              className={`text-[10px] px-2 py-1 rounded-md transition-all ${simple ? "chip-active" : "text-muted-foreground hover:text-foreground"}`}>
+              Просто
+            </button>
+            <button onClick={() => setSimpleMode(false)} title="Все параметры генерации"
+              className={`text-[10px] px-2 py-1 rounded-md transition-all ${!simple ? "chip-active" : "text-muted-foreground hover:text-foreground"}`}>
+              Полный
+            </button>
+          </div>
+          <button onClick={() => setShowTemplates(!showTemplates)} aria-label="Шаблоны"
+            className={`text-[10px] px-2 py-1 rounded-lg border transition-all btn-tactile inline-flex items-center gap-1 ${showTemplates ? "chip-active" : "chip-inactive"}`}>
+            <Sparkles className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
       {/* Scrollable content */}
@@ -241,6 +267,80 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
             ))}
           </div>
         )}
+
+        {/* === Упрощённая конфигурация === */}
+        {simple && (
+          <div className="flex flex-col gap-3">
+            <Field label="Что генерируем">
+              <div className="grid grid-cols-2 gap-1.5">
+                {SIMPLE_MODES.map((m) => (
+                  <button key={m} onClick={() => update("mode", m)}
+                    className={`text-[11px] px-2 py-2 rounded-lg border transition-all btn-tactile ${config.mode === m ? "chip-active" : "chip-inactive"}`}>
+                    {MODE_LABELS[m]}
+                  </button>
+                ))}
+              </div>
+              {!SIMPLE_MODES.includes(config.mode) && (
+                <p className="text-[10px] text-muted-foreground">Выбран режим «{MODE_LABELS[config.mode]}» — доступен в расширенных параметрах</p>
+              )}
+            </Field>
+
+            <Field label="Что продаём?">
+              <div className="flex flex-wrap gap-1.5">
+                {serviceNames.map((s) => (
+                  <button key={s} onClick={() => update("service", s)}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all btn-tactile ${config.service === s ? "chip-active" : "chip-inactive"}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            {showSituation && (
+              <Field label="Ситуация">
+                <div className="flex flex-wrap gap-1.5">
+                  {SITUATIONS.map((s) => (
+                    <button key={s} onClick={() => update("situation", s)}
+                      className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all btn-tactile ${config.situation === s ? "chip-active" : "chip-inactive"}`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
+
+            {showPersonas && (
+              <Field label="Кому продаём">
+                <div className="grid grid-cols-2 gap-1">
+                  <button onClick={() => update("personaId", "")}
+                    className={`text-[11px] px-2 py-1.5 rounded-lg border transition-all btn-tactile ${!config.personaId ? "chip-active" : "chip-inactive"}`}>
+                    Не выбрано
+                  </button>
+                  {personas.map((p) => (
+                    <button key={p.id} onClick={() => update("personaId", p.id)} title={`${p.role}\n${p.communication}`}
+                      className={`text-[11px] px-2 py-1.5 rounded-lg border transition-all btn-tactile flex items-center gap-1 ${config.personaId === p.id ? "chip-active" : "chip-inactive"}`}>
+                      <Users className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{p.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
+
+            <Field label="Что известно о клиенте?">
+              <textarea className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none h-24"
+                placeholder="Ниша, ситуация, возражение, детали бизнеса..." value={config.context} onChange={(e) => update("context", e.target.value)} />
+            </Field>
+
+            <button onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full inline-flex items-center justify-center gap-1.5 text-[11px] py-2 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all btn-tactile">
+              <SlidersHorizontal className="w-3 h-3" />
+              {showAdvanced ? "Скрыть дополнительные параметры" : "Дополнительные параметры"}
+            </button>
+          </div>
+        )}
+
+        {(!simple || showAdvanced) && (<>
 
       {/* === Section: What to generate === */}
       <Section open={openSections.has("what")} onToggle={() => toggleSection("what")} label="Что генерируем" badge={MODE_LABELS[config.mode]}>
@@ -538,6 +638,8 @@ export default function ConfigSidebar({ config, onChange, onGenerate, isGenerati
           <p className="text-[10px] text-muted-foreground">Если указан — перед генерацией AI проанализирует сайт и адаптирует скрипт под тематику клиента. Пусто — обычная генерация.</p>
         </Field>
       </Section>
+
+      </>)}
 
       {/* Validation panel */}
       {(warnings.length > 0 || infos.length > 0 || hasError) && (

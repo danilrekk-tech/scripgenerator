@@ -168,7 +168,8 @@ export default function LiteApp() {
   }, []);
 
   const paletteItems = useMemo(() => {
-    const items = enabledModules.map((m) => {
+    type PaletteItem = { id: string; label: string; desc?: string; category: string; icon: React.ReactNode; action: () => void };
+    const items: PaletteItem[] = enabledModules.map((m) => {
       const Icon = LITE_ICONS[m.id];
       return {
         id: m.id,
