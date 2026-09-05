@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Menu, Settings2, SlidersHorizontal, Sparkles, X, LayoutGrid, Maximize2 } from "lucide-react";
+import { Menu, Settings2, SlidersHorizontal, Sparkles, X, LayoutGrid, Maximize2, Home, Command } from "lucide-react";
 
 import ConfigSidebar, { type ScriptConfig } from "@/components/ConfigSidebar";
 import ScriptOutput from "@/components/ScriptOutput";
 import DisplaySettingsPanel from "@/components/DisplaySettingsPanel";
 import ModuleManager from "@/components/lite/ModuleManager";
+import LightweightHome from "@/components/lite/LightweightHome";
+import PresetPicker from "@/components/lite/PresetPicker";
+import CommandPalette from "@/components/CommandPalette";
 import { LITE_ICONS } from "@/components/lite/liteIcons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -60,7 +63,7 @@ const defaultConfig: ScriptConfig = {
   backstory: "", clientSiteUrl: "", scenarioType: "", templateIds: "",
 };
 
-type LiteView = LiteModuleId | "modules" | "settings";
+type LiteView = LiteModuleId | "home" | "modules" | "settings";
 
 export default function LiteApp() {
   const { setMode } = useUiMode();
@@ -79,7 +82,9 @@ export default function LiteApp() {
   const { user } = useAuth();
   useCloudBackup(user?.id ?? null);
 
-  const [view, setView] = useState<LiteView>(presetChosen ? "scripts" : "modules");
+  const [view, setView] = useState<LiteView>("home");
+  const [showPresetPicker, setShowPresetPicker] = useState(!presetChosen);
+  const [showPalette, setShowPalette] = useState(false);
   const [config, setConfig] = useState<ScriptConfig>(defaultConfig);
   const [script, setScript] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -91,7 +96,7 @@ export default function LiteApp() {
 
   // Если активный модуль выключили — вернуться к генератору
   useEffect(() => {
-    if (view !== "modules" && view !== "settings" && !isEnabled(view as LiteModuleId)) setView("scripts");
+    if (view !== "home" && view !== "modules" && view !== "settings" && !isEnabled(view as LiteModuleId)) setView("home");
   }, [view, isEnabled]);
 
   useEffect(() => {
@@ -151,6 +156,37 @@ export default function LiteApp() {
     }
   }, [script, isFavorite, favorites, addFavorite, removeFavorite, config]);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setShowPalette((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  const paletteItems = useMemo(() => {
+    const items = enabledModules.map((m) => {
+      const Icon = LITE_ICONS[m.id];
+      return {
+        id: m.id,
+        label: m.label,
+        desc: m.description,
+        category: LITE_GROUP_LABELS[m.group],
+        icon: <Icon className="h-4 w-4" />,
+        action: () => setView(m.id),
+      };
+    });
+    items.push(
+      { id: "home", label: "Главная", desc: "Что будем делать?", category: "Навигация", icon: <Home className="h-4 w-4" />, action: () => setView("home") },
+      { id: "modules", label: "Модули", desc: "Включить или выключить функции", category: "Навигация", icon: <LayoutGrid className="h-4 w-4" />, action: () => setView("modules") },
+      { id: "settings", label: "Настройки", desc: "Отображение и режим интерфейса", category: "Навигация", icon: <Settings2 className="h-4 w-4" />, action: () => setView("settings") },
+    );
+    return items;
+  }, [enabledModules]);
+
   const navGroups = useMemo(() => {
     const order: LiteGroup[] = ["core", "sales", "analytics", "training", "tools"];
     return order
@@ -163,6 +199,13 @@ export default function LiteApp() {
   const renderModule = () => {
     const cls = "h-full";
     switch (view) {
+      case "home": return (
+        <LightweightHome
+          isEnabled={isEnabled}
+          onOpen={(id) => setView(id)}
+          onOpenModules={() => setView("modules")}
+        />
+      );
       case "modules": return <div className="h-full overflow-y-auto"><ModuleManager /></div>;
       case "settings": return (
         <div className="h-full overflow-y-auto p-4 sm:p-6">
@@ -242,6 +285,9 @@ export default function LiteApp() {
 
   const NavList = ({ onPick }: { onPick?: () => void }) => (
     <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-3">
+      <button onClick={() => { setView("home"); onPick?.(); }} className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors ${view === "home" ? "bg-primary/15 text-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"}`}>
+        <Home className="h-4 w-4" /> Главная
+      </button>
       {navGroups.map(({ group, items }) => (
         <div key={group}>
           <p className="mb-1 px-2 text-[9px] font-medium uppercase tracking-[0.15em] text-muted-foreground">{LITE_GROUP_LABELS[group]}</p>
@@ -290,6 +336,12 @@ export default function LiteApp() {
             </div>
           </div>
           <NavList />
+          <button
+            onClick={() => setShowPalette(true)}
+            className="m-2 flex items-center justify-center gap-1.5 rounded-lg border border-border/50 py-2 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Command className="h-3 w-3" /> Команды · ⌘K
+          </button>
         </aside>
       )}
 
@@ -299,7 +351,7 @@ export default function LiteApp() {
             <button onClick={() => setShowNav(true)} className="rounded-lg p-2 text-muted-foreground hover:text-foreground" aria-label="Меню">
               <Menu className="h-5 w-5" />
             </button>
-            <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{activeMeta?.label ?? (view === "modules" ? "Модули" : "Настройки")}</p>
+            <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{activeMeta?.label ?? (view === "home" ? "Главная" : view === "modules" ? "Модули" : "Настройки")}</p>
             {view === "scripts" && (
               <button onClick={() => setShowConfig(true)} className="flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-xs text-foreground">
                 <SlidersHorizontal className="h-3.5 w-3.5" /> Параметры
@@ -356,6 +408,14 @@ export default function LiteApp() {
           </div>
         </SheetContent>
       </Sheet>
+
+      <CommandPalette open={showPalette} onClose={() => setShowPalette(false)} items={paletteItems} />
+
+      {showPresetPicker && (
+        <div className="fixed inset-0 z-[90] bg-background">
+          <PresetPicker onDone={() => { setShowPresetPicker(false); setView("home"); }} />
+        </div>
+      )}
 
       {showUpsells && <UpsellManager onClose={() => setShowUpsells(false)} serviceNames={serviceNames} />}
     </div>
