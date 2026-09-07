@@ -59,6 +59,7 @@ import { useUpsells } from "@/hooks/useUpsells";
 import UpsellManager from "@/components/UpsellManager";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUiMode } from "@/hooks/useUiMode";
+import { ExpandableTabs } from "@/components/ui/expandable-tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
