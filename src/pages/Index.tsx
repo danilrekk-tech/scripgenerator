@@ -543,6 +543,8 @@ export default function Index() {
                     }
                   }}
                 />
+                {desktopPanel === "main" && (
+                <>
                 <div className="relative">
                   <button onClick={() => setShowPresetSave(!showPresetSave)} className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Пресеты"><Save className="w-3.5 h-3.5" /></button>
                   {showPresetSave && (
