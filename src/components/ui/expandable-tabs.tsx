@@ -72,7 +72,7 @@ export function ExpandableTabs({
   return (
     <div ref={outsideClickRef} className={cn("flex flex-wrap items-center gap-[2px] rounded-2xl border border-border/50 bg-background/40 px-[3px] py-[3px]", className)}>
       {tabs.map((tab, index) => {
-        if (tab.type === "separator") {
+        if ("type" in tab && tab.type === "separator") {
           return <SeparatorEl key={`separator-${index}`} />;
         }
         const Icon = tab.icon;
