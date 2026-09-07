@@ -573,6 +573,8 @@ export default function Index() {
                 <button onClick={() => setShowDesktopSettings(!showDesktopSettings)} className={`p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors ${showDesktopSettings ? "bg-accent text-foreground" : ""}`} title="Настройки отображения">
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                 </button>
+                </>
+                )}
               </div>
             )}
 
