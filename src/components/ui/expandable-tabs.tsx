@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 interface Tab {
   title: string;
   icon: LucideIcon;
+  type?: undefined;
 }
 interface Separator {
   type: "separator";
