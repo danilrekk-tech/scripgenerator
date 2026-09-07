@@ -59,6 +59,7 @@ import { useUpsells } from "@/hooks/useUpsells";
 import UpsellManager from "@/components/UpsellManager";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUiMode } from "@/hooks/useUiMode";
+import { ExpandableTabs } from "@/components/ui/expandable-tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -516,8 +517,34 @@ export default function Index() {
 
           <div className="flex-1 flex flex-col min-w-0">
             {/* Compact top bar */}
-            {desktopPanel === "main" && (
-              <div className="glass-panel border-b border-border/50 px-4 py-1.5 flex items-center justify-end gap-1 shrink-0">
+            {(
+              <div className="glass-panel border-b border-border/50 px-4 py-1.5 flex items-center justify-between gap-2 shrink-0 overflow-hidden">
+                <ExpandableTabs
+                  className="hidden md:flex"
+                  tabs={[
+                    { title: "Генератор", icon: FileText },
+                    { title: "Арсенал", icon: Zap },
+                    { title: "История", icon: History },
+                    { type: "separator" },
+                    { title: "Симулятор", icon: MessageCircle },
+                    { title: "Тренажёр", icon: Sparkles },
+                    { title: "Квиз", icon: Brain },
+                  ]}
+                  selectedIndex={(() => {
+                    const quick: Record<string, number> = { main: 0, armory: 1, history: 2, simulator: 4, objections: 5, quiz: 6 };
+                    return quick[desktopPanel] ?? null;
+                  })()}
+                  onChange={(index) => {
+                    const targets: Record<number, DesktopPanel> = { 0: "main", 1: "armory", 2: "history", 4: "simulator", 5: "objections", 6: "quiz" };
+                    const target = targets[index];
+                    if (target) {
+                      setAppMode("sales");
+                      setDesktopPanel(target);
+                    }
+                  }}
+                />
+                {desktopPanel === "main" && (
+                <>
                 <div className="relative">
                   <button onClick={() => setShowPresetSave(!showPresetSave)} className="p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors" title="Пресеты"><Save className="w-3.5 h-3.5" /></button>
                   {showPresetSave && (
@@ -546,6 +573,8 @@ export default function Index() {
                 <button onClick={() => setShowDesktopSettings(!showDesktopSettings)} className={`p-1.5 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors ${showDesktopSettings ? "bg-accent text-foreground" : ""}`} title="Настройки отображения">
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                 </button>
+                </>
+                )}
               </div>
             )}
 
