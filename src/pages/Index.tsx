@@ -538,7 +538,7 @@ export default function Index() {
                     const targets: Record<number, DesktopPanel> = { 0: "main", 1: "armory", 2: "history", 4: "simulator", 5: "objections", 6: "quiz" };
                     const target = targets[index];
                     if (target) {
-                      if (appMode === "training") setAppMode("sales");
+                      setAppMode("sales");
                       setDesktopPanel(target);
                     }
                   }}
