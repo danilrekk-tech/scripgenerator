@@ -341,7 +341,11 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     setMessages([]);
     setInput("");
     setShowReport(false);
+    setExamResult(null);
+    setSessionScore(0);
+    setScoreCount(0);
   };
+
 
   const finishAndReport = () => {
     setShowReport(true);
