@@ -679,10 +679,13 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" />
               </Field>
               {!started && (
-                <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 text-sm">
-                  {simMode === "trainer" ? "🎓 Начать тренировку" : "🎭 Начать симуляцию"}
+                <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 text-sm flex items-center justify-center gap-2">
+                  {simMode === "exam" ? <><Award className="w-4 h-4" /> Начать аттестацию</> :
+                   simMode === "trainer" ? <><GraduationCap className="w-4 h-4" /> Начать тренировку</> :
+                   <><MessageCircle className="w-4 h-4" /> Начать симуляцию</>}
                 </button>
               )}
+
             </div>
           </motion.div>
         )}
