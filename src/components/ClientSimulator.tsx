@@ -3,13 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen,
   Trash2, Clock, GraduationCap, Lightbulb, Trophy, BarChart3,
-  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser, Download, User
+  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser, Download, User,
+  Award, CheckCircle2, TrendingUp
 } from "lucide-react";
 
 const SIM_STATE_KEY = "scriptengine-simulator-state";
+const EXAM_RESULTS_KEY = "scriptengine-exam-results";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
+
 
 
 interface Message {
@@ -30,7 +33,24 @@ interface SimConfig {
   customNote?: string;
 }
 
-type SimMode = "free" | "trainer";
+type SimMode = "free" | "trainer" | "exam";
+
+interface ExamResult {
+  id: string;
+  timestamp: number;
+  service: string;
+  clientType: string;
+  rounds: number;
+  avgScore: number;
+  total: number;
+  level: string;
+  strengths: string;
+  growth: string;
+  summary: string;
+}
+
+const EXAM_ROUND_OPTIONS = [5, 8, 12];
+
 
 const CLIENT_TYPES = ["Директор малого бизнеса", "Маркетолог", "IT-директор", "Владелец e-commerce", "Стартапер", "CFO/Финдиректор", "HR-директор", "Закупщик B2B", "Собственник производства", "Главврач клиники"];
 const MOODS = ["Заинтересованный", "Скептичный", "Раздражённый", "Торопится", "Вежливый но холодный", "Дружелюбный", "Агрессивный", "Нейтральный"];
@@ -73,6 +93,12 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
   const [scoreCount, setScoreCount] = useState<number>(persisted?.scoreCount || 0);
   const [showTools, setShowTools] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [examRounds, setExamRounds] = useState<number>(persisted?.examRounds || 5);
+  const [examResult, setExamResult] = useState<ExamResult | null>(persisted?.examResult || null);
+  const [examLoading, setExamLoading] = useState(false);
+  const [examHistory, setExamHistory] = useState<ExamResult[]>(() => {
+    try { return JSON.parse(localStorage.getItem(EXAM_RESULTS_KEY) || "[]"); } catch { return []; }
+  });
   const chatRef = useRef<HTMLDivElement>(null);
   const { dialogs, saveDialog, deleteDialog } = useSavedDialogs();
 
@@ -80,10 +106,11 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
   useEffect(() => {
     try {
       localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
-        config, messages, started, simMode, sessionScore, scoreCount,
+        config, messages, started, simMode, sessionScore, scoreCount, examRounds, examResult,
       }));
     } catch {}
-  }, [config, messages, started, simMode, sessionScore, scoreCount]);
+  }, [config, messages, started, simMode, sessionScore, scoreCount, examRounds, examResult]);
+
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
@@ -105,7 +132,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
-      const isTrainer = simMode === "trainer";
+      const isTrainer = simMode === "trainer" || simMode === "exam";
 
       const contextPayload = JSON.stringify({
         clientType: config.clientType,
@@ -120,6 +147,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
           trainerMode: true,
           instruction: "После ответа клиента, добавь блок ОЦЕНКА в формате:\n[SCORE:X/10]\n[FEEDBACK:текст]\nОцени ответ менеджера: технику продаж, работу с возражениями, выявление потребностей."
         }),
+
       });
 
       const resp = await fetch(CHAT_URL, {
@@ -203,6 +231,96 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     }
   }, [messages, isLoading, config, simMode]);
 
+  const finishExam = useCallback(async () => {
+    if (examLoading) return;
+    setExamLoading(true);
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
+      const dialogText = messages.map((m) => `${m.role === "user" ? "Менеджер" : "Клиент"}: ${m.content}`).join("\n");
+      const perRound = messages.filter(m => m.score !== undefined).map((m, i) => `Раунд ${i + 1}: ${m.score}/10 — ${m.feedback || ""}`).join("\n");
+      const contextPayload = JSON.stringify({
+        finalAssessment: true,
+        clientType: config.clientType,
+        mood: config.mood,
+        budget: config.budget,
+        objectionLevel: config.objectionLevel,
+        history: dialogText,
+        roundScores: perRound,
+        instruction: "Ты — руководитель отдела продаж. Проведи итоговую аттестацию менеджера по этому диалогу. Ответь СТРОГО в формате без лишнего текста:\n[TOTAL:X/10]\n[LEVEL:Стажёр|Junior|Middle|Senior|Эксперт]\n[STRENGTHS:2-3 сильные стороны через запятую]\n[GROWTH:2-3 зоны роста через запятую]\n[SUMMARY:краткий вывод 1-2 предложения]",
+      });
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: JSON.stringify({
+          mode: "client-simulation",
+          service: config.service,
+          situation: "", tone: "", context: contextPayload,
+          transcript: "", priceRub: "", currency: "RUB",
+          emailSubtype: "", emailObjection: "", managerName: "", clientName: "",
+        }),
+      });
+      let text = "";
+      if (resp.ok && resp.body) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buffer.indexOf("\n")) !== -1) {
+            let line = buffer.slice(0, idx);
+            buffer = buffer.slice(idx + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ")) continue;
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const c = parsed.choices?.[0]?.delta?.content;
+              if (c) text += c;
+            } catch {}
+          }
+        }
+      }
+
+      const avg = scoreCount > 0 ? sessionScore / scoreCount : 0;
+      const grab = (tag: string) => text.match(new RegExp(`\\[${tag}:(.*?)\\]`, "s"))?.[1]?.trim() || "";
+      const totalRaw = parseFloat((grab("TOTAL") || "").replace(",", ".").split("/")[0]);
+      const total = Number.isFinite(totalRaw) ? totalRaw : Number(avg.toFixed(1));
+      const level = grab("LEVEL") || (total >= 8.5 ? "Senior" : total >= 7 ? "Middle" : total >= 5 ? "Junior" : "Стажёр");
+      const result: ExamResult = {
+        id: `${Date.now()}`,
+        timestamp: Date.now(),
+        service: config.service,
+        clientType: config.clientType,
+        rounds: scoreCount,
+        avgScore: Number(avg.toFixed(1)),
+        total,
+        level,
+        strengths: grab("STRENGTHS"),
+        growth: grab("GROWTH"),
+        summary: grab("SUMMARY") || "Итоговая оценка рассчитана по средним баллам раундов.",
+      };
+      setExamResult(result);
+      setExamHistory((prev) => {
+        const next = [result, ...prev].slice(0, 30);
+        try { localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(next)); } catch {}
+        return next;
+      });
+    } finally {
+      setExamLoading(false);
+    }
+  }, [examLoading, messages, config, scoreCount, sessionScore]);
+
+  // Автозавершение аттестации после нужного количества раундов
+  useEffect(() => {
+    if (simMode === "exam" && started && !examResult && !isLoading && !examLoading && scoreCount >= examRounds) {
+      finishExam();
+    }
+  }, [simMode, started, examResult, isLoading, examLoading, scoreCount, examRounds, finishExam]);
+
   const startSimulation = () => {
     setStarted(true);
     setShowConfig(false);
@@ -211,8 +329,10 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     setSessionScore(0);
     setScoreCount(0);
     setShowReport(false);
+    setExamResult(null);
     sendMessage("Добрый день!");
   };
+
 
   const resetSimulation = () => {
     setStarted(false);
@@ -221,7 +341,11 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     setMessages([]);
     setInput("");
     setShowReport(false);
+    setExamResult(null);
+    setSessionScore(0);
+    setScoreCount(0);
   };
+
 
   const finishAndReport = () => {
     setShowReport(true);
@@ -305,6 +429,12 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                         <Trophy className="w-2.5 h-2.5 text-primary" /> {avgScore}/10 · {scoreCount} р.
                       </span>
                     )}
+                    {simMode === "exam" && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Award className="w-2.5 h-2.5 text-primary" /> Аттестация · раунд {Math.min(scoreCount + (examResult ? 0 : 1), examRounds)}/{examRounds}
+                      </span>
+                    )}
+
                   </>
                 ) : (
                   <p className="text-[10px] text-muted-foreground">Тренируйтесь без риска для реальных сделок</p>
@@ -421,24 +551,60 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
               )}
               {/* Mode selector */}
               {!started && (
-                <div className="flex gap-2 mb-2">
+                <div className="grid grid-cols-3 gap-2 mb-2">
                   <button onClick={() => setSimMode("free")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all btn-tactile ${simMode === "free" ? "chip-active" : "chip-inactive"}`}>
-                    <MessageCircle className="w-4 h-4" /> Свободный режим
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl border text-[11px] font-medium transition-all btn-tactile ${simMode === "free" ? "chip-active" : "chip-inactive"}`}>
+                    <MessageCircle className="w-4 h-4" /> Свободный
                   </button>
                   <button onClick={() => setSimMode("trainer")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all btn-tactile ${simMode === "trainer" ? "chip-active" : "chip-inactive"}`}>
-                    <GraduationCap className="w-4 h-4" /> Тренер продаж
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl border text-[11px] font-medium transition-all btn-tactile ${simMode === "trainer" ? "chip-active" : "chip-inactive"}`}>
+                    <GraduationCap className="w-4 h-4" /> Тренер
+                  </button>
+                  <button onClick={() => setSimMode("exam")}
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl border text-[11px] font-medium transition-all btn-tactile ${simMode === "exam" ? "chip-active" : "chip-inactive"}`}>
+                    <Award className="w-4 h-4" /> Аттестация
                   </button>
                 </div>
               )}
 
               {simMode === "trainer" && !started && (
                 <div className="glass-card border border-primary/20 rounded-xl p-3 bg-primary/5">
-                  <p className="text-xs font-medium text-primary mb-1">🎓 Режим тренера</p>
+                  <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" /> Режим тренера</p>
                   <p className="text-[10px] text-muted-foreground">ИИ оценит каждый ваш ответ по шкале 1-10, даст обратную связь и подскажет как улучшить технику продаж.</p>
                 </div>
               )}
+
+              {simMode === "exam" && !started && (
+                <div className="space-y-2">
+                  <div className="glass-card border border-primary/20 rounded-xl p-3 bg-primary/5">
+                    <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1.5"><Award className="w-3.5 h-3.5" /> Тестирование уровня навыка</p>
+                    <p className="text-[10px] text-muted-foreground">Проведите диалог до конца — оценки скрыты. В финале сотрудник получает итоговый балл продажника, уровень (Стажёр → Эксперт), сильные стороны и зоны роста.</p>
+                  </div>
+                  <Field label="Количество раундов">
+                    <div className="flex flex-wrap gap-1.5">
+                      {EXAM_ROUND_OPTIONS.map((r) => (
+                        <Chip key={r} active={examRounds === r} onClick={() => setExamRounds(r)}>{r} раундов</Chip>
+                      ))}
+                    </div>
+                  </Field>
+                  {examHistory.length > 0 && (
+                    <Field label="Прошлые аттестации">
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        {examHistory.slice(0, 5).map((r) => (
+                          <div key={r.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 glass-card">
+                            <span className="text-sm font-bold text-primary shrink-0">{r.total}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[11px] font-medium truncate">{r.level} · {r.service}</p>
+                              <p className="text-[10px] text-muted-foreground">{new Date(r.timestamp).toLocaleString("ru-RU")} · {r.rounds} р.</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Field>
+                  )}
+                </div>
+              )}
+
 
               {!started && (
                 <div className="space-y-2">
@@ -513,10 +679,13 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   className="w-full glass-input border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" />
               </Field>
               {!started && (
-                <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 text-sm">
-                  {simMode === "trainer" ? "🎓 Начать тренировку" : "🎭 Начать симуляцию"}
+                <button onClick={startSimulation} className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl transition-all btn-tactile shadow-glow hover:opacity-90 text-sm flex items-center justify-center gap-2">
+                  {simMode === "exam" ? <><Award className="w-4 h-4" /> Начать аттестацию</> :
+                   simMode === "trainer" ? <><GraduationCap className="w-4 h-4" /> Начать тренировку</> :
+                   <><MessageCircle className="w-4 h-4" /> Начать симуляцию</>}
                 </button>
               )}
+
             </div>
           </motion.div>
         )}
@@ -548,6 +717,65 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Exam verdict */}
+      <AnimatePresence>
+        {simMode === "exam" && (examLoading || examResult) && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="shrink-0 max-h-[46vh] overflow-y-auto p-4 border-b border-border/50 glass-card m-2 rounded-xl">
+            {examLoading ? (
+              <p className="text-xs text-muted-foreground flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin text-primary" /> Считаем итоговый балл продажника...</p>
+            ) : examResult && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold flex items-center gap-2"><Award className="w-4 h-4 text-primary" /> Результат аттестации</h3>
+                  <button onClick={resetSimulation} className="text-[10px] px-2 py-1 rounded-lg border border-border/50 hover:bg-accent/50 text-muted-foreground">Пройти заново</button>
+                </div>
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-2xl font-bold text-primary leading-none">{examResult.total}</span>
+                    <span className="text-[10px] text-muted-foreground mt-1">из 10</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-base font-semibold text-foreground">{examResult.level}</p>
+                    <p className="text-[11px] text-muted-foreground">{examResult.rounds} раундов · средний балл {examResult.avgScore}/10</p>
+                    <p className="text-[11px] text-foreground/80 mt-1">{examResult.summary}</p>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {examResult.strengths && (
+                    <div className="p-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+                      <p className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 mb-1"><CheckCircle2 className="w-3 h-3" /> Сильные стороны</p>
+                      <p className="text-[11px] text-foreground/80">{examResult.strengths}</p>
+                    </div>
+                  )}
+                  {examResult.growth && (
+                    <div className="p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                      <p className="text-[10px] font-medium text-amber-600 flex items-center gap-1 mb-1"><TrendingUp className="w-3 h-3" /> Зоны роста</p>
+                      <p className="text-[11px] text-foreground/80">{examResult.growth}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Оценки по раундам</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {messages.filter(m => m.score !== undefined).map((m, i) => (
+                      <span key={i} className={`text-[10px] px-2 py-1 rounded-lg border ${
+                        (m.score as number) >= 7 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600" :
+                        (m.score as number) >= 4 ? "border-amber-500/20 bg-amber-500/5 text-amber-600" :
+                        "border-rose-500/20 bg-rose-500/5 text-rose-600"}`}>
+                        Р{i + 1}: {m.score}/10
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
 
       {/* Chat area */}
       {started && (
