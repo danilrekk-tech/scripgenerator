@@ -718,6 +718,65 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
         )}
       </AnimatePresence>
 
+      {/* Exam verdict */}
+      <AnimatePresence>
+        {simMode === "exam" && (examLoading || examResult) && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="shrink-0 max-h-[46vh] overflow-y-auto p-4 border-b border-border/50 glass-card m-2 rounded-xl">
+            {examLoading ? (
+              <p className="text-xs text-muted-foreground flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin text-primary" /> Считаем итоговый балл продажника...</p>
+            ) : examResult && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold flex items-center gap-2"><Award className="w-4 h-4 text-primary" /> Результат аттестации</h3>
+                  <button onClick={resetSimulation} className="text-[10px] px-2 py-1 rounded-lg border border-border/50 hover:bg-accent/50 text-muted-foreground">Пройти заново</button>
+                </div>
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-2xl font-bold text-primary leading-none">{examResult.total}</span>
+                    <span className="text-[10px] text-muted-foreground mt-1">из 10</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-base font-semibold text-foreground">{examResult.level}</p>
+                    <p className="text-[11px] text-muted-foreground">{examResult.rounds} раундов · средний балл {examResult.avgScore}/10</p>
+                    <p className="text-[11px] text-foreground/80 mt-1">{examResult.summary}</p>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {examResult.strengths && (
+                    <div className="p-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+                      <p className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 mb-1"><CheckCircle2 className="w-3 h-3" /> Сильные стороны</p>
+                      <p className="text-[11px] text-foreground/80">{examResult.strengths}</p>
+                    </div>
+                  )}
+                  {examResult.growth && (
+                    <div className="p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                      <p className="text-[10px] font-medium text-amber-600 flex items-center gap-1 mb-1"><TrendingUp className="w-3 h-3" /> Зоны роста</p>
+                      <p className="text-[11px] text-foreground/80">{examResult.growth}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Оценки по раундам</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {messages.filter(m => m.score !== undefined).map((m, i) => (
+                      <span key={i} className={`text-[10px] px-2 py-1 rounded-lg border ${
+                        (m.score as number) >= 7 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600" :
+                        (m.score as number) >= 4 ? "border-amber-500/20 bg-amber-500/5 text-amber-600" :
+                        "border-rose-500/20 bg-rose-500/5 text-rose-600"}`}>
+                        Р{i + 1}: {m.score}/10
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
+
       {/* Chat area */}
       {started && (
         <>
