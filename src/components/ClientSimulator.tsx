@@ -132,7 +132,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
-      const isTrainer = simMode === "trainer";
+      const isTrainer = simMode === "trainer" || simMode === "exam";
 
       const contextPayload = JSON.stringify({
         clientType: config.clientType,
@@ -147,6 +147,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
           trainerMode: true,
           instruction: "После ответа клиента, добавь блок ОЦЕНКА в формате:\n[SCORE:X/10]\n[FEEDBACK:текст]\nОцени ответ менеджера: технику продаж, работу с возражениями, выявление потребностей."
         }),
+
       });
 
       const resp = await fetch(CHAT_URL, {
