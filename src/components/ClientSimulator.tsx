@@ -429,6 +429,12 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                         <Trophy className="w-2.5 h-2.5 text-primary" /> {avgScore}/10 · {scoreCount} р.
                       </span>
                     )}
+                    {simMode === "exam" && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Award className="w-2.5 h-2.5 text-primary" /> Аттестация · раунд {Math.min(scoreCount + (examResult ? 0 : 1), examRounds)}/{examRounds}
+                      </span>
+                    )}
+
                   </>
                 ) : (
                   <p className="text-[10px] text-muted-foreground">Тренируйтесь без риска для реальных сделок</p>
