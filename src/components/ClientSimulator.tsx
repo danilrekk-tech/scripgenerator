@@ -93,6 +93,12 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
   const [scoreCount, setScoreCount] = useState<number>(persisted?.scoreCount || 0);
   const [showTools, setShowTools] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [examRounds, setExamRounds] = useState<number>(persisted?.examRounds || 5);
+  const [examResult, setExamResult] = useState<ExamResult | null>(persisted?.examResult || null);
+  const [examLoading, setExamLoading] = useState(false);
+  const [examHistory, setExamHistory] = useState<ExamResult[]>(() => {
+    try { return JSON.parse(localStorage.getItem(EXAM_RESULTS_KEY) || "[]"); } catch { return []; }
+  });
   const chatRef = useRef<HTMLDivElement>(null);
   const { dialogs, saveDialog, deleteDialog } = useSavedDialogs();
 
@@ -100,10 +106,11 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
   useEffect(() => {
     try {
       localStorage.setItem(SIM_STATE_KEY, JSON.stringify({
-        config, messages, started, simMode, sessionScore, scoreCount,
+        config, messages, started, simMode, sessionScore, scoreCount, examRounds, examResult,
       }));
     } catch {}
-  }, [config, messages, started, simMode, sessionScore, scoreCount]);
+  }, [config, messages, started, simMode, sessionScore, scoreCount, examRounds, examResult]);
+
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
