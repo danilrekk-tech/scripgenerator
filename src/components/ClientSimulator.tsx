@@ -33,7 +33,24 @@ interface SimConfig {
   customNote?: string;
 }
 
-type SimMode = "free" | "trainer";
+type SimMode = "free" | "trainer" | "exam";
+
+interface ExamResult {
+  id: string;
+  timestamp: number;
+  service: string;
+  clientType: string;
+  rounds: number;
+  avgScore: number;
+  total: number;
+  level: string;
+  strengths: string;
+  growth: string;
+  summary: string;
+}
+
+const EXAM_ROUND_OPTIONS = [5, 8, 12];
+
 
 const CLIENT_TYPES = ["Директор малого бизнеса", "Маркетолог", "IT-директор", "Владелец e-commerce", "Стартапер", "CFO/Финдиректор", "HR-директор", "Закупщик B2B", "Собственник производства", "Главврач клиники"];
 const MOODS = ["Заинтересованный", "Скептичный", "Раздражённый", "Торопится", "Вежливый но холодный", "Дружелюбный", "Агрессивный", "Нейтральный"];
