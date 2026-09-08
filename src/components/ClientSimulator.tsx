@@ -231,6 +231,96 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     }
   }, [messages, isLoading, config, simMode]);
 
+  const finishExam = useCallback(async () => {
+    if (examLoading) return;
+    setExamLoading(true);
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
+      const dialogText = messages.map((m) => `${m.role === "user" ? "Менеджер" : "Клиент"}: ${m.content}`).join("\n");
+      const perRound = messages.filter(m => m.score !== undefined).map((m, i) => `Раунд ${i + 1}: ${m.score}/10 — ${m.feedback || ""}`).join("\n");
+      const contextPayload = JSON.stringify({
+        finalAssessment: true,
+        clientType: config.clientType,
+        mood: config.mood,
+        budget: config.budget,
+        objectionLevel: config.objectionLevel,
+        history: dialogText,
+        roundScores: perRound,
+        instruction: "Ты — руководитель отдела продаж. Проведи итоговую аттестацию менеджера по этому диалогу. Ответь СТРОГО в формате без лишнего текста:\n[TOTAL:X/10]\n[LEVEL:Стажёр|Junior|Middle|Senior|Эксперт]\n[STRENGTHS:2-3 сильные стороны через запятую]\n[GROWTH:2-3 зоны роста через запятую]\n[SUMMARY:краткий вывод 1-2 предложения]",
+      });
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: JSON.stringify({
+          mode: "client-simulation",
+          service: config.service,
+          situation: "", tone: "", context: contextPayload,
+          transcript: "", priceRub: "", currency: "RUB",
+          emailSubtype: "", emailObjection: "", managerName: "", clientName: "",
+        }),
+      });
+      let text = "";
+      if (resp.ok && resp.body) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buffer.indexOf("\n")) !== -1) {
+            let line = buffer.slice(0, idx);
+            buffer = buffer.slice(idx + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ")) continue;
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const c = parsed.choices?.[0]?.delta?.content;
+              if (c) text += c;
+            } catch {}
+          }
+        }
+      }
+
+      const avg = scoreCount > 0 ? sessionScore / scoreCount : 0;
+      const grab = (tag: string) => text.match(new RegExp(`\\[${tag}:(.*?)\\]`, "s"))?.[1]?.trim() || "";
+      const totalRaw = parseFloat((grab("TOTAL") || "").replace(",", ".").split("/")[0]);
+      const total = Number.isFinite(totalRaw) ? totalRaw : Number(avg.toFixed(1));
+      const level = grab("LEVEL") || (total >= 8.5 ? "Senior" : total >= 7 ? "Middle" : total >= 5 ? "Junior" : "Стажёр");
+      const result: ExamResult = {
+        id: `${Date.now()}`,
+        timestamp: Date.now(),
+        service: config.service,
+        clientType: config.clientType,
+        rounds: scoreCount,
+        avgScore: Number(avg.toFixed(1)),
+        total,
+        level,
+        strengths: grab("STRENGTHS"),
+        growth: grab("GROWTH"),
+        summary: grab("SUMMARY") || "Итоговая оценка рассчитана по средним баллам раундов.",
+      };
+      setExamResult(result);
+      setExamHistory((prev) => {
+        const next = [result, ...prev].slice(0, 30);
+        try { localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(next)); } catch {}
+        return next;
+      });
+    } finally {
+      setExamLoading(false);
+    }
+  }, [examLoading, messages, config, scoreCount, sessionScore]);
+
+  // Автозавершение аттестации после нужного количества раундов
+  useEffect(() => {
+    if (simMode === "exam" && started && !examResult && !isLoading && !examLoading && scoreCount >= examRounds) {
+      finishExam();
+    }
+  }, [simMode, started, examResult, isLoading, examLoading, scoreCount, examRounds, finishExam]);
+
   const startSimulation = () => {
     setStarted(true);
     setShowConfig(false);
@@ -239,8 +329,10 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     setSessionScore(0);
     setScoreCount(0);
     setShowReport(false);
+    setExamResult(null);
     sendMessage("Добрый день!");
   };
+
 
   const resetSimulation = () => {
     setStarted(false);
