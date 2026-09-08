@@ -3,13 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Send, Loader2, RotateCcw, Settings2, Save, FolderOpen,
   Trash2, Clock, GraduationCap, Lightbulb, Trophy, BarChart3,
-  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser, Download, User
+  Zap, Shield, Wrench, X, ChevronRight, Sparkles, Eraser, Download, User,
+  Award, CheckCircle2, TrendingUp
 } from "lucide-react";
 
 const SIM_STATE_KEY = "scriptengine-simulator-state";
+const EXAM_RESULTS_KEY = "scriptengine-exam-results";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
+
 
 
 interface Message {
