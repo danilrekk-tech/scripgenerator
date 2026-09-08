@@ -551,24 +551,60 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
               )}
               {/* Mode selector */}
               {!started && (
-                <div className="flex gap-2 mb-2">
+                <div className="grid grid-cols-3 gap-2 mb-2">
                   <button onClick={() => setSimMode("free")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all btn-tactile ${simMode === "free" ? "chip-active" : "chip-inactive"}`}>
-                    <MessageCircle className="w-4 h-4" /> Свободный режим
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl border text-[11px] font-medium transition-all btn-tactile ${simMode === "free" ? "chip-active" : "chip-inactive"}`}>
+                    <MessageCircle className="w-4 h-4" /> Свободный
                   </button>
                   <button onClick={() => setSimMode("trainer")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all btn-tactile ${simMode === "trainer" ? "chip-active" : "chip-inactive"}`}>
-                    <GraduationCap className="w-4 h-4" /> Тренер продаж
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl border text-[11px] font-medium transition-all btn-tactile ${simMode === "trainer" ? "chip-active" : "chip-inactive"}`}>
+                    <GraduationCap className="w-4 h-4" /> Тренер
+                  </button>
+                  <button onClick={() => setSimMode("exam")}
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-2.5 rounded-xl border text-[11px] font-medium transition-all btn-tactile ${simMode === "exam" ? "chip-active" : "chip-inactive"}`}>
+                    <Award className="w-4 h-4" /> Аттестация
                   </button>
                 </div>
               )}
 
               {simMode === "trainer" && !started && (
                 <div className="glass-card border border-primary/20 rounded-xl p-3 bg-primary/5">
-                  <p className="text-xs font-medium text-primary mb-1">🎓 Режим тренера</p>
+                  <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" /> Режим тренера</p>
                   <p className="text-[10px] text-muted-foreground">ИИ оценит каждый ваш ответ по шкале 1-10, даст обратную связь и подскажет как улучшить технику продаж.</p>
                 </div>
               )}
+
+              {simMode === "exam" && !started && (
+                <div className="space-y-2">
+                  <div className="glass-card border border-primary/20 rounded-xl p-3 bg-primary/5">
+                    <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1.5"><Award className="w-3.5 h-3.5" /> Тестирование уровня навыка</p>
+                    <p className="text-[10px] text-muted-foreground">Проведите диалог до конца — оценки скрыты. В финале сотрудник получает итоговый балл продажника, уровень (Стажёр → Эксперт), сильные стороны и зоны роста.</p>
+                  </div>
+                  <Field label="Количество раундов">
+                    <div className="flex flex-wrap gap-1.5">
+                      {EXAM_ROUND_OPTIONS.map((r) => (
+                        <Chip key={r} active={examRounds === r} onClick={() => setExamRounds(r)}>{r} раундов</Chip>
+                      ))}
+                    </div>
+                  </Field>
+                  {examHistory.length > 0 && (
+                    <Field label="Прошлые аттестации">
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        {examHistory.slice(0, 5).map((r) => (
+                          <div key={r.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 glass-card">
+                            <span className="text-sm font-bold text-primary shrink-0">{r.total}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[11px] font-medium truncate">{r.level} · {r.service}</p>
+                              <p className="text-[10px] text-muted-foreground">{new Date(r.timestamp).toLocaleString("ru-RU")} · {r.rounds} р.</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Field>
+                  )}
+                </div>
+              )}
+
 
               {!started && (
                 <div className="space-y-2">
