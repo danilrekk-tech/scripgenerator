@@ -865,7 +865,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   {examLoading ? "Подводим итоги аттестации..." : "Аттестация завершена. Диалог закрыт."}
                 </p>
                 {!examLoading && (
-                  <button onClick={resetDialog} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-foreground hover:bg-accent/50 btn-tactile shrink-0">
+                  <button onClick={resetSimulation} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-foreground hover:bg-accent/50 btn-tactile shrink-0">
                     Новая попытка
                   </button>
                 )}
