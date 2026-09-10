@@ -321,6 +321,8 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     }
   }, [simMode, started, examResult, isLoading, examLoading, scoreCount, examRounds, finishExam]);
 
+  const examLocked = simMode === "exam" && (examLoading || !!examResult);
+
   const startSimulation = () => {
     setStarted(true);
     setShowConfig(false);
