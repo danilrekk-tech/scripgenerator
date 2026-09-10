@@ -839,6 +839,17 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
           {/* Input area */}
           <div className="p-3 border-t border-border/50 shrink-0">
+            {simMode === "exam" && (
+              <div className="mb-2">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Прогресс аттестации</span>
+                  <span>{Math.min(scoreCount, examRounds)}/{examRounds}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-accent/60 overflow-hidden">
+                  <div className="h-full bg-primary transition-all" style={{ width: `${Math.min(100, (scoreCount / examRounds) * 100)}%` }} />
+                </div>
+              </div>
+            )}
             {simMode === "trainer" && !isLoading && (
               <div className="flex gap-1.5 mb-2">
                 <button onClick={getHint} className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-primary hover:border-primary/20 transition-all btn-tactile">
@@ -846,19 +857,32 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                 </button>
               </div>
             )}
-            <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-                placeholder="Введите ваш ответ клиенту..."
-                disabled={isLoading}
-                className="flex-1 glass-input border border-border/50 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-              />
-              <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-50 transition-all btn-tactile">
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </button>
-            </div>
+            {examLocked ? (
+              <div className="flex items-center justify-between gap-2 glass-card border border-border/50 rounded-xl px-3 py-2.5">
+                <p className="text-xs text-muted-foreground">
+                  {examLoading ? "Подводим итоги аттестации..." : "Аттестация завершена. Диалог закрыт."}
+                </p>
+                {!examLoading && (
+                  <button onClick={resetDialog} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-foreground hover:bg-accent/50 btn-tactile shrink-0">
+                    Новая попытка
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
+                  placeholder="Введите ваш ответ клиенту..."
+                  disabled={isLoading}
+                  className="flex-1 glass-input border border-border/50 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                />
+                <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-50 transition-all btn-tactile">
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
