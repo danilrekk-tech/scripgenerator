@@ -741,7 +741,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   </div>
                   <div className="min-w-0">
                     <p className="text-base font-semibold text-foreground">{examResult.level}</p>
-                    <p className="text-[11px] text-muted-foreground">{examResult.rounds} раундов · средний балл {examResult.avgScore}/10</p>
+                    <p className="text-[11px] text-muted-foreground">{examResult.rounds === 1 ? "1 раунд" : examResult.rounds < 5 ? `${examResult.rounds} раунда` : `${examResult.rounds} раундов`} · средний балл {examResult.avgScore}/10</p>
                     <p className="text-[11px] text-foreground/80 mt-1">{examResult.summary}</p>
                   </div>
                 </div>
