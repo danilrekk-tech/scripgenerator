@@ -49,7 +49,7 @@ interface ExamResult {
   summary: string;
 }
 
-const EXAM_ROUND_OPTIONS = [5, 8, 12];
+const EXAM_ROUND_OPTIONS = [1, 5, 8, 12];
 
 
 const CLIENT_TYPES = ["Директор малого бизнеса", "Маркетолог", "IT-директор", "Владелец e-commerce", "Стартапер", "CFO/Финдиректор", "HR-директор", "Закупщик B2B", "Собственник производства", "Главврач клиники"];
@@ -586,7 +586,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   <Field label="Количество раундов">
                     <div className="flex flex-wrap gap-1.5">
                       {EXAM_ROUND_OPTIONS.map((r) => (
-                        <Chip key={r} active={examRounds === r} onClick={() => setExamRounds(r)}>{r} раундов</Chip>
+                        <Chip key={r} active={examRounds === r} onClick={() => setExamRounds(r)}>{r === 1 ? "1 раунд" : r < 5 ? `${r} раунда` : `${r} раундов`}</Chip>
                       ))}
                     </div>
                   </Field>
@@ -741,7 +741,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   </div>
                   <div className="min-w-0">
                     <p className="text-base font-semibold text-foreground">{examResult.level}</p>
-                    <p className="text-[11px] text-muted-foreground">{examResult.rounds} раундов · средний балл {examResult.avgScore}/10</p>
+                    <p className="text-[11px] text-muted-foreground">{examResult.rounds === 1 ? "1 раунд" : examResult.rounds < 5 ? `${examResult.rounds} раунда` : `${examResult.rounds} раундов`} · средний балл {examResult.avgScore}/10</p>
                     <p className="text-[11px] text-foreground/80 mt-1">{examResult.summary}</p>
                   </div>
                 </div>
