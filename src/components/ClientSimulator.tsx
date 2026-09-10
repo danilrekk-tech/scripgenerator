@@ -124,6 +124,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
   const sendMessage = useCallback(async (userMsg: string) => {
     if (!userMsg.trim() || isLoading) return;
+    if (simMode === "exam" && (examLoading || examResult)) return;
     const newMessages: Message[] = [...messages, { role: "user", content: userMsg }];
     setMessages(newMessages);
     setInput("");
