@@ -230,7 +230,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, config, simMode]);
+  }, [messages, isLoading, config, simMode, examLoading, examResult]);
 
   const finishExam = useCallback(async () => {
     if (examLoading) return;
