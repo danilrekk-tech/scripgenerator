@@ -800,7 +800,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     {msg.role === "client" && isLoading && i === messages.length - 1 && <span className="cursor-blink" />}
                   </div>
-                  {msg.score !== undefined && (
+                  {msg.score !== undefined && (simMode !== "exam" || !!examResult) && (
                     <div className={`px-3 py-2 rounded-xl text-xs border ${
                       msg.score >= 7 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600" :
                       msg.score >= 4 ? "border-amber-500/20 bg-amber-500/5 text-amber-600" :
