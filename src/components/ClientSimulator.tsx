@@ -124,6 +124,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
   const sendMessage = useCallback(async (userMsg: string) => {
     if (!userMsg.trim() || isLoading) return;
+    if (simMode === "exam" && (examLoading || examResult)) return;
     const newMessages: Message[] = [...messages, { role: "user", content: userMsg }];
     setMessages(newMessages);
     setInput("");
@@ -229,7 +230,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, config, simMode]);
+  }, [messages, isLoading, config, simMode, examLoading, examResult]);
 
   const finishExam = useCallback(async () => {
     if (examLoading) return;
@@ -320,6 +321,8 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
       finishExam();
     }
   }, [simMode, started, examResult, isLoading, examLoading, scoreCount, examRounds, finishExam]);
+
+  const examLocked = simMode === "exam" && (examLoading || !!examResult);
 
   const startSimulation = () => {
     setStarted(true);
@@ -800,7 +803,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     {msg.role === "client" && isLoading && i === messages.length - 1 && <span className="cursor-blink" />}
                   </div>
-                  {msg.score !== undefined && (
+                  {msg.score !== undefined && (simMode !== "exam" || !!examResult) && (
                     <div className={`px-3 py-2 rounded-xl text-xs border ${
                       msg.score >= 7 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600" :
                       msg.score >= 4 ? "border-amber-500/20 bg-amber-500/5 text-amber-600" :
@@ -839,6 +842,17 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
 
           {/* Input area */}
           <div className="p-3 border-t border-border/50 shrink-0">
+            {simMode === "exam" && (
+              <div className="mb-2">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Прогресс аттестации</span>
+                  <span>{Math.min(scoreCount, examRounds)}/{examRounds}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-accent/60 overflow-hidden">
+                  <div className="h-full bg-primary transition-all" style={{ width: `${Math.min(100, (scoreCount / examRounds) * 100)}%` }} />
+                </div>
+              </div>
+            )}
             {simMode === "trainer" && !isLoading && (
               <div className="flex gap-1.5 mb-2">
                 <button onClick={getHint} className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-primary hover:border-primary/20 transition-all btn-tactile">
@@ -846,19 +860,32 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                 </button>
               </div>
             )}
-            <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-                placeholder="Введите ваш ответ клиенту..."
-                disabled={isLoading}
-                className="flex-1 glass-input border border-border/50 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-              />
-              <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-50 transition-all btn-tactile">
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </button>
-            </div>
+            {examLocked ? (
+              <div className="flex items-center justify-between gap-2 glass-card border border-border/50 rounded-xl px-3 py-2.5">
+                <p className="text-xs text-muted-foreground">
+                  {examLoading ? "Подводим итоги аттестации..." : "Аттестация завершена. Диалог закрыт."}
+                </p>
+                {!examLoading && (
+                  <button onClick={resetSimulation} className="text-xs px-3 py-1.5 rounded-lg border border-border/50 text-foreground hover:bg-accent/50 btn-tactile shrink-0">
+                    Новая попытка
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
+                  placeholder="Введите ваш ответ клиенту..."
+                  disabled={isLoading}
+                  className="flex-1 glass-input border border-border/50 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                />
+                <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-50 transition-all btn-tactile">
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
