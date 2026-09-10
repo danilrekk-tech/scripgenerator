@@ -586,7 +586,7 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   <Field label="Количество раундов">
                     <div className="flex flex-wrap gap-1.5">
                       {EXAM_ROUND_OPTIONS.map((r) => (
-                        <Chip key={r} active={examRounds === r} onClick={() => setExamRounds(r)}>{r} раундов</Chip>
+                        <Chip key={r} active={examRounds === r} onClick={() => setExamRounds(r)}>{r === 1 ? "1 раунд" : r < 5 ? `${r} раунда` : `${r} раундов`}</Chip>
                       ))}
                     </div>
                   </Field>
