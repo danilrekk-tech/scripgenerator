@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import VoiceInputButton from "@/components/VoiceInputButton";
 import BlueprintHero from "@/components/BlueprintHero";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, RefreshCw, Loader2, CheckCircle, XCircle, Send, Sparkles } from "lucide-react";
@@ -143,11 +144,14 @@ export default function QuizMode({ serviceNames, className }: Props) {
                 disabled={isEvaluating || !!evaluation}
               />
               {!evaluation && (
+                <div className="flex gap-2 mt-2">
+                <VoiceInputButton value={userAnswer} onChange={setUserAnswer} disabled={isEvaluating} />
                 <button onClick={submitAnswer} disabled={!userAnswer.trim() || isEvaluating}
-                  className="w-full mt-2 bg-primary text-primary-foreground font-medium py-2.5 rounded-xl btn-tactile hover:opacity-90 disabled:opacity-50 text-sm flex items-center justify-center gap-2">
+                  className="flex-1 bg-primary text-primary-foreground font-medium py-2.5 rounded-xl btn-tactile hover:opacity-90 disabled:opacity-50 text-sm flex items-center justify-center gap-2">
                   {isEvaluating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {isEvaluating ? "Оцениваем..." : "Отправить ответ"}
                 </button>
+                </div>
               )}
             </div>
 
