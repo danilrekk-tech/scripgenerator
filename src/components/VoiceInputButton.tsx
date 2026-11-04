@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Mic, MicOff } from "lucide-react";
 import { useSpeechInput } from "@/hooks/useSpeechInput";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ export default function VoiceInputButton({ value, onChange, disabled, className 
   const { supported, listening, error, start, stop } = useSpeechInput((t) => {
     onChange((baseRef.current ? baseRef.current + " " : "") + t);
   });
-  if (error) toast.error(error, { id: "speech-err" });
+  useEffect(() => { if (error) toast.error(error, { id: "speech-err" }); }, [error]);
 
   const click = () => {
     if (!supported) { toast.error("Голосовой ввод работает в Chrome, Edge и Safari"); return; }
