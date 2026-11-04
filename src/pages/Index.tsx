@@ -67,7 +67,7 @@ import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Menu, Star, Settings, ChevronRight, Brain, BookOpen,
-  BookMarked, Users, PanelLeftClose, PanelLeftOpen,
+  BookMarked, Users, PanelLeftClose, PanelLeftOpen, ChevronDown,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
   LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
   UploadCloud, BarChart3,
@@ -122,6 +122,15 @@ export default function Index() {
   const [, setShowToolsSheet] = useState(false); void setShowToolsSheet;
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [openNavGroups, setOpenNavGroups] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("scriptengine-nav-open") || "null") || ["Начало", "Основное", "Тренировка"]; }
+    catch { return ["Начало", "Основное", "Тренировка"]; }
+  });
+  const toggleNavGroup = (label: string) => setOpenNavGroups((prev) => {
+    const next = prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label];
+    try { localStorage.setItem("scriptengine-nav-open", JSON.stringify(next)); } catch { /* noop */ }
+    return next;
+  });
   // For simulator tool overlay - preserve simulator state while viewing tools
   const [simulatorToolOverlay, setSimulatorToolOverlay] = useState<string | null>(null);
   const [showContextPreview, setShowContextPreview] = useState(false);
@@ -389,6 +398,10 @@ export default function Index() {
     ]},
   ];
 
+  const groupOpen = (group: { label: string; items: { value: string }[] }) =>
+    appMode === "training" || openNavGroups.includes(group.label) ||
+    group.items.some((i) => i.value === desktopPanel);
+
   // Desktop layout
   if (!isMobile) {
     return (
@@ -416,9 +429,12 @@ export default function Index() {
             {((appMode === "training" ? TRAINING_NAV_GROUPS : navGroups) as { label: string; items: { value: string; label: string; icon: React.ReactNode }[] }[]).map((group) => (
               <div key={group.label}>
                 {!sidebarCollapsed && (
-                  <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium px-2 mb-1">{group.label}</p>
+                  <button onClick={() => toggleNavGroup(group.label)} className="w-full flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground font-medium px-2 mb-1">
+                    <span>{group.label}</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${groupOpen(group) ? "" : "-rotate-90"}`} />
+                  </button>
                 )}
-                <div className="space-y-0.5">
+                {(sidebarCollapsed || groupOpen(group)) && <div className="space-y-0.5">
                   {group.items.map((item) => {
                     const training = appMode === "training";
                     const isActive = training ? ciView === (item.value as CallIntelView) : desktopPanel === item.value;
@@ -451,7 +467,7 @@ export default function Index() {
                     }
                     return <div key={item.value}>{btn}</div>;
                   })}
-                </div>
+                </div>}
               </div>
             ))}
           </nav>
