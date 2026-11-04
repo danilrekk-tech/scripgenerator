@@ -67,7 +67,7 @@ import {
   FileText, Globe, Zap, MessageCircle, Package, History,
   Save, Trash2, SlidersHorizontal, User, LogOut,
   Menu, Star, Settings, ChevronRight, Brain, BookOpen,
-  BookMarked, Users, PanelLeftClose, PanelLeftOpen,
+  BookMarked, Users, PanelLeftClose, PanelLeftOpen, ChevronDown,
   GitBranch, Headphones, FileSearch, Shield, Palette, Plus, Mic,
   LayoutGrid, Home, Briefcase, ListChecks, GitCompare, Calculator, Send, Sparkles, ShieldCheck, Boxes,
   UploadCloud, BarChart3,
