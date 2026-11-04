@@ -9,6 +9,7 @@ import {
 
 const SIM_STATE_KEY = "scriptengine-simulator-state";
 const EXAM_RESULTS_KEY = "scriptengine-exam-results";
+import VoiceInputButton from "@/components/VoiceInputButton";
 import { useSavedDialogs, type SavedDialog } from "@/hooks/useSavedDialogs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SIMULATOR_SCENARIO_PRESETS, TRAINER_TIPS_EXTENDED } from "@/lib/toolPresets";
@@ -879,8 +880,9 @@ export default function ClientSimulator({ serviceNames, className, onOpenTool }:
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
                   placeholder="Введите ваш ответ клиенту..."
                   disabled={isLoading}
-                  className="flex-1 glass-input border border-border/50 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  className="flex-1 min-w-0 glass-input border border-border/50 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                 />
+                <VoiceInputButton value={input} onChange={setInput} disabled={isLoading} />
                 <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-50 transition-all btn-tactile">
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </button>
